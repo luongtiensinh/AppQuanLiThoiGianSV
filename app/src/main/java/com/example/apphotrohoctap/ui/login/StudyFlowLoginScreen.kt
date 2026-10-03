@@ -66,7 +66,7 @@ private val FieldBackground = Color(0xFFF5F2FF)
 private val DividerColor = Color(0xFFE3E0F7)
 
 @Composable
-fun StudyFlowLoginScreen() {
+fun StudyFlowLoginScreen(onRegister: () -> Unit = {}) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -101,7 +101,7 @@ fun StudyFlowLoginScreen() {
                 onRememberLoginChange = { rememberLogin = !rememberLogin }
             )
             Spacer(Modifier.height(24.dp))
-            RegistrationPrompt()
+            RegistrationPrompt(onRegister)
         }
     }
 }
@@ -384,13 +384,13 @@ private fun SocialButton(icon: String, label: String) {
 }
 
 @Composable
-private fun RegistrationPrompt() {
+private fun RegistrationPrompt(onRegister: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("Chưa có tài khoản?", fontSize = 14.sp, color = SecondaryInk)
         Spacer(Modifier.width(8.dp))
         Text(
             text = "Đăng ký ngay",
-            modifier = Modifier.clickable { },
+            modifier = Modifier.clickable(onClick = onRegister),
             style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
             color = BrandBlue
         )
