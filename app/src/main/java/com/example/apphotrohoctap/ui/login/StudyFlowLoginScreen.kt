@@ -66,7 +66,10 @@ private val FieldBackground = Color(0xFFF5F2FF)
 private val DividerColor = Color(0xFFE3E0F7)
 
 @Composable
-fun StudyFlowLoginScreen(onRegister: () -> Unit = {}) {
+fun StudyFlowLoginScreen(
+    onRegister: () -> Unit = {},
+    onLogin: () -> Unit = {}
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -98,7 +101,8 @@ fun StudyFlowLoginScreen(onRegister: () -> Unit = {}) {
                 passwordVisible = passwordVisible,
                 onPasswordVisibilityChange = { passwordVisible = !passwordVisible },
                 rememberLogin = rememberLogin,
-                onRememberLoginChange = { rememberLogin = !rememberLogin }
+                onRememberLoginChange = { rememberLogin = !rememberLogin },
+                onLogin = onLogin
             )
             Spacer(Modifier.height(24.dp))
             RegistrationPrompt(onRegister)
@@ -195,7 +199,8 @@ private fun LoginCard(
     passwordVisible: Boolean,
     onPasswordVisibilityChange: () -> Unit,
     rememberLogin: Boolean,
-    onRememberLoginChange: () -> Unit
+    onRememberLoginChange: () -> Unit,
+    onLogin: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -241,7 +246,7 @@ private fun LoginCard(
                 onCheckedChange = onRememberLoginChange
             )
             Button(
-                onClick = {},
+                onClick = onLogin,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),

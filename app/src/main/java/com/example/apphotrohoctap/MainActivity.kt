@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
+import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
@@ -23,13 +24,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppHoTroHocTapTheme {
                 var showRegistration by remember { mutableStateOf(false) }
-                if (showRegistration) {
+                var showHome by remember { mutableStateOf(false) }
+                if (showHome) {
+                    StudyFlowHomeScreen()
+                } else if (showRegistration) {
                     StudyFlowRegisterScreen(
                         onBack = { showRegistration = false },
                         onSignIn = { showRegistration = false }
                     )
                 } else {
-                    StudyFlowLoginScreen(onRegister = { showRegistration = true })
+                    StudyFlowLoginScreen(
+                        onRegister = { showRegistration = true },
+                        onLogin = { showHome = true }
+                    )
                 }
             }
         }
