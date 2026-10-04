@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
 import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
+import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,8 +26,19 @@ class MainActivity : ComponentActivity() {
             AppHoTroHocTapTheme {
                 var showRegistration by remember { mutableStateOf(false) }
                 var showHome by remember { mutableStateOf(false) }
-                if (showHome) {
-                    StudyFlowHomeScreen()
+                var showSchedule by remember { mutableStateOf(false) }
+                if (showSchedule) {
+                    StudyFlowScheduleScreen(
+                        onTabSelected = { tab ->
+                            if (tab == "Trang chủ") showSchedule = false
+                        }
+                    )
+                } else if (showHome) {
+                    StudyFlowHomeScreen(
+                        onTabSelected = { tab ->
+                            if (tab == "Lịch biểu") showSchedule = true
+                        }
+                    )
                 } else if (showRegistration) {
                     StudyFlowRegisterScreen(
                         onBack = { showRegistration = false },
