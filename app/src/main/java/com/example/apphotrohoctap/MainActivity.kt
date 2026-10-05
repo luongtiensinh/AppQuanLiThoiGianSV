@@ -16,6 +16,7 @@ import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
 import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
+import com.example.apphotrohoctap.ui.tasks.StudyFlowTasksScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,16 +28,32 @@ class MainActivity : ComponentActivity() {
                 var showRegistration by remember { mutableStateOf(false) }
                 var showHome by remember { mutableStateOf(false) }
                 var showSchedule by remember { mutableStateOf(false) }
-                if (showSchedule) {
+                var showTasks by remember { mutableStateOf(false) }
+                if (showTasks) {
+                    StudyFlowTasksScreen(
+                        onTabSelected = { tab ->
+                            when (tab) {
+                                "Trang chủ" -> { showTasks = false; showSchedule = false; showHome = true }
+                                "Lịch biểu" -> { showTasks = false; showHome = false; showSchedule = true }
+                            }
+                        }
+                    )
+                } else if (showSchedule) {
                     StudyFlowScheduleScreen(
                         onTabSelected = { tab ->
-                            if (tab == "Trang chủ") showSchedule = false
+                            when (tab) {
+                                "Trang chủ" -> { showSchedule = false; showHome = true }
+                                "Nhiệm vụ" -> { showSchedule = false; showTasks = true }
+                            }
                         }
                     )
                 } else if (showHome) {
                     StudyFlowHomeScreen(
                         onTabSelected = { tab ->
-                            if (tab == "Lịch biểu") showSchedule = true
+                            when (tab) {
+                                "Lịch biểu" -> { showHome = false; showSchedule = true }
+                                "Nhiệm vụ" -> { showHome = false; showTasks = true }
+                            }
                         }
                     )
                 } else if (showRegistration) {
