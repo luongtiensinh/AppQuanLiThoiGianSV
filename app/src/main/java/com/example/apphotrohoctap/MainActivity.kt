@@ -17,6 +17,7 @@ import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowTasksScreen
+import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,8 +30,15 @@ class MainActivity : ComponentActivity() {
                 var showHome by remember { mutableStateOf(false) }
                 var showSchedule by remember { mutableStateOf(false) }
                 var showTasks by remember { mutableStateOf(false) }
-                if (showTasks) {
+                var showAddTask by remember { mutableStateOf(false) }
+                if (showAddTask) {
+                    StudyFlowAddTaskScreen(
+                        onBack = { showAddTask = false },
+                        onSave = { showAddTask = false }
+                    )
+                } else if (showTasks) {
                     StudyFlowTasksScreen(
+                        onAddTask = { showAddTask = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showTasks = false; showSchedule = false; showHome = true }
@@ -40,6 +48,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else if (showSchedule) {
                     StudyFlowScheduleScreen(
+                        onAddEvent = { showAddTask = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showSchedule = false; showHome = true }
@@ -49,6 +58,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else if (showHome) {
                     StudyFlowHomeScreen(
+                        onAddTask = { showAddTask = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Lịch biểu" -> { showHome = false; showSchedule = true }
