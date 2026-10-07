@@ -59,6 +59,7 @@ class MainActivity : ComponentActivity() {
                             when (tab) {
                                 "Trang chủ" -> { showTasks = false; showSchedule = false; showHome = true }
                                 "Lịch biểu" -> { showTasks = false; showHome = false; showSchedule = true }
+                                "Ghi chú" -> { showTasks = false; showNotes = true }
                             }
                         }
                     )
@@ -69,6 +70,7 @@ class MainActivity : ComponentActivity() {
                             when (tab) {
                                 "Trang chủ" -> { showSchedule = false; showHome = true }
                                 "Nhiệm vụ" -> { showSchedule = false; showTasks = true }
+                                "Ghi chú" -> { showSchedule = false; showNotes = true }
                             }
                         }
                     )
@@ -80,6 +82,7 @@ class MainActivity : ComponentActivity() {
                             when (tab) {
                                 "Lịch biểu" -> { showHome = false; showSchedule = true }
                                 "Nhiệm vụ" -> { showHome = false; showTasks = true }
+                                "Ghi chú" -> { showHome = false; showNotes = true }
                             }
                         }
                     )
