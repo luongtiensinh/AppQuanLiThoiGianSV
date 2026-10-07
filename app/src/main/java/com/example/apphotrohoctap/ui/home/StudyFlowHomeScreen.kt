@@ -92,6 +92,7 @@ fun StudyFlowHomeScreen(
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onSeeAllClasses: () -> Unit = {},
+    onCourseClick: () -> Unit = {},
     onFilterDeadlines: () -> Unit = {},
     onStartFocus: () -> Unit = {},
     onAddTask: () -> Unit = {},
@@ -120,7 +121,7 @@ fun StudyFlowHomeScreen(
                     GreetingSection()
                     GoalProgressCard()
                     StatisticsRow()
-                    TodayScheduleSection(onSeeAllClasses)
+                    TodayScheduleSection(onSeeAllClasses, onCourseClick)
                     UpcomingDeadlinesSection(onFilterDeadlines)
                     FocusSessionCard(onStartFocus)
                 }
@@ -406,7 +407,7 @@ private fun StatisticCard(
 }
 
 @Composable
-private fun TodayScheduleSection(onSeeAll: () -> Unit) {
+private fun TodayScheduleSection(onSeeAll: () -> Unit, onCourseClick: () -> Unit) {
     val classes = listOf(
         StudyClass("07:30 - 09:50", "Ca sáng", "Đang diễn ra", "Cơ sở dữ liệu nâng cao (IT3020)", "Phòng B1-302", "TS. Nguyễn Thanh Hải", Color(0xFF5E62F4), HomeBrandBlue, Color(0xFFE1E0FF), Color(0xFF2B2BC5)),
         StudyClass("13:00 - 15:20", "Ca chiều", "Có bài nộp", "Lập trình Ứng dụng Di động", "Lab 405", "ThS. Lê Hoàng Long", Color(0xFF555962), statusBackgroundRed, Color(0xFFFFDAD6), Color(0xFF93000A), "home_homework.svg", "home_classroom.svg", "home_laptop.svg"),
@@ -429,7 +430,7 @@ private fun TodayScheduleSection(onSeeAll: () -> Unit) {
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            classes.forEach { classItem -> StudyClassCard(classItem) }
+            classes.forEach { classItem -> StudyClassCard(classItem, onCourseClick) }
         }
     }
 }
@@ -437,8 +438,9 @@ private fun TodayScheduleSection(onSeeAll: () -> Unit) {
 private val statusBackgroundRed = Color(0xFFFFDAD6)
 
 @Composable
-private fun StudyClassCard(item: StudyClass) {
+private fun StudyClassCard(item: StudyClass, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth().height(102.75.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
