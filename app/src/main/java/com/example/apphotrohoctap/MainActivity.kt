@@ -18,6 +18,7 @@ import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowTasksScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
+import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,11 +32,14 @@ class MainActivity : ComponentActivity() {
                 var showSchedule by remember { mutableStateOf(false) }
                 var showTasks by remember { mutableStateOf(false) }
                 var showAddTask by remember { mutableStateOf(false) }
+                var showCourseDetail by remember { mutableStateOf(false) }
                 if (showAddTask) {
                     StudyFlowAddTaskScreen(
                         onBack = { showAddTask = false },
                         onSave = { showAddTask = false }
                     )
+                } else if (showCourseDetail) {
+                    StudyFlowCourseDetailScreen(onBack = { showCourseDetail = false })
                 } else if (showTasks) {
                     StudyFlowTasksScreen(
                         onAddTask = { showAddTask = true },
@@ -59,6 +63,7 @@ class MainActivity : ComponentActivity() {
                 } else if (showHome) {
                     StudyFlowHomeScreen(
                         onAddTask = { showAddTask = true },
+                        onCourseClick = { showCourseDetail = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Lịch biểu" -> { showHome = false; showSchedule = true }
