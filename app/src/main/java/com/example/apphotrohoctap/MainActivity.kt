@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
                                 "Trang chủ" -> { showNotes = false; showHome = true }
                                 "Lịch biểu" -> { showNotes = false; showSchedule = true }
                                 "Nhiệm vụ" -> { showNotes = false; showTasks = true }
+                                "Cài đặt" -> { showNotes = false; showSettings = true }
                             }
                         }
                     )
