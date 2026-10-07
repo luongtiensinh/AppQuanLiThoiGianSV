@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
                                 "Trang chủ" -> { showTasks = false; showSchedule = false; showHome = true }
                                 "Lịch biểu" -> { showTasks = false; showHome = false; showSchedule = true }
                                 "Ghi chú" -> { showTasks = false; showNotes = true }
+                                "Cài đặt" -> { showTasks = false; showSettings = true }
                             }
                         }
                     )
@@ -84,6 +85,7 @@ class MainActivity : ComponentActivity() {
                                 "Trang chủ" -> { showSchedule = false; showHome = true }
                                 "Nhiệm vụ" -> { showSchedule = false; showTasks = true }
                                 "Ghi chú" -> { showSchedule = false; showNotes = true }
+                                "Cài đặt" -> { showSchedule = false; showSettings = true }
                             }
                         }
                     )
@@ -96,6 +98,7 @@ class MainActivity : ComponentActivity() {
                                 "Lịch biểu" -> { showHome = false; showSchedule = true }
                                 "Nhiệm vụ" -> { showHome = false; showTasks = true }
                                 "Ghi chú" -> { showHome = false; showNotes = true }
+                                "Cài đặt" -> { showHome = false; showSettings = true }
                             }
                         }
                     )
