@@ -148,7 +148,11 @@ fun StudyFlowRegisterScreen(
                     onCheckedChange = { agreedToTerms = it }
                 )
                 Button(
-                    onClick = {},
+                    onClick = {
+                        if (agreedToTerms && fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
+                            onSignIn()
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().height(52.dp).padding(top = 4.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = RegisterBrandBlue),
