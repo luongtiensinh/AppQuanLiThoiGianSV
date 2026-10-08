@@ -94,7 +94,10 @@ fun StudyFlowTasksScreen(
                         tasks = sampleTasks,
                         completedOverrides = completedOverrides
                     )
-                    TodayProgressCard()
+                    TodayProgressCard(
+                        tasks = sampleTasks,
+                        completedOverrides = completedOverrides
+                    )
                 }
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 16.dp, end = 16.dp),

@@ -167,7 +167,15 @@ internal fun filterCount(kind: String, tasks: List<TaskItem> = sampleTasks, comp
 }
 
 @Composable
-internal fun TodayProgressCard() {
+internal fun TodayProgressCard(tasks: List<TaskItem> = sampleTasks, completedOverrides: Map<String, Boolean> = emptyMap()) {
+    val todayTasks = tasks.filter { it.group == "Hôm nay" }
+    val total = todayTasks.size
+    val done = todayTasks.count { completedOverrides[it.id] ?: it.completed }
+    val progress = if (total > 0) done.toFloat() / total else 0f
+    val percentage = (progress * 100).toInt()
+
+    val urgentTask = todayTasks.find { it.urgency != null && !(completedOverrides[it.id] ?: it.completed) }
+
     Surface(color = TasksPale, shape = RoundedCornerShape(16.dp), shadowElevation = 1.dp) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Surface(color = TasksBrand.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp)) {
@@ -176,14 +184,21 @@ internal fun TodayProgressCard() {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Tiến độ hôm nay", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = TasksInk)
-                    Text("3/5 xong (60%)", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = TasksBrand)
+                    Text("$done/$total xong ($percentage%)", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = TasksBrand)
                 }
                 Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(TasksDivider)) {
-                    Box(Modifier.fillMaxWidth(0.6f).height(8.dp).clip(CircleShape).background(TasksBrand))
+                    Box(Modifier.fillMaxWidth(progress.coerceAtLeast(0.01f)).height(8.dp).clip(CircleShape).background(TasksBrand))
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Box(Modifier.size(6.dp).clip(CircleShape).background(TasksRed))
-                    Text("1 deadline gấp cần nộp trước 23:59", fontSize = 11.sp, lineHeight = 16.sp, color = TasksSecondary)
+                if (urgentTask != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(Modifier.size(6.dp).clip(CircleShape).background(TasksRed))
+                        Text("1 deadline gấp cần nộp ${urgentTask.due.replace(" hôm nay", "").lowercase()}", fontSize = 11.sp, lineHeight = 16.sp, color = TasksSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                } else if (done == total && total > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF34C38F)))
+                        Text("Bạn đã hoàn thành tất cả nhiệm vụ!", fontSize = 11.sp, lineHeight = 16.sp, color = TasksSecondary, maxLines = 1)
+                    }
                 }
             }
         }
