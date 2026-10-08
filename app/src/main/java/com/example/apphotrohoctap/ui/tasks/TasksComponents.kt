@@ -95,7 +95,9 @@ internal fun SearchAndFilters(
     searchText: String,
     onSearchChange: (String) -> Unit,
     selectedFilter: String,
-    onFilterSelected: (String) -> Unit
+    onFilterSelected: (String) -> Unit,
+    tasks: List<TaskItem> = sampleTasks,
+    completedOverrides: Map<String, Boolean> = emptyMap()
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
@@ -136,7 +138,7 @@ internal fun SearchAndFilters(
                     ) {
                         if (filter.kind == "deadline") Box(Modifier.size(7.dp).clip(CircleShape).background(TasksRed))
                         Text(
-                            "${filter.label} (${filterCount(filter.kind)})",
+                            "${filter.label} (${filterCount(filter.kind, tasks, completedOverrides)})",
                             fontSize = 11.sp,
                             lineHeight = 16.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -150,13 +152,18 @@ internal fun SearchAndFilters(
     }
 }
 
-internal fun filterCount(kind: String): Int = when (kind) {
-    "all" -> 8
-    "class" -> 2
-    "deadline" -> 3
-    "assignment" -> 3
-    "done" -> 12
-    else -> 0
+internal fun filterCount(kind: String, tasks: List<TaskItem> = sampleTasks, completedOverrides: Map<String, Boolean> = emptyMap()): Int {
+    return tasks.count { task ->
+        val isDone = completedOverrides[task.id] ?: task.completed
+        when (kind) {
+            "all" -> true
+            "class" -> task.category == "class"
+            "deadline" -> task.category == "deadline"
+            "assignment" -> task.category == "assignment"
+            "done" -> isDone
+            else -> false
+        }
+    }
 }
 
 @Composable

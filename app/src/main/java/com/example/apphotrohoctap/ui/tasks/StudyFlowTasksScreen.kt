@@ -90,7 +90,9 @@ fun StudyFlowTasksScreen(
                         searchText = searchText,
                         onSearchChange = { searchText = it },
                         selectedFilter = selectedFilter,
-                        onFilterSelected = { selectedFilter = it }
+                        onFilterSelected = { selectedFilter = it },
+                        tasks = sampleTasks,
+                        completedOverrides = completedOverrides
                     )
                     TodayProgressCard()
                 }
