@@ -71,8 +71,8 @@ class MainActivity : ComponentActivity() {
                         onAddTask = { showAddTask = true },
                         onTabSelected = { tab ->
                             when (tab) {
-                                "Trang chủ" -> { showTasks = false; showSchedule = false; showHome = true }
-                                "Lịch biểu" -> { showTasks = false; showHome = false; showSchedule = true }
+                                "Trang chủ" -> { showTasks = false; showHome = true }
+                                "Lịch biểu" -> { showTasks = false; showSchedule = true }
                                 "Ghi chú" -> { showTasks = false; showNotes = true }
                                 "Cài đặt" -> { showTasks = false; showSettings = true }
                             }
