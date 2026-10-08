@@ -1,5 +1,6 @@
 package com.example.apphotrohoctap.ui.tasks
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 
 internal val TasksBackground = Color(0xFFFCF8FF)
@@ -37,7 +38,7 @@ internal val taskFilters = listOf(
     TaskFilter("Đã xong", "done")
 )
 
-internal val sampleTasks = listOf(
+internal val sampleTasks = mutableStateListOf(
     TaskItem("report", "Hôm nay", "CSDL Nâng cao (IT3020)", "Báo cáo Đồ án Bán kỳ: Thiết kế schema & Indexing", "23:59 hôm nay", "deadline", Color(0xFFEF4444), "Gấp • 6 giờ nữa", "Figma Project"),
     TaskItem("sprint", "Hôm nay", "Lập trình Ứng dụng Di động", "Nộp bài tập Sprint 2 - Android Architecture...", "15:00 hôm nay", "assignment", Color(0xFFF59E0B), "Sắp đến • 15:00", "Phòng Lab 405"),
     TaskItem("chapter", "Hôm nay", "CSDL Nâng cao", "Đọc trước Chapter 4: Distributed Database...", "Đã nộp lúc 09:30", "done", Color(0xFF34C38F), completed = true),

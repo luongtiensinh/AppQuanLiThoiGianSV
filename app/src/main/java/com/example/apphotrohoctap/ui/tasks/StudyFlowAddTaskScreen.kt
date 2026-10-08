@@ -114,7 +114,39 @@ fun StudyFlowAddTaskScreen(
                     onAddSubtask = { showSubtaskDialog = true }
                 )
             }
-            SaveFooter(enabled = title.isNotBlank(), onSave = onSave)
+            SaveFooter(enabled = title.isNotBlank(), onSave = {
+                val categoryKey = when (selectedCategory) {
+                    "Deadline" -> "deadline"
+                    "Lịch học" -> "class"
+                    else -> "assignment"
+                }
+                
+                val dateGroup = when (selectedDate) {
+                    "Hôm nay" -> "Hôm nay"
+                    "Ngày mai" -> "Ngày mai"
+                    else -> "Tuần này"
+                }
+
+                val accentColor = when (categoryKey) {
+                    "deadline" -> Color(0xFFEF4444)
+                    "class" -> Color(0xFF38BDF8)
+                    else -> Color(0xFFF59E0B)
+                }
+
+                val newTask = TaskItem(
+                    id = java.util.UUID.randomUUID().toString(),
+                    group = dateGroup,
+                    subject = selectedCourse,
+                    title = title,
+                    due = "$selectedDate, $selectedTime",
+                    category = categoryKey,
+                    accent = accentColor,
+                    urgency = if (selectedPriority == "Cao") "Gấp" else null,
+                    place = null
+                )
+                sampleTasks.add(newTask)
+                onSave()
+            })
         }
     }
 
