@@ -99,11 +99,38 @@ fun StudyFlowScheduleScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     ScheduleControls(selectedView, onViewChange = { selectedView = it })
-                    MonthInformationBanner()
-                    WeekDateCarousel(selectedDay, onDaySelected = { selectedDay = it })
-                    DailySummary()
-                    DailyTimeline()
-                    AttendanceSummary()
+                    if (selectedView == "Tháng") {
+                        MonthInformationBanner()
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp)
+                                .background(SchedulePale, RoundedCornerShape(16.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    text = "Chế độ xem Tháng\nđang được phát triển",
+                                    fontSize = 16.sp,
+                                    lineHeight = 24.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = ScheduleSecondary,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = "Vui lòng sử dụng chế độ xem Tuần",
+                                    fontSize = 12.sp,
+                                    color = ScheduleMuted
+                                )
+                            }
+                        }
+                    } else {
+                        MonthInformationBanner()
+                        WeekDateCarousel(selectedDay, onDaySelected = { selectedDay = it })
+                        DailySummary()
+                        DailyTimeline()
+                        AttendanceSummary()
+                    }
                 }
             }
             ScheduleBottomNavigation(onTabSelected)
