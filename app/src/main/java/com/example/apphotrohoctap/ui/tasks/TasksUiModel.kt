@@ -1,6 +1,5 @@
 package com.example.apphotrohoctap.ui.tasks
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 
 internal val TasksBackground = Color(0xFFFCF8FF)
@@ -36,15 +35,4 @@ internal val taskFilters = listOf(
     TaskFilter("Deadline", "deadline"),
     TaskFilter("Bài tập", "assignment"),
     TaskFilter("Đã xong", "done")
-)
-
-internal val sampleTasks = mutableStateListOf(
-    TaskItem("report", "Hôm nay", "CSDL Nâng cao (IT3020)", "Báo cáo Đồ án Bán kỳ: Thiết kế schema & Indexing", "23:59 hôm nay", "deadline", Color(0xFFEF4444), "Gấp • 6 giờ nữa", "Figma Project"),
-    TaskItem("sprint", "Hôm nay", "Lập trình Ứng dụng Di động", "Nộp bài tập Sprint 2 - Android Architecture...", "15:00 hôm nay", "assignment", Color(0xFFF59E0B), "Sắp đến • 15:00", "Phòng Lab 405"),
-    TaskItem("chapter", "Hôm nay", "CSDL Nâng cao", "Đọc trước Chapter 4: Distributed Database...", "Đã nộp lúc 09:30", "done", Color(0xFF34C38F), completed = true),
-    TaskItem("class_1", "Hôm nay", "Hệ điều hành", "Học bù Hệ điều hành", "13:00 - 15:00", "class", Color(0xFF38BDF8), "Đang diễn ra", "D3-501"),
-    TaskItem("slides", "Ngày mai", "Kỹ năng thuyết trình (IT4210)", "Chuẩn bị bài thuyết trình Slide Presentation: Cloud...", "Ngày mai, 17:00", "assignment", Color(0xFFF59E0B), "Điện toán đám mây (IT4210)", "Nhóm 4 thành viên"),
-    TaskItem("quiz", "Ngày mai", "Tiếng Anh CNTT", "Làm bài tập trắc nghiệm Vocabulary Unit 5 & 6", "Ngày mai, 21:00", "assignment", Color(0xFF38BDF8), "Tiếng Anh CNTT", "20 câu hỏi LMS"),
-    TaskItem("prototype", "Tuần này", "Thiết kế UI/UX", "Hoàn thiện Prototype Figma User Flow màn hình thanh...", "Thứ Bảy, 27/04 - 12:00", "assignment", Color(0xFFF59E0B), "Thiết kế UI/UX", "Figma Project"),
-    TaskItem("class_2", "Tuần này", "Mạng máy tính", "Thực hành Mạng máy tính", "Thứ Sáu, 08:00", "class", Color(0xFF38BDF8), "Thực hành", "Phòng Lab 402")
 )
