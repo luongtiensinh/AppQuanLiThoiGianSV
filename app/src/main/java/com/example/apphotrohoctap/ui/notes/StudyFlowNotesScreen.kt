@@ -19,10 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
+import coil.request.ImageRequest
 
 private val NotesBackground = Color(0xFFFCF8FF)
 private val NotesInk = Color(0xFF1A1A2A)
@@ -279,19 +283,38 @@ private fun StudyTipCard() {
 }
 
 @Composable
+private fun NotesIcon(assetName: String, modifier: Modifier, contentDescription: String) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data("file:///android_asset/studyflow/$assetName")
+            .decoderFactory(SvgDecoder.Factory())
+            .build(),
+        contentDescription = contentDescription.takeIf(String::isNotBlank),
+        modifier = modifier
+    )
+}
+
+@Composable
 private fun NotesBottomNavigation(onTabSelected: (String) -> Unit) {
     val items = listOf(
-        "Trang chủ" to "⌂", "Lịch biểu" to "▣", "Nhiệm vụ" to "✓", "Ghi chú" to "▤", "Cài đặt" to "⚙"
+        "Trang chủ" to "home_nav_home.svg",
+        "Lịch biểu" to "home_nav_schedule.svg",
+        "Nhiệm vụ" to "home_nav_tasks.svg",
+        "Ghi chú" to "home_nav_notes.svg",
+        "Cài đặt" to "home_nav_settings.svg"
     )
     Surface(color = NotesBackground.copy(alpha = .96f), shadowElevation = 4.dp) {
-        Row(Modifier.fillMaxWidth().navigationBarsPadding().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(Modifier.fillMaxWidth().navigationBarsPadding().height(80.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
             items.forEach { (title, icon) ->
                 val selected = title == "Ghi chú"
-                Surface(onClick = { if (!selected) onTabSelected(title) }, modifier = Modifier.weight(1f), color = Color.Transparent, shape = RoundedCornerShape(12.dp)) {
-                    Column(Modifier.height(58.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Text(icon, fontSize = 19.sp, lineHeight = 22.sp, color = if (selected) NotesBrand else NotesText)
-                        Text(title, fontSize = 9.sp, lineHeight = 13.sp, fontWeight = FontWeight.SemiBold, color = if (selected) NotesBrand else NotesText, maxLines = 1)
+                Column(Modifier.weight(1f).height(56.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Surface(onClick = { if (!selected) onTabSelected(title) }, modifier = Modifier.width(56.dp).height(32.dp), color = if (selected) Color(0xFFE1E0FF) else Color.Transparent, shape = CircleShape) {
+                        Box(contentAlignment = Alignment.Center) {
+                            NotesIcon(icon, Modifier.size(18.dp), "")
+                        }
                     }
+                    Spacer(Modifier.height(2.dp))
+                    Text(title, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold, color = if (selected) NotesBrand else NotesText, maxLines = 1)
                 }
             }
         }

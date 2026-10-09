@@ -48,6 +48,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
@@ -60,11 +62,13 @@ fun StudyFlowTasksScreen(
     onProfileClick: () -> Unit = {},
     onAddTask: () -> Unit = {}
 ) {
+    val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
+    val tasks by viewModel.tasks.collectAsState()
+
     var searchText by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("all") }
-    val completedOverrides = remember { mutableStateMapOf<String, Boolean>() }
-    val visibleTasks = sampleTasks.filter { task ->
-        val isDone = completedOverrides[task.id] ?: task.completed
+    val visibleTasks = tasks.filter { task ->
+        val isDone = task.completed
         val matchesFilter = when (selectedFilter) {
             "class" -> task.category == "class"
             "deadline" -> task.category == "deadline"
@@ -91,12 +95,10 @@ fun StudyFlowTasksScreen(
                         onSearchChange = { searchText = it },
                         selectedFilter = selectedFilter,
                         onFilterSelected = { selectedFilter = it },
-                        tasks = sampleTasks,
-                        completedOverrides = completedOverrides
+                        tasks = tasks
                     )
                     TodayProgressCard(
-                        tasks = sampleTasks,
-                        completedOverrides = completedOverrides
+                        tasks = tasks
                     )
                 }
                 Column(
@@ -114,7 +116,7 @@ fun StudyFlowTasksScreen(
                                     else -> "Đến 28/04"
                                 },
                                 tasks = groupTasks,
-                                completedOverrides = completedOverrides
+                                onToggleComplete = { viewModel.toggleCompleted(it) }
                             )
                         }
                     }

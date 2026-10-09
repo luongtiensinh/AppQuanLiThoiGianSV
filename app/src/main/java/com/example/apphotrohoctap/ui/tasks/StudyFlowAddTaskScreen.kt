@@ -47,11 +47,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.example.apphotrohoctap.data.TaskEntity
-import com.example.apphotrohoctap.data.toUiModel
 import java.util.Calendar
 
 @Composable
@@ -59,6 +59,7 @@ fun StudyFlowAddTaskScreen(
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
+    val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
     var title by remember { mutableStateOf("Báo cáo tiến độ đồ án phần mềm nhóm 4") }
     var selectedCourse by remember { mutableStateOf(addTaskCourses.first()) }
     var selectedCategory by remember { mutableStateOf("Deadline") }
@@ -148,9 +149,7 @@ fun StudyFlowAddTaskScreen(
                     isCompleted = false
                 )
 
-                // Tạm thời gọi hàm Mapper để add vào UI giả lập (sẽ thay bằng ViewModel.insertTask sau)
-                val newItem = newEntity.toUiModel(System.currentTimeMillis())
-                sampleTasks.add(newItem)
+                viewModel.addTask(newEntity)
 
                 onSave()
             })

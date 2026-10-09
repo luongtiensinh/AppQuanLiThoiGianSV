@@ -96,8 +96,7 @@ internal fun SearchAndFilters(
     onSearchChange: (String) -> Unit,
     selectedFilter: String,
     onFilterSelected: (String) -> Unit,
-    tasks: List<TaskItem> = sampleTasks,
-    completedOverrides: Map<String, Boolean> = emptyMap()
+    tasks: List<TaskItem>
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
@@ -138,7 +137,7 @@ internal fun SearchAndFilters(
                     ) {
                         if (filter.kind == "deadline") Box(Modifier.size(7.dp).clip(CircleShape).background(TasksRed))
                         Text(
-                            "${filter.label} (${filterCount(filter.kind, tasks, completedOverrides)})",
+                            "${filter.label} (${filterCount(filter.kind, tasks)})",
                             fontSize = 11.sp,
                             lineHeight = 16.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -152,9 +151,9 @@ internal fun SearchAndFilters(
     }
 }
 
-internal fun filterCount(kind: String, tasks: List<TaskItem> = sampleTasks, completedOverrides: Map<String, Boolean> = emptyMap()): Int {
+internal fun filterCount(kind: String, tasks: List<TaskItem>): Int {
     return tasks.count { task ->
-        val isDone = completedOverrides[task.id] ?: task.completed
+        val isDone = task.completed
         when (kind) {
             "all" -> true
             "class" -> task.category == "class"
@@ -167,14 +166,14 @@ internal fun filterCount(kind: String, tasks: List<TaskItem> = sampleTasks, comp
 }
 
 @Composable
-internal fun TodayProgressCard(tasks: List<TaskItem> = sampleTasks, completedOverrides: Map<String, Boolean> = emptyMap()) {
+internal fun TodayProgressCard(tasks: List<TaskItem>) {
     val todayTasks = tasks.filter { it.group == "Hôm nay" }
     val total = todayTasks.size
-    val done = todayTasks.count { completedOverrides[it.id] ?: it.completed }
+    val done = todayTasks.count { it.completed }
     val progress = if (total > 0) done.toFloat() / total else 0f
     val percentage = (progress * 100).toInt()
 
-    val urgentTask = todayTasks.find { it.urgency != null && !(completedOverrides[it.id] ?: it.completed) }
+    val urgentTask = todayTasks.find { it.urgency != null && !it.completed }
 
     Surface(color = TasksPale, shape = RoundedCornerShape(16.dp), shadowElevation = 1.dp) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -206,7 +205,7 @@ internal fun TodayProgressCard(tasks: List<TaskItem> = sampleTasks, completedOve
 }
 
 @Composable
-internal fun TaskGroup(title: String, date: String, tasks: List<TaskItem>, completedOverrides: MutableMap<String, Boolean>) {
+internal fun TaskGroup(title: String, date: String, tasks: List<TaskItem>, onToggleComplete: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(title, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, color = TasksInk)
@@ -226,8 +225,8 @@ internal fun TaskGroup(title: String, date: String, tasks: List<TaskItem>, compl
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             tasks.forEach { task ->
-                val isDone = completedOverrides[task.id] ?: task.completed
-                TaskCard(task, isDone) { completedOverrides[task.id] = !isDone }
+                val isDone = task.completed
+                TaskCard(task, isDone) { onToggleComplete(task.id) }
             }
         }
     }
