@@ -1,7 +1,6 @@
 package com.example.apphotrohoctap.ui.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -42,9 +41,6 @@ fun StudyFlowSettingsScreen(
 ) {
     var deadlineReminder by remember { mutableStateOf(true) }
     var classReminder by remember { mutableStateOf(true) }
-    var weeklySummary by remember { mutableStateOf(false) }
-    var darkMode by remember { mutableStateOf(false) }
-    var selectedAccent by remember { mutableIntStateOf(0) }
 
     Column(Modifier.fillMaxSize().background(SettingsBg)) {
         Column(
@@ -71,10 +67,6 @@ fun StudyFlowSettingsScreen(
                     }
                     SettingsPill("Chỉnh sửa", SettingsPale, SettingsBrand)
                 }
-                SettingsDivider()
-                SettingsNavigationRow("▣", "Học kỳ & Khóa học", "6 học phần đang kích hoạt", "HK II (2023 - 2024)")
-                SettingsDivider()
-                SettingsNavigationRow("♧", "Bảo mật & Mật khẩu", null, "Bảo vệ 2 lớp", trailingColor = Color(0xFF10A37F))
             }
 
             Spacer(Modifier.height(22.dp))
@@ -85,53 +77,12 @@ fun StudyFlowSettingsScreen(
                 SettingsToggleRow("▣", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
                 SettingsDivider()
                 SettingsNavigationRow("⌛", "Báo trước thời gian", "Áp dụng cho tất cả bài học", "Trước 60 phút")
-                SettingsDivider()
-                SettingsToggleRow("▥", "Tổng kết tiến độ tuần", "Gửi báo cáo học tập vào tối Chủ…", weeklySummary) { weeklySummary = it }
             }
 
             Spacer(Modifier.height(22.dp))
-            SettingsSectionHeader("GIAO DIỆN & HIỂN THỊ", "Academic Rhythm")
+            SettingsSectionHeader("HỆ THỐNG")
             SettingsCard {
-                SettingsToggleRow("☾", "Giao diện Tối (Dark Mode)", "Nền xanh navy trầm, dịu mắt ban…", darkMode) { darkMode = it }
-                SettingsDivider()
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SettingsIconTile("⊙")
-                        Column(Modifier.weight(1f)) {
-                            Text("Màu nhấn ứng dụng (Accent Color)", fontSize = 12.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium, color = SettingsInk)
-                            Text("Màu tím Indigo StudyFlow thanh lịch", fontSize = 10.sp, lineHeight = 14.sp, color = SettingsMuted)
-                        }
-                    }
-                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 52.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        listOf(SettingsBrand, Color(0xFF8B5CF6), Color(0xFF0284C7), Color(0xFFF43F5E), Color(0xFF10B981)).forEachIndexed { index, color ->
-                            Surface(onClick = { selectedAccent = index }, modifier = Modifier.size(if (selectedAccent == index) 42.dp else 40.dp), color = color, shape = CircleShape) {
-                                Box(contentAlignment = Alignment.Center) { if (selectedAccent == index) Text("✓", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White) }
-                            }
-                        }
-                    }
-                }
-                SettingsDivider()
-                SettingsNavigationRow("Tт", "Cỡ chữ nội dung", null, "Tiêu chuẩn (M)")
-            }
-
-            Spacer(Modifier.height(22.dp))
-            SettingsSectionHeader("DỮ LIỆU & ĐỒNG BỘ", "● Trực tuyến", statusColor = Color(0xFF10B981))
-            SettingsCard {
-                SettingsNavigationRow("☁", "Đồng bộ đám mây", "Đã đồng bộ 2 phút trước", "Đã kết nối", trailingColor = Color(0xFF10A37F))
-                SettingsDivider()
-                SettingsNavigationRow("⇧", "Sao lưu & Xuất dữ liệu", "Xuất lịch học & bài tập ra file CSV/JSON", "›")
-                SettingsDivider()
-                SettingsNavigationRow("⟳", "Dung lượng bộ nhớ tạm", "34.8 MB chiếm dụng", "Xóa cache")
-            }
-
-            Spacer(Modifier.height(22.dp))
-            SettingsSectionHeader("KHÁC")
-            SettingsCard {
-                SettingsNavigationRow("ⓘ", "Về StudyFlow", null, "v2.4.0 (Build 142)")
-                SettingsDivider()
-                SettingsNavigationRow("✉", "Góp ý & Báo lỗi", null, "›")
-                SettingsDivider()
-                SettingsNavigationRow("▤", "Điều khoản sử dụng & Quyền riêng tư", null, "›")
+                SettingsNavigationRow("ⓘ", "Về StudyFlow", null, "v1.0.0")
                 SettingsDivider()
                 SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = onLogout)
             }
