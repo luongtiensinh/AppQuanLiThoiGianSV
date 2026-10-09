@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import com.example.apphotrohoctap.data.TaskEntity
+import com.example.apphotrohoctap.data.toUiModel
+import java.util.Calendar
 
 @Composable
 fun StudyFlowAddTaskScreen(
@@ -120,31 +123,35 @@ fun StudyFlowAddTaskScreen(
                     "Lịch học" -> "class"
                     else -> "assignment"
                 }
-                
-                val dateGroup = when (selectedDate) {
-                    "Hôm nay" -> "Hôm nay"
-                    "Ngày mai" -> "Ngày mai"
-                    else -> "Tuần này"
-                }
 
-                val accentColor = when (categoryKey) {
-                    "deadline" -> Color(0xFFEF4444)
-                    "class" -> Color(0xFF38BDF8)
-                    else -> Color(0xFFF59E0B)
+                // Cách chuyển đổi String -> Milliseconds
+                val calendar = Calendar.getInstance()
+                when (selectedDate) {
+                    "Ngày mai" -> calendar.add(Calendar.DAY_OF_YEAR, 1)
+                    "Thứ Bảy, 27 Tháng 4, 2024" -> { calendar.set(2024, 3, 27) } // Index tháng từ 0
                 }
+                val timeParts = selectedTime.split(":")
+                if (timeParts.size == 2) {
+                    calendar.set(Calendar.HOUR_OF_DAY, timeParts[0].toIntOrNull() ?: 23)
+                    calendar.set(Calendar.MINUTE, timeParts[1].toIntOrNull() ?: 59)
+                }
+                val dueAtMillis = calendar.timeInMillis
 
-                val newTask = TaskItem(
-                    id = java.util.UUID.randomUUID().toString(),
-                    group = dateGroup,
+                val newEntity = TaskEntity(
                     subject = selectedCourse,
                     title = title,
-                    due = "$selectedDate, $selectedTime",
+                    dueAtMillis = dueAtMillis,
                     category = categoryKey,
-                    accent = accentColor,
-                    urgency = if (selectedPriority == "Cao") "Gấp" else null,
-                    place = null
+                    priority = selectedPriority,
+                    place = null,
+                    notes = notes,
+                    isCompleted = false
                 )
-                sampleTasks.add(newTask)
+
+                // Tạm thời gọi hàm Mapper để add vào UI giả lập (sẽ thay bằng ViewModel.insertTask sau)
+                val newItem = newEntity.toUiModel(System.currentTimeMillis())
+                sampleTasks.add(newItem)
+
                 onSave()
             })
         }
