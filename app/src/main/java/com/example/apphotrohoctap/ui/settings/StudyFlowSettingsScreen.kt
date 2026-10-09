@@ -2,6 +2,7 @@ package com.example.apphotrohoctap.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,7 +36,10 @@ private val SettingsPale = Color(0xFFE8E6FC)
 private val SettingsCardShadow = Color(0x0F5B5FEF)
 
 @Composable
-fun StudyFlowSettingsScreen(onTabSelected: (String) -> Unit = {}) {
+fun StudyFlowSettingsScreen(
+    onTabSelected: (String) -> Unit = {},
+    onLogout: () -> Unit = {}
+) {
     var deadlineReminder by remember { mutableStateOf(true) }
     var classReminder by remember { mutableStateOf(true) }
     var weeklySummary by remember { mutableStateOf(false) }
@@ -129,7 +133,7 @@ fun StudyFlowSettingsScreen(onTabSelected: (String) -> Unit = {}) {
                 SettingsDivider()
                 SettingsNavigationRow("▤", "Điều khoản sử dụng & Quyền riêng tư", null, "›")
                 SettingsDivider()
-                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true)
+                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = onLogout)
             }
             Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("♧  StudyFlow for Students", fontSize = 10.sp, color = SettingsMuted)
@@ -172,9 +176,24 @@ private fun SettingsIconTile(icon: String, background: Color = SettingsPale, for
 }
 
 @Composable
-private fun SettingsNavigationRow(icon: String, title: String, subtitle: String?, trailing: String, trailingColor: Color = SettingsBrand, danger: Boolean = false) {
+private fun SettingsNavigationRow(
+    icon: String, 
+    title: String, 
+    subtitle: String?, 
+    trailing: String, 
+    trailingColor: Color = SettingsBrand, 
+    danger: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
     val color = if (danger) Color(0xFFBA1A1A) else SettingsInk
-    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(16.dp), 
+        verticalAlignment = Alignment.CenterVertically, 
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         SettingsIconTile(icon, if (danger) Color(0xFFFFE9E7) else SettingsPale, if (danger) Color(0xFFBA1A1A) else SettingsBrand)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, fontSize = 12.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)

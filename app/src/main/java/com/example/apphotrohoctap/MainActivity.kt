@@ -53,6 +53,12 @@ class MainActivity : ComponentActivity() {
                                 "Nhiệm vụ" -> { showSettings = false; showTasks = true }
                                 "Ghi chú" -> { showSettings = false; showNotes = true }
                             }
+                        },
+                        onLogout = {
+                            // Đăng xuất: Tắt cờ hiện cài đặt và bật lại màn hình Đăng nhập
+                            showSettings = false
+                            showRegistration = false
+                            // Màn hình login sẽ hiển thị vì tất cả các cờ khác đều là false
                         }
                     )
                 } else if (showNotes) {
