@@ -77,6 +77,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else if (showNotes) {
                     StudyFlowNotesScreen(
+                        onCreateNote = { showAddNote = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showNotes = false; showHome = true }
