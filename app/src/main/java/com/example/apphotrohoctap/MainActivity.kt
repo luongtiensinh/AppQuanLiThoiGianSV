@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else if (showSchedule) {
                     StudyFlowScheduleScreen(
-                        onAddEvent = { showAddTask = true },
+                        onAddEvent = { showAddSchedule = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showSchedule = false; showHome = true }
