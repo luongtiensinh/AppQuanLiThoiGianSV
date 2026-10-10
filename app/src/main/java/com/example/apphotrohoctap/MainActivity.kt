@@ -21,6 +21,7 @@ import com.example.apphotrohoctap.ui.tasks.StudyFlowTasksScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
 import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowNotesScreen
+import com.example.apphotrohoctap.ui.notes.StudyFlowAddNoteScreen
 import com.example.apphotrohoctap.ui.settings.StudyFlowSettingsScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
@@ -36,10 +37,16 @@ class MainActivity : ComponentActivity() {
                 var showTasks by remember { mutableStateOf(false) }
                 var showAddTask by remember { mutableStateOf(false) }
                 var showAddSchedule by remember { mutableStateOf(false) }
+                var showAddNote by remember { mutableStateOf(false) }
                 var showCourseDetail by remember { mutableStateOf(false) }
                 var showNotes by remember { mutableStateOf(false) }
                 var showSettings by remember { mutableStateOf(false) }
-                if (showAddSchedule) {
+                if (showAddNote) {
+                    StudyFlowAddNoteScreen(
+                        onBack = { showAddNote = false },
+                        onSave = { showAddNote = false }
+                    )
+                } else if (showAddSchedule) {
                     StudyFlowAddScheduleScreen(
                         onBack = { showAddSchedule = false },
                         onSave = { showAddSchedule = false }
