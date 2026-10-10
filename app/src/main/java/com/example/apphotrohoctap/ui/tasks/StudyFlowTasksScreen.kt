@@ -60,7 +60,8 @@ fun StudyFlowTasksScreen(
     onTabSelected: (String) -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onAddTask: () -> Unit = {}
+    onAddTask: () -> Unit = {},
+    onTaskClick: () -> Unit = {}
 ) {
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
     val tasks by viewModel.tasks.collectAsState()
@@ -116,7 +117,8 @@ fun StudyFlowTasksScreen(
                                     else -> "Đến 28/04"
                                 },
                                 tasks = groupTasks,
-                                onToggleComplete = { viewModel.toggleCompleted(it) }
+                                onToggleComplete = { viewModel.toggleCompleted(it) },
+                                onTaskClick = onTaskClick
                             )
                         }
                     }
