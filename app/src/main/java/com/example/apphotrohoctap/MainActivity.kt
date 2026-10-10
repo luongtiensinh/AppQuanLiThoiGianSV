@@ -19,6 +19,7 @@ import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowAddScheduleScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowTasksScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
+import com.example.apphotrohoctap.ui.tasks.StudyFlowTaskDetailScreen
 import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowNotesScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowAddNoteScreen
@@ -37,13 +38,19 @@ class MainActivity : ComponentActivity() {
                 var showSchedule by remember { mutableStateOf(false) }
                 var showTasks by remember { mutableStateOf(false) }
                 var showAddTask by remember { mutableStateOf(false) }
+                var showTaskDetail by remember { mutableStateOf(false) }
                 var showAddSchedule by remember { mutableStateOf(false) }
                 var showAddNote by remember { mutableStateOf(false) }
                 var showEditNote by remember { mutableStateOf(false) }
                 var showCourseDetail by remember { mutableStateOf(false) }
                 var showNotes by remember { mutableStateOf(false) }
                 var showSettings by remember { mutableStateOf(false) }
-                if (showEditNote) {
+                if (showTaskDetail) {
+                    StudyFlowTaskDetailScreen(
+                        onBack = { showTaskDetail = false },
+                        onDelete = { showTaskDetail = false }
+                    )
+                } else if (showEditNote) {
                     StudyFlowEditNoteScreen(onBack = { showEditNote = false })
                 } else if (showAddNote) {
                     StudyFlowAddNoteScreen(
@@ -95,6 +102,7 @@ class MainActivity : ComponentActivity() {
                 } else if (showTasks) {
                     StudyFlowTasksScreen(
                         onAddTask = { showAddTask = true },
+                        onTaskClick = { showTaskDetail = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showTasks = false; showHome = true }
