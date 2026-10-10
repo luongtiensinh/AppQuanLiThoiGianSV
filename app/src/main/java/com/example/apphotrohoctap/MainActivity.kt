@@ -22,6 +22,7 @@ import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
 import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowNotesScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowAddNoteScreen
+import com.example.apphotrohoctap.ui.notes.StudyFlowEditNoteScreen
 import com.example.apphotrohoctap.ui.settings.StudyFlowSettingsScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
@@ -38,10 +39,13 @@ class MainActivity : ComponentActivity() {
                 var showAddTask by remember { mutableStateOf(false) }
                 var showAddSchedule by remember { mutableStateOf(false) }
                 var showAddNote by remember { mutableStateOf(false) }
+                var showEditNote by remember { mutableStateOf(false) }
                 var showCourseDetail by remember { mutableStateOf(false) }
                 var showNotes by remember { mutableStateOf(false) }
                 var showSettings by remember { mutableStateOf(false) }
-                if (showAddNote) {
+                if (showEditNote) {
+                    StudyFlowEditNoteScreen(onBack = { showEditNote = false })
+                } else if (showAddNote) {
                     StudyFlowAddNoteScreen(
                         onBack = { showAddNote = false },
                         onSave = { showAddNote = false }
@@ -78,6 +82,7 @@ class MainActivity : ComponentActivity() {
                 } else if (showNotes) {
                     StudyFlowNotesScreen(
                         onCreateNote = { showAddNote = true },
+                        onEditNote = { showEditNote = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showNotes = false; showHome = true }
