@@ -205,7 +205,7 @@ internal fun TodayProgressCard(tasks: List<TaskItem>) {
 }
 
 @Composable
-internal fun TaskGroup(title: String, date: String, tasks: List<TaskItem>, onToggleComplete: (String) -> Unit, onTaskClick: () -> Unit) {
+internal fun TaskGroup(title: String, date: String, tasks: List<TaskItem>, onToggleComplete: (String) -> Unit, onTaskClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(title, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, color = TasksInk)
@@ -226,7 +226,7 @@ internal fun TaskGroup(title: String, date: String, tasks: List<TaskItem>, onTog
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             tasks.forEach { task ->
                 val isDone = task.completed
-                TaskCard(task, isDone, onClick = onTaskClick) { onToggleComplete(task.id) }
+                TaskCard(task, isDone, onClick = { onTaskClick(task.id) }) { onToggleComplete(task.id) }
             }
         }
     }
