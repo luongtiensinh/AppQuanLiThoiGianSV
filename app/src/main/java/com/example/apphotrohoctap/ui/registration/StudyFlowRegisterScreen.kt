@@ -369,8 +369,9 @@ private fun RegisterDivider() {
 
 @Composable
 private fun GoogleRegisterButton() {
+    val context = LocalContext.current
     Surface(
-        onClick = {},
+        onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() },
         modifier = Modifier.fillMaxWidth().height(48.dp),
         shape = RoundedCornerShape(12.dp),
         color = Color.White,

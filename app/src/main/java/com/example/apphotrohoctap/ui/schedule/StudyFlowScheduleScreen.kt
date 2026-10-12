@@ -208,6 +208,7 @@ private fun ScheduleHeader(onNotificationClick: () -> Unit, onProfileClick: () -
 
 @Composable
 private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Unit) {
+    val context = LocalContext.current
     Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Column {
@@ -238,7 +239,7 @@ private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Uni
                     }
                 }
                 Surface(
-                    onClick = {},
+                    onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() },
                     modifier = Modifier.size(36.dp),
                     color = Color(0xFFEFECFF),
                     shape = CircleShape

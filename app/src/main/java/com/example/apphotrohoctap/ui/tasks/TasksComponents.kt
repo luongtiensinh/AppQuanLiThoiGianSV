@@ -234,6 +234,7 @@ internal fun TaskGroup(title: String, date: String, tasks: List<TaskItem>, onTog
 
 @Composable
 internal fun TaskCard(task: TaskItem, isDone: Boolean, onClick: () -> Unit, onToggleComplete: () -> Unit) {
+    val context = LocalContext.current
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
         Row(Modifier.fillMaxWidth().drawBehind { drawRect(task.accent, size = androidx.compose.ui.geometry.Size(4.dp.toPx(), size.height)) }) {
             Surface(
@@ -277,7 +278,7 @@ internal fun TaskCard(task: TaskItem, isDone: Boolean, onClick: () -> Unit, onTo
                     }
                 }
             }
-            Surface(onClick = {}, modifier = Modifier.padding(top = 10.dp, end = 6.dp).size(32.dp), color = Color.Transparent, shape = CircleShape) {
+            Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, modifier = Modifier.padding(top = 10.dp, end = 6.dp).size(32.dp), color = Color.Transparent, shape = CircleShape) {
                 Box(contentAlignment = Alignment.Center) { Text("⋮", fontSize = 18.sp, color = TasksSecondary) }
             }
         }
