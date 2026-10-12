@@ -149,7 +149,7 @@ fun StudyFlowAddTaskScreen(
                     isCompleted = false
                 )
 
-                viewModel.addTask(newEntity)
+                viewModel.addTaskWithSubtasks(newEntity, subtasks)
 
                 onSave()
             })
