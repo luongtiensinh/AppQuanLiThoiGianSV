@@ -16,10 +16,14 @@ import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
 import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
+import com.example.apphotrohoctap.ui.schedule.StudyFlowAddScheduleScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowTasksScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
+import com.example.apphotrohoctap.ui.tasks.StudyFlowTaskDetailScreen
 import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowNotesScreen
+import com.example.apphotrohoctap.ui.notes.StudyFlowAddNoteScreen
+import com.example.apphotrohoctap.ui.notes.StudyFlowEditNoteScreen
 import com.example.apphotrohoctap.ui.settings.StudyFlowSettingsScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
@@ -34,10 +38,31 @@ class MainActivity : ComponentActivity() {
                 var showSchedule by remember { mutableStateOf(false) }
                 var showTasks by remember { mutableStateOf(false) }
                 var showAddTask by remember { mutableStateOf(false) }
+                var showTaskDetail by remember { mutableStateOf(false) }
+                var showAddSchedule by remember { mutableStateOf(false) }
+                var showAddNote by remember { mutableStateOf(false) }
+                var showEditNote by remember { mutableStateOf(false) }
                 var showCourseDetail by remember { mutableStateOf(false) }
                 var showNotes by remember { mutableStateOf(false) }
                 var showSettings by remember { mutableStateOf(false) }
-                if (showAddTask) {
+                if (showTaskDetail) {
+                    StudyFlowTaskDetailScreen(
+                        onBack = { showTaskDetail = false },
+                        onDelete = { showTaskDetail = false }
+                    )
+                } else if (showEditNote) {
+                    StudyFlowEditNoteScreen(onBack = { showEditNote = false })
+                } else if (showAddNote) {
+                    StudyFlowAddNoteScreen(
+                        onBack = { showAddNote = false },
+                        onSave = { showAddNote = false }
+                    )
+                } else if (showAddSchedule) {
+                    StudyFlowAddScheduleScreen(
+                        onBack = { showAddSchedule = false },
+                        onSave = { showAddSchedule = false }
+                    )
+                } else if (showAddTask) {
                     StudyFlowAddTaskScreen(
                         onBack = { showAddTask = false },
                         onSave = { showAddTask = false }
@@ -53,10 +78,18 @@ class MainActivity : ComponentActivity() {
                                 "Nhiệm vụ" -> { showSettings = false; showTasks = true }
                                 "Ghi chú" -> { showSettings = false; showNotes = true }
                             }
+                        },
+                        onLogout = {
+                            // Đăng xuất: Tắt cờ hiện cài đặt và bật lại màn hình Đăng nhập
+                            showSettings = false
+                            showRegistration = false
+                            // Màn hình login sẽ hiển thị vì tất cả các cờ khác đều là false
                         }
                     )
                 } else if (showNotes) {
                     StudyFlowNotesScreen(
+                        onCreateNote = { showAddNote = true },
+                        onEditNote = { showEditNote = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showNotes = false; showHome = true }
@@ -69,6 +102,7 @@ class MainActivity : ComponentActivity() {
                 } else if (showTasks) {
                     StudyFlowTasksScreen(
                         onAddTask = { showAddTask = true },
+                        onTaskClick = { showTaskDetail = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showTasks = false; showHome = true }
@@ -80,7 +114,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else if (showSchedule) {
                     StudyFlowScheduleScreen(
-                        onAddEvent = { showAddTask = true },
+                        onAddEvent = { showAddSchedule = true },
                         onTabSelected = { tab ->
                             when (tab) {
                                 "Trang chủ" -> { showSchedule = false; showHome = true }

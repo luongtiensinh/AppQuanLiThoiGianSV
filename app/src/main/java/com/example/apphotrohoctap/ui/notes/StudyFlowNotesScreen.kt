@@ -57,7 +57,7 @@ private val sampleNotes = listOf(
 private data class SubjectFilter(val name: String, val count: Int, val color: Color? = null)
 
 @Composable
-fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () -> Unit = {}) {
+fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: () -> Unit = {}) {
     val filters = listOf(
         SubjectFilter("Tất cả", 16),
         SubjectFilter("CSDL Nâng cao", 5, NotesBrand),
@@ -86,7 +86,7 @@ fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () 
                     .filter { selectedSubject == "Tất cả" || it.subject == selectedSubject }
                     .filter { searchQuery.isBlank() || (it.title + it.preview + it.subject).contains(searchQuery, ignoreCase = true) }
                     .let { if (newestFirst) it else it.reversed() }
-                RecentNotesSection(visibleNotes, isGrid)
+                RecentNotesSection(visibleNotes, isGrid, onEditNote)
                 StudyTipCard()
             }
             NotesBottomNavigation(onTabSelected)
@@ -215,7 +215,7 @@ private fun AttachmentPill(text: String) {
 }
 
 @Composable
-private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean) {
+private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean, onEditNote: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Gần đây", fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, color = NotesInk)
@@ -226,11 +226,11 @@ private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean) {
         if (notes.isEmpty()) {
             Text("Không tìm thấy ghi chú phù hợp.", modifier = Modifier.padding(vertical = 20.dp), fontSize = 13.sp, color = NotesMuted)
         } else if (!isGrid) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { notes.forEach { NoteCard(it, Modifier.fillMaxWidth()) } }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { notes.forEach { NoteCard(it, Modifier.fillMaxWidth(), onEditNote) } }
         } else {
             notes.chunked(2).forEach { rowNotes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
-                    rowNotes.forEach { note -> NoteCard(note, Modifier.weight(1f)) }
+                    rowNotes.forEach { note -> NoteCard(note, Modifier.weight(1f), onEditNote) }
                     if (rowNotes.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
@@ -239,8 +239,8 @@ private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean) {
 }
 
 @Composable
-private fun NoteCard(note: NoteItem, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.heightIn(min = 182.dp), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+private fun NoteCard(note: NoteItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = modifier.heightIn(min = 182.dp), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
         Row(Modifier.fillMaxWidth()) {
             Box(Modifier.width(5.dp).fillMaxHeight().background(note.accent))
             Column(Modifier.weight(1f).padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
