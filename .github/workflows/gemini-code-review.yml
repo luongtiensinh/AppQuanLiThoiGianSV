@@ -1,4 +1,4 @@
-
+```yaml
 name: Gemini AI Code Review
 
 on:
@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
   issues: write
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
               return;
             }
 
-            // 1. Get the PR diff.
+            // 1. Get the Pull Request diff.
             const diffResponse = await github.request(
               "GET /repos/{owner}/{repo}/pulls/{pull_number}",
               {
@@ -58,7 +58,7 @@ jobs:
               return;
             }
 
-            // 2. Discover models actually available to this API key.
+            // 2. Discover available Gemini models.
             const modelsResponse = await fetch(
               "https://generativelanguage.googleapis.com/v1beta/models",
               {
@@ -87,9 +87,7 @@ jobs:
             const preferredModel = "models/gemini-3.8-flash";
 
             const flashModels = availableModels
-              .filter(model =>
-                /flash/i.test(model.name || "")
-              )
+              .filter(model => /flash/i.test(model.name || ""))
               .sort((a, b) => a.name.localeCompare(b.name));
 
             const orderedModels = [
@@ -104,8 +102,7 @@ jobs:
             if (orderedModels.length === 0) {
               throw new Error(
                 "No Gemini Flash model supporting generateContent " +
-                "is available to this API key. Check the model list " +
-                "in Google AI Studio."
+                "is available to this API key."
               );
             }
 
@@ -150,7 +147,7 @@ jobs:
             ${diff}
             `;
 
-            // 4. Retry temporary errors and fall back to other models.
+            // 4. Retry temporary API errors and use fallback models.
             let review = "";
             const failures = [];
 
@@ -197,7 +194,9 @@ jobs:
 
                     if (review) {
                       modelSucceeded = true;
-                      core.info(`Review succeeded using ${modelId}.`);
+                      core.info(
+                        `Review succeeded using ${modelId}.`
+                      );
                       break;
                     }
 
@@ -218,7 +217,6 @@ jobs:
                   `${status || "network error"} - ${errorText.slice(0, 300)}`
                 );
 
-                // Retry only temporary errors.
                 const retryable =
                   !status ||
                   [429, 500, 502, 503, 504].includes(status) ||
@@ -254,18 +252,23 @@ jobs:
               );
             }
 
-            // 5. Post a normal comment on the PR.
+            // 5. Post the review as a Pull Request comment.
+            // This requires issues: write and repository workflow
+            // permissions to allow read and write access.
+            const commentBody =
+              "## Gemini AI Code Review\n\n" +
+              review +
+              "\n\n---\n" +
+              "_AI-generated review. Please verify findings manually._";
+
             await github.rest.issues.createComment({
               owner,
               repo,
               issue_number: prNumber,
-              body:
-                "## Gemini AI Code Review\n\n" +
-                review +
-                "\n\n---\n" +
-                "_AI-generated review. Please verify findings manually._"
+              body: commentBody
             });
 
             core.info(
               `Gemini review posted on PR #${prNumber}.`
             );
+```
