@@ -18,8 +18,14 @@ import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowAddScheduleScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowTasksScreen
-import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.apphotrohoctap.ui.navigation.Screen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowTaskDetailScreen
+import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
 import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowNotesScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowAddNoteScreen
@@ -33,120 +39,126 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppHoTroHocTapTheme {
-                var showRegistration by remember { mutableStateOf(false) }
-                var showHome by remember { mutableStateOf(false) }
-                var showSchedule by remember { mutableStateOf(false) }
-                var showTasks by remember { mutableStateOf(false) }
-                var showAddTask by remember { mutableStateOf(false) }
-                var showTaskDetail by remember { mutableStateOf(false) }
-                var showAddSchedule by remember { mutableStateOf(false) }
-                var showAddNote by remember { mutableStateOf(false) }
-                var showEditNote by remember { mutableStateOf(false) }
-                var showCourseDetail by remember { mutableStateOf(false) }
-                var showNotes by remember { mutableStateOf(false) }
-                var showSettings by remember { mutableStateOf(false) }
-                if (showTaskDetail) {
-                    StudyFlowTaskDetailScreen(
-                        onBack = { showTaskDetail = false },
-                        onDelete = { showTaskDetail = false }
-                    )
-                } else if (showEditNote) {
-                    StudyFlowEditNoteScreen(onBack = { showEditNote = false })
-                } else if (showAddNote) {
-                    StudyFlowAddNoteScreen(
-                        onBack = { showAddNote = false },
-                        onSave = { showAddNote = false }
-                    )
-                } else if (showAddSchedule) {
-                    StudyFlowAddScheduleScreen(
-                        onBack = { showAddSchedule = false },
-                        onSave = { showAddSchedule = false }
-                    )
-                } else if (showAddTask) {
-                    StudyFlowAddTaskScreen(
-                        onBack = { showAddTask = false },
-                        onSave = { showAddTask = false }
-                    )
-                } else if (showCourseDetail) {
-                    StudyFlowCourseDetailScreen(onBack = { showCourseDetail = false })
-                } else if (showSettings) {
-                    StudyFlowSettingsScreen(
-                        onTabSelected = { tab ->
-                            when (tab) {
-                                "Trang chủ" -> { showSettings = false; showHome = true }
-                                "Lịch biểu" -> { showSettings = false; showSchedule = true }
-                                "Nhiệm vụ" -> { showSettings = false; showTasks = true }
-                                "Ghi chú" -> { showSettings = false; showNotes = true }
-                            }
-                        },
-                        onLogout = {
-                            // Đăng xuất: Tắt cờ hiện cài đặt và bật lại màn hình Đăng nhập
-                            showSettings = false
-                            showRegistration = false
-                            // Màn hình login sẽ hiển thị vì tất cả các cờ khác đều là false
+                val navController = rememberNavController()
+
+                val navToTab: (String) -> Unit = { tab ->
+                    val route = when (tab) {
+                        "Trang chủ" -> Screen.Home.route
+                        "Lịch biểu" -> Screen.Schedule.route
+                        "Nhiệm vụ" -> Screen.Tasks.route
+                        "Ghi chú" -> Screen.Notes.route
+                        "Cài đặt" -> Screen.Settings.route
+                        else -> Screen.Home.route
+                    }
+                    navController.navigate(route) {
+                        popUpTo(Screen.Home.route) {
+                            saveState = true
                         }
-                    )
-                } else if (showNotes) {
-                    StudyFlowNotesScreen(
-                        onCreateNote = { showAddNote = true },
-                        onEditNote = { showEditNote = true },
-                        onTabSelected = { tab ->
-                            when (tab) {
-                                "Trang chủ" -> { showNotes = false; showHome = true }
-                                "Lịch biểu" -> { showNotes = false; showSchedule = true }
-                                "Nhiệm vụ" -> { showNotes = false; showTasks = true }
-                                "Cài đặt" -> { showNotes = false; showSettings = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+
+                NavHost(navController = navController, startDestination = Screen.Login.route) {
+                    composable(Screen.Login.route) {
+                        StudyFlowLoginScreen(
+                            onRegister = { navController.navigate(Screen.Register.route) },
+                            onLogin = {
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                }
                             }
-                        }
-                    )
-                } else if (showTasks) {
-                    StudyFlowTasksScreen(
-                        onAddTask = { showAddTask = true },
-                        onTaskClick = { showTaskDetail = true },
-                        onTabSelected = { tab ->
-                            when (tab) {
-                                "Trang chủ" -> { showTasks = false; showHome = true }
-                                "Lịch biểu" -> { showTasks = false; showSchedule = true }
-                                "Ghi chú" -> { showTasks = false; showNotes = true }
-                                "Cài đặt" -> { showTasks = false; showSettings = true }
+                        )
+                    }
+                    composable(Screen.Register.route) {
+                        StudyFlowRegisterScreen(
+                            onBack = { navController.popBackStack() },
+                            onSignIn = {
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                }
                             }
-                        }
-                    )
-                } else if (showSchedule) {
-                    StudyFlowScheduleScreen(
-                        onAddEvent = { showAddSchedule = true },
-                        onTabSelected = { tab ->
-                            when (tab) {
-                                "Trang chủ" -> { showSchedule = false; showHome = true }
-                                "Nhiệm vụ" -> { showSchedule = false; showTasks = true }
-                                "Ghi chú" -> { showSchedule = false; showNotes = true }
-                                "Cài đặt" -> { showSchedule = false; showSettings = true }
+                        )
+                    }
+                    composable(Screen.Home.route) {
+                        StudyFlowHomeScreen(
+                            onAddTask = { navController.navigate(Screen.AddTask.route) },
+                            onCourseClick = { navController.navigate(Screen.CourseDetail.route) },
+                            onTabSelected = navToTab
+                        )
+                    }
+                    composable(Screen.Schedule.route) {
+                        StudyFlowScheduleScreen(
+                            onAddEvent = { navController.navigate(Screen.AddSchedule.route) },
+                            onTabSelected = navToTab
+                        )
+                    }
+                    composable(Screen.Tasks.route) {
+                        StudyFlowTasksScreen(
+                            onAddTask = { navController.navigate(Screen.AddTask.route) },
+                            onTaskClick = { taskId -> navController.navigate(Screen.TaskDetail.createRoute(taskId.toLongOrNull() ?: 0L)) },
+                            onTabSelected = navToTab
+                        )
+                    }
+                    composable(Screen.Notes.route) {
+                        StudyFlowNotesScreen(
+                            onCreateNote = { navController.navigate(Screen.AddNote.route) },
+                            onEditNote = { navController.navigate(Screen.EditNote.createRoute("1")) }, // TODO Pass real note id
+                            onTabSelected = navToTab
+                        )
+                    }
+                    composable(Screen.Settings.route) {
+                        StudyFlowSettingsScreen(
+                            onTabSelected = navToTab,
+                            onLogout = {
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true } // Clear entire back stack
+                                }
                             }
-                        }
-                    )
-                } else if (showHome) {
-                    StudyFlowHomeScreen(
-                        onAddTask = { showAddTask = true },
-                        onCourseClick = { showCourseDetail = true },
-                        onTabSelected = { tab ->
-                            when (tab) {
-                                "Lịch biểu" -> { showHome = false; showSchedule = true }
-                                "Nhiệm vụ" -> { showHome = false; showTasks = true }
-                                "Ghi chú" -> { showHome = false; showNotes = true }
-                                "Cài đặt" -> { showHome = false; showSettings = true }
-                            }
-                        }
-                    )
-                } else if (showRegistration) {
-                    StudyFlowRegisterScreen(
-                        onBack = { showRegistration = false },
-                        onSignIn = { showRegistration = false }
-                    )
-                } else {
-                    StudyFlowLoginScreen(
-                        onRegister = { showRegistration = true },
-                        onLogin = { showHome = true }
-                    )
+                        )
+                    }
+                    composable(Screen.CourseDetail.route) {
+                        StudyFlowCourseDetailScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.AddTask.route) {
+                        StudyFlowAddTaskScreen(
+                            onBack = { navController.popBackStack() },
+                            onSave = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.AddSchedule.route) {
+                        StudyFlowAddScheduleScreen(
+                            onBack = { navController.popBackStack() },
+                            onSave = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.AddNote.route) {
+                        StudyFlowAddNoteScreen(
+                            onBack = { navController.popBackStack() },
+                            onSave = { navController.popBackStack() }
+                        )
+                    }
+                    composable(
+                        route = Screen.EditNote.route,
+                        arguments = listOf(navArgument("noteId") { type = NavType.StringType })
+                    ) {
+                        StudyFlowEditNoteScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable(
+                        route = Screen.TaskDetail.route,
+                        arguments = listOf(navArgument("taskId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val taskId = backStackEntry.arguments?.getLong("taskId") ?: return@composable
+                        StudyFlowTaskDetailScreen(
+                            taskId = taskId,
+                            onBack = { navController.popBackStack() },
+                            onDelete = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
