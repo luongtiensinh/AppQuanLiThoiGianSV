@@ -118,6 +118,7 @@ private fun CourseHeader(onBack: () -> Unit) {
 
 @Composable
 private fun CourseOverview() {
+    val context = LocalContext.current
     Card(Modifier.fillMaxWidth().padding(horizontal = 24.dp), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(3.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
