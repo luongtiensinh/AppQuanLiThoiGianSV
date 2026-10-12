@@ -53,16 +53,6 @@ fun StudyFlowTaskDetailScreen(
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
     val task by viewModel.tasks.map { list -> list.find { it.id == taskId.toString() } }.collectAsState(initial = null)
 
-    var subtasks by remember {
-        mutableStateOf(
-            listOf(
-                DetailSubtask("Thiết kế layout Figma cho 5 màn hình", true),
-                DetailSubtask("Tích hợp Retrofit gọi API thời tiết", true),
-                DetailSubtask("Viết Room Database lưu cache offline", false),
-                DetailSubtask("Đóng gói file APK và quay video demo (3 phút)", false)
-            )
-        )
-    }
     var newSubtask by remember { mutableStateOf("") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     BackHandler(onBack = onBack)
@@ -73,8 +63,8 @@ fun StudyFlowTaskDetailScreen(
     }
     val currentTask = task!!
     
-    val checkedCount = subtasks.count { it.checked }
-    val progress = if (subtasks.isEmpty()) 0f else checkedCount.toFloat() / subtasks.size
+    val checkedCount = currentTask.subtasks.count { it.isCompleted }
+    val progress = if (currentTask.subtasks.isEmpty()) 0f else checkedCount.toFloat() / currentTask.subtasks.size
 
     Box(
         Modifier.fillMaxSize().background(DetailBackground)
@@ -99,18 +89,18 @@ fun StudyFlowTaskDetailScreen(
             ) {
                 TaskDetailHeader(currentTask)
                 TaskMetadataCard(currentTask)
-                TaskProgressCard(checkedCount, subtasks.size, progress)
+                TaskProgressCard(checkedCount, currentTask.subtasks.size, progress)
                 TaskSubtasksCard(
-                    subtasks = subtasks,
+                    subtasks = currentTask.subtasks,
                     newSubtask = newSubtask,
                     onNewSubtaskChange = { newSubtask = it },
-                    onToggle = { index -> subtasks = subtasks.toMutableList().also { it[index] = it[index].copy(checked = !it[index].checked) } },
-                    onDelete = { index -> subtasks = subtasks.filterIndexed { itemIndex, _ -> itemIndex != index } },
+                    onToggle = { index -> 
+                        val subtaskId = currentTask.subtasks[index].id
+                        viewModel.toggleSubtask(currentTask.id.toLongOrNull() ?: 0L, subtaskId)
+                    },
+                    onDelete = { /* TODO implement subtask delete */ },
                     onAdd = {
-                        if (newSubtask.isNotBlank()) {
-                            subtasks = subtasks + DetailSubtask(newSubtask.trim(), false)
-                            newSubtask = ""
-                        }
+                        // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
                     }
                 )
                 TaskAttachmentCard()
@@ -158,8 +148,6 @@ fun StudyFlowTaskDetailScreen(
         )
     }
 }
-
-private data class DetailSubtask(val title: String, val checked: Boolean)
 
 @Composable
 private fun TaskDetailHeader(task: TaskItem) {
@@ -237,7 +225,7 @@ private fun TaskProgressCard(checked: Int, total: Int, progress: Float) {
 
 @Composable
 private fun TaskSubtasksCard(
-    subtasks: List<DetailSubtask>,
+    subtasks: List<Subtask>,
     newSubtask: String,
     onNewSubtaskChange: (String) -> Unit,
     onToggle: (Int) -> Unit,
@@ -260,7 +248,7 @@ private fun TaskSubtasksCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        checked = item.checked,
+                        checked = item.isCompleted,
                         onCheckedChange = { onToggle(index) },
                         modifier = Modifier.size(38.dp),
                         colors = CheckboxDefaults.colors(checkedColor = DetailBrand, uncheckedColor = DetailDivider)
@@ -270,8 +258,8 @@ private fun TaskSubtasksCard(
                         Modifier.weight(1f).padding(start = 4.dp),
                         fontSize = 11.sp,
                         lineHeight = 16.sp,
-                        color = if (item.checked) DetailMuted else DetailInk,
-                        textDecoration = if (item.checked) TextDecoration.LineThrough else TextDecoration.None,
+                        color = if (item.isCompleted) DetailMuted else DetailInk,
+                        textDecoration = if (item.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
