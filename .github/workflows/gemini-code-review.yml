@@ -1,4 +1,4 @@
-```yaml
+
 name: Gemini AI Code Review
 
 on:
@@ -326,4 +326,3 @@ jobs:
               `Gemini review posted successfully: ` +
               postedComment.data.html_url
             );
-```
