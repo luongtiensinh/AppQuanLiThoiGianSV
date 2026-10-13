@@ -246,7 +246,11 @@ private fun LoginCard(
                 onCheckedChange = onRememberLoginChange
             )
             Button(
-                onClick = onLogin,
+                onClick = {
+                    if (email.isNotBlank() && password.isNotBlank()) {
+                        onLogin()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
@@ -374,8 +378,9 @@ private fun SocialOptions() {
 
 @Composable
 private fun SocialButton(icon: String, label: String) {
+    val context = LocalContext.current
     Surface(
-        onClick = {},
+        onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() },
         modifier = Modifier.fillMaxWidth().height(48.dp),
         shape = RoundedCornerShape(12.dp),
         color = FieldBackground

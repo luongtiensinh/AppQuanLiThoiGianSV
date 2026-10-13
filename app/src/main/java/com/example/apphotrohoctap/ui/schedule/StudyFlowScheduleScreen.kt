@@ -49,6 +49,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.apphotrohoctap.data.toUiModel
 import com.example.apphotrohoctap.R
 
 private val ScheduleBackground = Color(0xFFFCF8FF)
@@ -81,8 +84,28 @@ fun StudyFlowScheduleScreen(
     onProfileClick: () -> Unit = {},
     onAddEvent: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val viewModel: ScheduleViewModel = viewModel(factory = ScheduleViewModelFactory(context))
+    val schedules by viewModel.schedules.collectAsState()
+
     var selectedView by remember { mutableStateOf("Tuần") }
     var selectedDay by remember { mutableStateOf("24") }
+
+    val now = System.currentTimeMillis()
+    val selectedWeekdayStr = calendarDays.find { it.day == selectedDay }?.weekday ?: "T4"
+    val selectedDayInt = when (selectedWeekdayStr) {
+        "T2" -> 1
+        "T3" -> 2
+        "T4" -> 3
+        "T5" -> 4
+        "T6" -> 5
+        "T7" -> 6
+        else -> 7
+    }
+
+    val dayClasses = schedules
+        .filter { it.dayOfWeek == selectedDayInt }
+        .map { it.toUiModel(now) }
 
     Box(modifier = Modifier.fillMaxSize().background(ScheduleBackground)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -127,8 +150,8 @@ fun StudyFlowScheduleScreen(
                     } else {
                         MonthInformationBanner()
                         WeekDateCarousel(selectedDay, onDaySelected = { selectedDay = it })
-                        DailySummary()
-                        DailyTimeline()
+                        DailySummary(dayClasses.size)
+                        DailyTimeline(dayClasses)
                         AttendanceSummary()
                     }
                 }
@@ -208,6 +231,7 @@ private fun ScheduleHeader(onNotificationClick: () -> Unit, onProfileClick: () -
 
 @Composable
 private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Unit) {
+    val context = LocalContext.current
     Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Column {
@@ -238,7 +262,7 @@ private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Uni
                     }
                 }
                 Surface(
-                    onClick = {},
+                    onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() },
                     modifier = Modifier.size(36.dp),
                     color = Color(0xFFEFECFF),
                     shape = CircleShape
@@ -325,7 +349,7 @@ private fun WeekDateCarousel(selectedDay: String, onDaySelected: (String) -> Uni
 }
 
 @Composable
-private fun DailySummary() {
+private fun DailySummary(classCount: Int) {
     Surface(color = Color(0xFFEFECFF), shape = CircleShape) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
@@ -333,22 +357,52 @@ private fun DailySummary() {
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Box(Modifier.size(6.dp).clip(CircleShape).background(ScheduleBrandBlue))
-            Text("Hôm nay có 3 ca học (5 tiết) • 1 bài nộp", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleSecondary)
+            Text("Hôm nay có $classCount ca học", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleSecondary)
         }
     }
 }
 
 @Composable
-private fun DailyTimeline() {
+private fun DailyTimeline(classes: List<StudyClass>) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        TimelineEventRow(time = "07:00", content = { MorningClassCard() })
-        CurrentTimeRow()
-        TimelineDividerRow("10:00")
-        TimelineDividerRow("12:00", note = "Giờ nghỉ trưa tự do")
-        TimelineEventRow(time = "13:00", content = { AfternoonClassCard() }, topSpacing = 8.dp)
-        TimelineEventRow(time = "15:30", content = { StudyGroupBlock() }, topSpacing = 12.dp)
-        TimelineEventRow(time = "18:00", content = { EveningClassCard() }, topSpacing = 12.dp)
+        if (classes.isEmpty()) {
+            Text(
+                "Không có lịch học nào.",
+                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                color = ScheduleSecondary,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center
+            )
+        } else {
+            classes.forEach { item ->
+                val startTimeStr = item.time.substringBefore(" - ")
+                TimelineEventRow(time = startTimeStr, content = {
+                    DynamicClassCard(item)
+                }, topSpacing = 8.dp)
+            }
+        }
         TimelineDividerRow("20:00", note = "Kết thúc lịch học buổi tối", showMoon = true)
+    }
+}
+
+@Composable
+private fun DynamicClassCard(item: StudyClass) {
+    ScheduleClassCard(accent = item.leadingColor) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Surface(color = item.statusColor, shape = CircleShape) {
+                Row(Modifier.padding(horizontal = 8.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (item.status == "Đang diễn ra") Box(Modifier.size(6.dp).clip(CircleShape).background(ScheduleBrandBlue))
+                    Text(item.status, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = item.statusTextColor)
+                }
+            }
+            Spacer(Modifier.width(6.dp))
+            Text(item.session, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, color = ScheduleMuted)
+            Spacer(Modifier.weight(1f))
+            Text(item.time, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
+        }
+        Text(item.title, fontSize = 16.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
+        ScheduleMetaRow(4, Modifier.size(12.dp), "Phòng ${item.place}")
+        ScheduleMetaRow(5, Modifier.size(10.667.dp), "GV: ${item.teacher}")
     }
 }
 

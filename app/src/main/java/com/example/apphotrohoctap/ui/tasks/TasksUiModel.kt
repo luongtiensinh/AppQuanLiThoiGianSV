@@ -16,6 +16,8 @@ internal val TasksRedPale = Color(0xFFFFDAD6)
 
 internal data class TaskFilter(val label: String, val kind: String)
 
+internal data class Subtask(val id: Long, val title: String, val isCompleted: Boolean)
+
 internal data class TaskItem(
     val id: String,
     val group: String,
@@ -26,7 +28,8 @@ internal data class TaskItem(
     val accent: Color,
     val urgency: String? = null,
     val place: String? = null,
-    val completed: Boolean = false
+    val completed: Boolean = false,
+    val subtasks: List<Subtask> = emptyList()
 )
 
 internal val taskFilters = listOf(

@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +35,7 @@ private val EditNotePale = Color(0xFFEFECFF)
 
 @Composable
 fun StudyFlowEditNoteScreen(onBack: () -> Unit = {}) {
+    val context = LocalContext.current
     var title by remember { mutableStateOf("Kiến trúc MVVM & Room Database trong Android") }
     var menuExpanded by remember { mutableStateOf(false) }
     var selectedTool by remember { mutableStateOf("B") }
@@ -94,7 +96,7 @@ fun StudyFlowEditNoteScreen(onBack: () -> Unit = {}) {
                     Spacer(Modifier.weight(1f))
                     Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         listOf(Color(0xFF4143D5), Color(0xFF0EA5E9), Color(0xFFF59E0B), Color(0xFF10B981)).forEachIndexed { index, color ->
-                            Surface(onClick = {}, modifier = Modifier.size(if (index == 0) 26.dp else 22.dp), color = color, shape = CircleShape) {
+                            Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, modifier = Modifier.size(if (index == 0) 26.dp else 22.dp), color = color, shape = CircleShape) {
                                 if (index == 0) Box(contentAlignment = Alignment.Center) { Text("✓", fontSize = 11.sp, color = Color.White) }
                             }
                         }

@@ -9,17 +9,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,26 +46,30 @@ private val DetailRedPale = Color(0xFFFFDAD6)
 
 @Composable
 fun StudyFlowTaskDetailScreen(
+    taskId: Long,
     onBack: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
-    var subtasks by remember {
-        mutableStateOf(
-            listOf(
-                DetailSubtask("Thiết kế layout Figma cho 5 màn hình", true),
-                DetailSubtask("Tích hợp Retrofit gọi API thời tiết", true),
-                DetailSubtask("Viết Room Database lưu cache offline", false),
-                DetailSubtask("Đóng gói file APK và quay video demo (3 phút)", false)
-            )
-        )
-    }
-    var newSubtask by remember { mutableStateOf("") }
-    var completed by remember { mutableStateOf(false) }
-    BackHandler(onBack = onBack)
-    val checkedCount = subtasks.count { it.checked }
-    val progress = if (subtasks.isEmpty()) 0f else checkedCount.toFloat() / subtasks.size
+    val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
+    val task by viewModel.tasks.map { list -> list.find { it.id == taskId.toString() } }.collectAsState(initial = null)
 
-    Box(Modifier.fillMaxSize().background(DetailBackground)) {
+    var newSubtask by remember { mutableStateOf("") }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    BackHandler(onBack = onBack)
+    
+    // Nếu task bị xóa hoặc không tìm thấy, quay về màn trước
+    if (task == null) {
+        return
+    }
+    val currentTask = task!!
+    
+    val checkedCount = currentTask.subtasks.count { it.isCompleted }
+    val progress = if (currentTask.subtasks.isEmpty()) 0f else checkedCount.toFloat() / currentTask.subtasks.size
+
+    Box(
+        Modifier.fillMaxSize().background(DetailBackground)
+            .then(if (showDeleteConfirmation) Modifier.blur(1.dp).alpha(.65f) else Modifier)
+    ) {
         Column(Modifier.fillMaxSize()) {
             Row(
                 Modifier.fillMaxWidth().statusBarsPadding().height(64.dp).padding(horizontal = 16.dp),
@@ -74,20 +87,20 @@ fun StudyFlowTaskDetailScreen(
                     .padding(horizontal = 16.dp).padding(bottom = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                TaskDetailHeader(completed)
-                TaskMetadataCard()
-                TaskProgressCard(checkedCount, subtasks.size, progress)
+                TaskDetailHeader(currentTask)
+                TaskMetadataCard(currentTask)
+                TaskProgressCard(checkedCount, currentTask.subtasks.size, progress)
                 TaskSubtasksCard(
-                    subtasks = subtasks,
+                    subtasks = currentTask.subtasks,
                     newSubtask = newSubtask,
                     onNewSubtaskChange = { newSubtask = it },
-                    onToggle = { index -> subtasks = subtasks.toMutableList().also { it[index] = it[index].copy(checked = !it[index].checked) } },
-                    onDelete = { index -> subtasks = subtasks.filterIndexed { itemIndex, _ -> itemIndex != index } },
+                    onToggle = { index -> 
+                        val subtaskId = currentTask.subtasks[index].id
+                        viewModel.toggleSubtask(currentTask.id.toLongOrNull() ?: 0L, subtaskId)
+                    },
+                    onDelete = { /* TODO implement subtask delete */ },
                     onAdd = {
-                        if (newSubtask.isNotBlank()) {
-                            subtasks = subtasks + DetailSubtask(newSubtask.trim(), false)
-                            newSubtask = ""
-                        }
+                        // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
                     }
                 )
                 TaskAttachmentCard()
@@ -105,43 +118,52 @@ fun StudyFlowTaskDetailScreen(
                 Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Surface(onClick = onDelete, modifier = Modifier.weight(1f).height(48.dp), color = DetailRedPale, shape = RoundedCornerShape(12.dp)) {
+                Surface(onClick = { showDeleteConfirmation = true }, modifier = Modifier.weight(1f).height(48.dp), color = DetailRedPale, shape = RoundedCornerShape(12.dp)) {
                     Box(contentAlignment = Alignment.Center) { Text("▤  Xóa", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DetailRed) }
                 }
                 Surface(
-                    onClick = { completed = !completed },
+                    onClick = { viewModel.toggleCompleted(currentTask.id) },
                     modifier = Modifier.weight(2f).height(48.dp),
                     color = DetailBrand,
                     shape = RoundedCornerShape(12.dp),
                     shadowElevation = 4.dp
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(if (completed) "✓  Đã hoàn thành" else "✓  Đánh dấu hoàn thành", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                        Text(if (currentTask.completed) "✓  Đã hoàn thành" else "✓  Đánh dấu hoàn thành", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                     }
                 }
             }
         }
     }
+
+    if (showDeleteConfirmation) {
+        TaskDeleteConfirmationDialog(
+            taskTitle = currentTask.title,
+            onDismiss = { showDeleteConfirmation = false },
+            onConfirmDelete = {
+                showDeleteConfirmation = false
+                viewModel.deleteTask(currentTask.id)
+                onDelete()
+            }
+        )
+    }
 }
 
-private data class DetailSubtask(val title: String, val checked: Boolean)
-
 @Composable
-private fun TaskDetailHeader(completed: Boolean) {
+private fun TaskDetailHeader(task: TaskItem) {
     Surface(color = DetailCard, shape = RoundedCornerShape(18.dp), shadowElevation = 2.dp) {
         Row(Modifier.fillMaxWidth()) {
-            Box(Modifier.width(4.dp).height(124.dp).background(if (completed) Color(0xFF34C38F) else Color(0xFFBA1A1A)))
+            Box(Modifier.width(4.dp).height(124.dp).background(task.accent))
             Column(Modifier.weight(1f).padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Surface(color = Color(0xFFEFECFF), shape = CircleShape) {
                     Row(Modifier.padding(horizontal = 9.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Box(Modifier.size(7.dp).clip(CircleShape).background(DetailBrand))
-                        Text("Lập trình Di động", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+                        Box(Modifier.size(7.dp).clip(CircleShape).background(task.accent))
+                        Text(task.subject, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
                     }
                 }
-                Text("Nộp bài tập lớn Android", fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold, color = DetailInk)
+                Text(task.title, fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold, color = DetailInk, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    DetailBadge("⚑  Ưu tiên: Cao", DetailRedPale, DetailRed)
-                    DetailBadge("◷  Còn 2 ngày 4 giờ", DetailRedPale, DetailRed)
+                    task.urgency?.let { DetailBadge("⚑ $it", DetailRedPale, DetailRed) }
                 }
             }
         }
@@ -156,14 +178,12 @@ private fun DetailBadge(text: String, background: Color, foreground: Color) {
 }
 
 @Composable
-private fun TaskMetadataCard() {
+private fun TaskMetadataCard(task: TaskItem) {
     Surface(color = DetailPale, shape = RoundedCornerShape(18.dp), shadowElevation = 1.dp) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            MetadataRow("▣", "Hạn nộp", "Thứ Sáu, 12/10/2026", trailing = "Sửa")
+            MetadataRow("▤", "Thời gian", task.due, trailing = "Sửa")
             MetadataDivider()
-            MetadataRow("◷", "Giờ", "23:59", trailing = "Sửa")
-            MetadataDivider()
-            MetadataRow("⬡", "Loại", "Bài tập lớn", trailing = "Học phần chính")
+            MetadataRow("⬡", "Phân loại", task.category.uppercase(), trailing = "Học phần chính")
         }
     }
 }
@@ -205,7 +225,7 @@ private fun TaskProgressCard(checked: Int, total: Int, progress: Float) {
 
 @Composable
 private fun TaskSubtasksCard(
-    subtasks: List<DetailSubtask>,
+    subtasks: List<Subtask>,
     newSubtask: String,
     onNewSubtaskChange: (String) -> Unit,
     onToggle: (Int) -> Unit,
@@ -228,7 +248,7 @@ private fun TaskSubtasksCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        checked = item.checked,
+                        checked = item.isCompleted,
                         onCheckedChange = { onToggle(index) },
                         modifier = Modifier.size(38.dp),
                         colors = CheckboxDefaults.colors(checkedColor = DetailBrand, uncheckedColor = DetailDivider)
@@ -238,8 +258,8 @@ private fun TaskSubtasksCard(
                         Modifier.weight(1f).padding(start = 4.dp),
                         fontSize = 11.sp,
                         lineHeight = 16.sp,
-                        color = if (item.checked) DetailMuted else DetailInk,
-                        textDecoration = if (item.checked) TextDecoration.LineThrough else TextDecoration.None,
+                        color = if (item.isCompleted) DetailMuted else DetailInk,
+                        textDecoration = if (item.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -273,13 +293,14 @@ private fun TaskSubtasksCard(
 
 @Composable
 private fun TaskAttachmentCard() {
+    val context = LocalContext.current
     DetailSectionCard(title = "♧  Tài liệu đính kèm") {
         Row(Modifier.fillMaxWidth().background(DetailPale, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("De_cuong_Bai_tap_lon_v2.pdf", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = DetailInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("2.4 MB • Tải lên từ LMS", fontSize = 9.sp, color = DetailMuted)
             }
-            Surface(onClick = {}, color = Color(0xFFE3E0F7), shape = CircleShape) {
+            Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, color = Color(0xFFE3E0F7), shape = CircleShape) {
                 Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) { Text("↓", fontSize = 17.sp, color = DetailBrand) }
             }
         }
@@ -308,6 +329,54 @@ private fun DetailSectionCard(title: String, trailing: String? = null, content: 
                 trailing?.let { Text(it, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand) }
             }
             content()
+        }
+    }
+}
+
+@Composable
+private fun TaskDeleteConfirmationDialog(taskTitle: String, onDismiss: () -> Unit, onConfirmDelete: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().widthIn(max = 384.dp),
+            color = Color.White,
+            shape = RoundedCornerShape(24.dp),
+            shadowElevation = 16.dp
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(color = DetailRedPale, shape = CircleShape) {
+                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                        Text("▤", fontSize = 21.sp, fontWeight = FontWeight.Bold, color = Color(0xFFBA1A1A))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                Text("Xóa nhiệm vụ?", fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold, color = DetailInk)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Hành động này không thể hoàn tác. Mọi việc con, ghi chú và tiến độ của “$taskTitle” sẽ bị xóa vĩnh viễn khỏi danh sách của bạn.",
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp,
+                    color = DetailText,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Spacer(Modifier.height(22.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                        Text("Hủy", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DetailText)
+                    }
+                    Button(
+                        onClick = onConfirmDelete,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBA1A1A))
+                    ) {
+                        Text("▤  Xóa", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    }
+                }
+            }
         }
     }
 }

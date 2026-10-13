@@ -30,6 +30,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.apphotrohoctap.data.ScheduleEntity
+import java.text.SimpleDateFormat
+import java.util.Locale
 import androidx.compose.ui.unit.sp
 
 private val AddScheduleBg = Color(0xFFFCF8FF)
@@ -46,6 +51,9 @@ fun StudyFlowAddScheduleScreen(
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val viewModel: ScheduleViewModel = viewModel(factory = ScheduleViewModelFactory(context))
+
     var selectedType by remember { mutableStateOf("Buổi học") }
     var courseName by remember { mutableStateOf("Lập trình Di động") }
     var courseCode by remember { mutableStateOf("IT4785") }
@@ -165,7 +173,48 @@ fun StudyFlowAddScheduleScreen(
         }
         Surface(color = AddScheduleBg.copy(alpha = .96f), shadowElevation = 4.dp) {
             Button(
-                onClick = onSave,
+                onClick = {
+                    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val startMillis = try { sdf.parse(startDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
+                    val endMillis = try { sdf.parse(endDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
+
+                    val startP = startPeriod.substringAfter("Tiết ").toIntOrNull() ?: 1
+                    val endP = endPeriod.substringAfter("Tiết ").toIntOrNull() ?: 3
+
+                    val dayInt = when (selectedDay) {
+                        "T2" -> 1
+                        "T3" -> 2
+                        "T4" -> 3
+                        "T5" -> 4
+                        "T6" -> 5
+                        "T7" -> 6
+                        else -> 7
+                    }
+
+                    val schedule = ScheduleEntity(
+                        subject = courseName,
+                        courseCode = courseCode,
+                        dayOfWeek = dayInt,
+                        startPeriod = startP,
+                        endPeriod = endP,
+                        room = room,
+                        lecturer = instructor,
+                        repeatWeekly = repeatsWeekly,
+                        startDateMillis = startMillis,
+                        endDateMillis = endMillis,
+                        colorKey = selectedColor.toString()
+                    )
+
+                    viewModel.addSchedule(
+                        schedule = schedule,
+                        onError = { errorMsg ->
+                            android.widget.Toast.makeText(context, errorMsg, android.widget.Toast.LENGTH_SHORT).show()
+                        },
+                        onSuccess = {
+                            onSave()
+                        }
+                    )
+                },
                 modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp).height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = AddScheduleBrand)

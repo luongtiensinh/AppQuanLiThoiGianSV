@@ -61,7 +61,7 @@ fun StudyFlowTasksScreen(
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onAddTask: () -> Unit = {},
-    onTaskClick: () -> Unit = {}
+    onTaskClick: (String) -> Unit = {}
 ) {
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
     val tasks by viewModel.tasks.collectAsState()

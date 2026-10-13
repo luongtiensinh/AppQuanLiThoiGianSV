@@ -24,18 +24,28 @@ internal class TasksViewModel(private val repository: TaskRepository) : ViewMode
             initialValue = emptyList()
         )
 
-    fun addTask(task: TaskEntity) {
+    fun addTaskWithSubtasks(task: TaskEntity, subtasks: List<String>) {
         viewModelScope.launch {
-            repository.addTask(task)
+            repository.addTaskWithSubtasks(task, subtasks)
         }
     }
 
     fun toggleCompleted(id: String) {
         viewModelScope.launch {
             val taskId = id.toLongOrNull() ?: return@launch
-            val task = repository.getTaskById(taskId)
-            if (task != null) {
-                repository.updateTask(task.copy(isCompleted = !task.isCompleted))
+            val taskWithSubtasks = repository.getTaskById(taskId)
+            if (taskWithSubtasks != null) {
+                repository.updateTask(taskWithSubtasks.task.copy(isCompleted = !taskWithSubtasks.task.isCompleted))
+            }
+        }
+    }
+
+    fun toggleSubtask(taskId: Long, subtaskId: Long) {
+        viewModelScope.launch {
+            val taskWithSubtasks = repository.getTaskById(taskId)
+            val subtask = taskWithSubtasks?.subtasks?.find { it.subtaskId == subtaskId }
+            if (subtask != null) {
+                repository.updateSubtask(subtask.copy(isCompleted = !subtask.isCompleted))
             }
         }
     }
@@ -43,9 +53,10 @@ internal class TasksViewModel(private val repository: TaskRepository) : ViewMode
     fun deleteTask(id: String) {
         viewModelScope.launch {
             val taskId = id.toLongOrNull() ?: return@launch
-            val task = repository.getTaskById(taskId)
-            if (task != null) {
-                repository.deleteTask(task)
+            val taskWithSubtasks = repository.getTaskById(taskId)
+            if (taskWithSubtasks != null) {
+                repository.deleteSubtasksByTaskId(taskId)
+                repository.deleteTask(taskWithSubtasks.task)
             }
         }
     }

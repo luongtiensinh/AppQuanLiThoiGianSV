@@ -55,6 +55,7 @@ private data class CourseTask(
 
 @Composable
 fun StudyFlowCourseDetailScreen(onBack: () -> Unit = {}) {
+    val context = LocalContext.current
     var selectedTab by remember { mutableStateOf("Bài tập") }
     var checkedGroupTasks by remember { mutableStateOf(setOf("Mình: Thiết kế ERD phân tán")) }
     val tasks = listOf(
@@ -91,7 +92,7 @@ fun StudyFlowCourseDetailScreen(onBack: () -> Unit = {}) {
                 } else CourseTabPlaceholder(selectedTab)
             }
             Surface(
-                onClick = {}, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
+                onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
                 color = CourseBright, shape = RoundedCornerShape(18.dp), shadowElevation = 8.dp
             ) {
                 Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -117,6 +118,7 @@ private fun CourseHeader(onBack: () -> Unit) {
 
 @Composable
 private fun CourseOverview() {
+    val context = LocalContext.current
     Card(Modifier.fillMaxWidth().padding(horizontal = 24.dp), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(3.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -146,7 +148,7 @@ private fun CourseOverview() {
                         Text("Giảng viên", fontSize = 11.sp, color = CourseMuted)
                         Text("TS. Nguyễn Thanh Hải", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
                     }
-                    Surface(onClick = {}, color = Color.White, shape = RoundedCornerShape(10.dp)) { Box(Modifier.size(42.dp), contentAlignment = Alignment.Center) { Text("✉", fontSize = 20.sp, color = CourseBright) } }
+                    Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, color = Color.White, shape = RoundedCornerShape(10.dp)) { Box(Modifier.size(42.dp), contentAlignment = Alignment.Center) { Text("✉", fontSize = 20.sp, color = CourseBright) } }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -222,7 +224,8 @@ private fun CourseTaskCard(task: CourseTask, index: Int, checked: Boolean, onChe
 
 @Composable
 private fun CourseAction(label: String, color: Color, textColor: Color = Color.White) {
-    Surface(onClick = {}, color = color, shape = CircleShape) { Text(label, Modifier.padding(horizontal = 13.dp, vertical = 7.dp), fontSize = 11.sp, lineHeight = 13.sp, fontWeight = FontWeight.SemiBold, color = textColor) }
+    val context = LocalContext.current
+    Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, color = color, shape = CircleShape) { Text(label, Modifier.padding(horizontal = 13.dp, vertical = 7.dp), fontSize = 11.sp, lineHeight = 13.sp, fontWeight = FontWeight.SemiBold, color = textColor) }
 }
 
 @Composable
