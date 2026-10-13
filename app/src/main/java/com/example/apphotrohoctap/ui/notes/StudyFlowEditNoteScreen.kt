@@ -17,6 +17,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.apphotrohoctap.data.NoteEntity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,12 +36,25 @@ private val EditNoteBrand = Color(0xFF4143D5)
 private val EditNotePale = Color(0xFFEFECFF)
 
 @Composable
-fun StudyFlowEditNoteScreen(onBack: () -> Unit = {}) {
+fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
     val context = LocalContext.current
-    var title by remember { mutableStateOf("Kiến trúc MVVM & Room Database trong Android") }
+    val viewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(context))
+    val notesEntities by viewModel.notes.collectAsState()
+    
+    val currentNote = notesEntities.find { it.id == noteId }
+
+    var title by remember(currentNote) { mutableStateOf(currentNote?.title ?: "") }
+    var body by remember(currentNote) { mutableStateOf(currentNote?.content ?: "") }
     var menuExpanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    
     var selectedTool by remember { mutableStateOf("B") }
     BackHandler(onBack = onBack)
+
+    // Quay lại nếu không tìm thấy note
+    if (currentNote == null) {
+        return
+    }
 
     Box(Modifier.fillMaxSize().background(EditNoteBackground)) {
         Column(Modifier.fillMaxSize()) {
@@ -57,7 +72,10 @@ fun StudyFlowEditNoteScreen(onBack: () -> Unit = {}) {
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Surface(onClick = onBack, color = EditNoteBrand, shape = CircleShape) {
+                    Surface(onClick = {
+                        viewModel.updateNote(currentNote.copy(title = title, content = body, updatedAtMillis = System.currentTimeMillis()))
+                        android.widget.Toast.makeText(context, "Đã lưu", android.widget.Toast.LENGTH_SHORT).show()
+                    }, color = EditNoteBrand, shape = CircleShape) {
                         Text("✓  Lưu", Modifier.padding(horizontal = 16.dp, vertical = 12.dp), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                     }
                     Box {
@@ -67,7 +85,7 @@ fun StudyFlowEditNoteScreen(onBack: () -> Unit = {}) {
                         DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                             DropdownMenuItem(text = { Text("Chia sẻ liên kết") }, onClick = { menuExpanded = false })
                             DropdownMenuItem(text = { Text("Lịch sử phiên bản") }, onClick = { menuExpanded = false })
-                            DropdownMenuItem(text = { Text("Xóa ghi chú", color = Color(0xFFBA1A1A)) }, onClick = { menuExpanded = false })
+                            DropdownMenuItem(text = { Text("Xóa ghi chú", color = Color(0xFFBA1A1A)) }, onClick = { menuExpanded = false; showDeleteDialog = true })
                         }
                     }
                 }
@@ -91,51 +109,41 @@ fun StudyFlowEditNoteScreen(onBack: () -> Unit = {}) {
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    EditNoteChip("▣  Lập trình Di động", EditNotePale, EditNoteInk)
-                    EditNoteChip("▱  Học kỳ 2 • Tuần 4", Color(0xFFF5F2FF), EditNoteText)
+                    val paleColor = try { Color(android.graphics.Color.parseColor(currentNote.colorKey)).copy(alpha = 0.15f) } catch(e: Exception) { EditNotePale }
+                    val fgColor = try { Color(android.graphics.Color.parseColor(currentNote.colorKey)) } catch(e: Exception) { EditNoteBrand }
+                    
+                    EditNoteChip("▣  ${currentNote.courseName.ifBlank { "Không phân loại" }}", paleColor, fgColor)
                     Spacer(Modifier.weight(1f))
                     Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         listOf(Color(0xFF4143D5), Color(0xFF0EA5E9), Color(0xFFF59E0B), Color(0xFF10B981)).forEachIndexed { index, color ->
-                            Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, modifier = Modifier.size(if (index == 0) 26.dp else 22.dp), color = color, shape = CircleShape) {
-                                if (index == 0) Box(contentAlignment = Alignment.Center) { Text("✓", fontSize = 11.sp, color = Color.White) }
+                            val isSelected = currentNote.colorKey.equals(String.format("#%06X", (0xFFFFFF and color.value.toInt())), ignoreCase = true)
+                            Surface(onClick = {
+                                val hexColor = String.format("#%06X", (0xFFFFFF and color.value.toInt()))
+                                viewModel.updateNote(currentNote.copy(colorKey = hexColor))
+                            }, modifier = Modifier.size(if (isSelected) 26.dp else 22.dp), color = color, shape = CircleShape) {
+                                if (isSelected) Box(contentAlignment = Alignment.Center) { Text("✓", fontSize = 11.sp, color = Color.White) }
                             }
                         }
                     }
                 }
 
-                Surface(color = Color.White, shape = RoundedCornerShape(16.dp), shadowElevation = 3.dp) {
-                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text("1. Tổng quan kiến trúc MVVM", fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold, color = EditNoteBrand)
-                            Text("Tách biệt hoàn toàn giao diện người dùng (View) khỏi dữ liệu nghiệp vụ (ViewModel) và tầng lưu trữ bền vững (Repository / Room Database).", fontSize = 12.sp, lineHeight = 19.sp, color = EditNoteText)
-                        }
-                        Surface(color = Color(0xFFF5F2FF), shape = RoundedCornerShape(12.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("CÁC BƯỚC TRIỂN KHAI BÀI TẬP LỚN", fontSize = 10.sp, letterSpacing = 0.3.sp, fontWeight = FontWeight.SemiBold, color = EditNoteBrand)
-                                EditNoteChecklistItem("Cấu hình dependencies", true)
-                                EditNoteChecklistItem("Khai báo Entity và Database", true)
-                                EditNoteChecklistItem("Định nghĩa DAO với các annotations @Query, @Insert", false)
-                                EditNoteChecklistItem("Tích hợp StateFlow để quan sát dữ liệu phản ứng trong Jetpack Compose", false)
-                            }
-                        }
-                        Surface(color = Color(0xFFE8E6FC).copy(alpha = .6f), shape = RoundedCornerShape(12.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("●  Lưu ý quan trọng của Giảng viên", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = EditNoteBrand)
-                                Text("• Tránh gọi truy vấn database trực tiếp trên Main Thread; bắt buộc sử dụng Dispatchers.IO với Kotlin Coroutines để bảo đảm hiệu năng render 60fps mượt mà.", fontSize = 12.sp, lineHeight = 19.sp, color = EditNoteInk)
-                            }
-                        }
-                        Surface(color = EditNotePale, shape = RoundedCornerShape(12.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("KOTLIN EXAMPLE", fontSize = 9.sp, letterSpacing = 0.5.sp, fontWeight = FontWeight.Bold, color = EditNoteMuted)
-                                Text("@Dao\ninterface NoteDao {\n    @Query(\"SELECT * FROM notes_table\")\n    fun getAllNotes(): Flow<List<NoteEntity>>\n}", fontSize = 11.sp, lineHeight = 18.sp, color = EditNoteBrand)
-                            }
-                        }
-                    }
-                }
+                TextField(
+                    value = body,
+                    onValueChange = { body = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp),
+                    textStyle = TextStyle(fontSize = 16.sp, lineHeight = 26.sp, color = EditNoteText),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
+                        cursorColor = EditNoteBrand
+                    )
+                )
 
                 Row(Modifier.fillMaxWidth().padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("◷  Chỉnh sửa lần cuối: 09/10/2026 • 20:45", fontSize = 9.sp, color = EditNoteMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    EditNoteChip("382 từ • 4 mục kiểm tra", EditNotePale, EditNoteBrand)
+                    val sdf = java.text.SimpleDateFormat("dd/MM/yyyy • HH:mm", java.util.Locale.getDefault())
+                    val dateStr = sdf.format(java.util.Date(currentNote.updatedAtMillis))
+                    Text("◷  Chỉnh sửa lần cuối: $dateStr", fontSize = 9.sp, color = EditNoteMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    EditNoteChip("${body.length} ký tự", EditNotePale, EditNoteBrand)
                 }
             }
         }
@@ -149,6 +157,17 @@ fun StudyFlowEditNoteScreen(onBack: () -> Unit = {}) {
                 }
             }
         }
+    }
+    
+    if (showDeleteDialog) {
+        NoteDeleteConfirmationDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirmDelete = {
+                showDeleteDialog = false
+                viewModel.deleteNote(currentNote)
+                onBack()
+            }
+        )
     }
 }
 
@@ -180,14 +199,49 @@ private fun EditNoteChip(text: String, background: Color, foreground: Color) {
 }
 
 @Composable
-private fun EditNoteChecklistItem(text: String, checked: Boolean) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = {},
-            modifier = Modifier.size(22.dp),
-            colors = CheckboxDefaults.colors(checkedColor = EditNoteBrand, uncheckedColor = Color(0xFFE3E0F7))
-        )
-        Text(text, Modifier.weight(1f).padding(top = 3.dp), fontSize = 11.sp, lineHeight = 16.sp, color = EditNoteInk)
+private fun NoteDeleteConfirmationDialog(onDismiss: () -> Unit, onConfirmDelete: () -> Unit) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().widthIn(max = 384.dp),
+            color = Color.White,
+            shape = RoundedCornerShape(24.dp),
+            shadowElevation = 16.dp
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(color = Color(0xFFFFDAD6), shape = CircleShape) {
+                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                        Text("▤", fontSize = 21.sp, fontWeight = FontWeight.Bold, color = Color(0xFFBA1A1A))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                Text("Xóa ghi chú?", fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold, color = EditNoteInk)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Hành động này không thể hoàn tác. Ghi chú của bạn sẽ bị xóa vĩnh viễn.",
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp,
+                    color = EditNoteText,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Spacer(Modifier.height(22.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                        Text("Hủy", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = EditNoteText)
+                    }
+                    androidx.compose.material3.Button(
+                        onClick = onConfirmDelete,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = CircleShape,
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFBA1A1A))
+                    ) {
+                        Text("▤  Xóa", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    }
+                }
+            }
+        }
     }
 }

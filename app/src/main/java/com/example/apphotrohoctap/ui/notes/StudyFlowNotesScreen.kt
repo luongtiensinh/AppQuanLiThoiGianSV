@@ -24,9 +24,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import com.example.apphotrohoctap.data.NoteEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private val NotesBackground = Color(0xFFFCF8FF)
 private val NotesInk = Color(0xFF1A1A2A)
@@ -36,7 +41,8 @@ private val NotesBrand = Color(0xFF4143D5)
 private val NotesBright = Color(0xFF5B5FEF)
 private val NotesChip = Color(0xFFEFECFF)
 
-private data class NoteItem(
+internal data class NoteItem(
+    val id: Long,
     val subject: String,
     val title: String,
     val preview: String,
@@ -46,26 +52,40 @@ private data class NoteItem(
     val subjectBackground: Color
 )
 
-private val sampleNotes = listOf(
-    NoteItem("Lập trình Di động", "Jetpack Compose: State Hoisting & ViewModel", "Nguyên tắc: Đẩy state lên component cha và truyền event xuống component con.", "Hôm qua, 16:45", "Đồ án", Color(0xFFF97316), Color(0xFFFFF7ED)),
-    NoteItem("Điện toán đám mây", "AWS Lambda vs EC2: So sánh kiến trúc Serverless", "Lambda tính tiền theo thời gian thực thi (ms) và số request. Thích hợp cho tác vụ ngắn.", "22 Th04", "Ôn thi", Color(0xFF0284C7), Color(0xFFF0F9FF)),
-    NoteItem("Tiếng Anh CNTT", "Từ vựng Unit 5: Cloud Networking & Security", "Latency (độ trễ), Throughput (thông lượng), Firewall (tường lửa).", "19 Th04", "Flashcard", Color(0xFF7C3AED), Color(0xFFF5F3FF)),
-    NoteItem("CSDL Nâng cao", "Tối ưu câu lệnh SQL với B-Tree Index", "Tránh dùng SELECT *, tận dụng Covering Index. Phân tích truy vấn bằng Execution Plan.", "15 Th04", "Bài tập 8", NotesBrand, NotesChip),
-    NoteItem("Lập trình Di động", "Ghi chú họp nhóm đồ án Sprint 3", "Phân công: Minh làm UI màn hình thanh toán, Nam kết nối Retrofit API, Anh viết Unit test cho Repository.", "12 Th04", "Nhóm 4", Color(0xFFD97706), Color(0xFFFEF3C7))
-)
+private val sampleNotes = emptyList<NoteItem>()
 
 private data class SubjectFilter(val name: String, val count: Int, val color: Color? = null)
 
 @Composable
-fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: () -> Unit = {}) {
-    val filters = listOf(
-        SubjectFilter("Tất cả", 16),
-        SubjectFilter("CSDL Nâng cao", 5, NotesBrand),
-        SubjectFilter("Lập trình Di động", 4, Color(0xFFF97316)),
-        SubjectFilter("Điện toán đám mây", 3, Color(0xFF0284C7)),
-        SubjectFilter("Tiếng Anh CNTT", 2, Color(0xFF7C3AED)),
-        SubjectFilter("Khác", 2)
-    )
+fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: (Long) -> Unit = {}) {
+    val context = LocalContext.current
+    val viewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(context))
+    val notesEntities by viewModel.notes.collectAsState()
+
+    val formatter = remember { SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault()) }
+    
+    val allNotes = notesEntities.map { entity ->
+        val accentColor = try { Color(android.graphics.Color.parseColor(entity.colorKey)) } catch (e: Exception) { NotesBrand }
+        val paleColor = accentColor.copy(alpha = 0.15f)
+        NoteItem(
+            id = entity.id,
+            subject = entity.courseName.ifBlank { "Không phân loại" },
+            title = entity.title,
+            preview = entity.content.replace("\n", " ").take(100),
+            date = formatter.format(Date(entity.updatedAtMillis)),
+            tag = "Ghi chú",
+            accent = accentColor,
+            subjectBackground = paleColor
+        )
+    }
+
+    // Tự động gom nhóm môn học cho bộ lọc
+    val subjectCounts = allNotes.groupingBy { it.subject }.eachCount()
+    val filters = listOf(SubjectFilter("Tất cả", allNotes.size)) + subjectCounts.map { (subject, count) ->
+        val sampleColor = allNotes.find { it.subject == subject }?.accent ?: NotesBrand
+        SubjectFilter(subject, count, sampleColor)
+    }
+
     var selectedSubject by remember { mutableStateOf("Tất cả") }
     var searchQuery by remember { mutableStateOf("") }
     var isGrid by remember { mutableStateOf(true) }
@@ -78,11 +98,11 @@ fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () 
                     .statusBarsPadding().padding(top = 12.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                NotesHeader(isGrid = isGrid, onToggleGrid = { isGrid = !isGrid }, onSort = { newestFirst = !newestFirst })
+                NotesHeader(isGrid = isGrid, noteCount = allNotes.size, onToggleGrid = { isGrid = !isGrid }, onSort = { newestFirst = !newestFirst })
                 SearchField(value = searchQuery, onValueChange = { searchQuery = it })
                 SubjectFilters(filters, selectedSubject) { selectedSubject = it }
-                PinnedNotesCard()
-                val visibleNotes = sampleNotes
+                // PinnedNotesCard() // Tạm ẩn ghim
+                val visibleNotes = allNotes
                     .filter { selectedSubject == "Tất cả" || it.subject == selectedSubject }
                     .filter { searchQuery.isBlank() || (it.title + it.preview + it.subject).contains(searchQuery, ignoreCase = true) }
                     .let { if (newestFirst) it else it.reversed() }
@@ -105,7 +125,7 @@ fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () 
 }
 
 @Composable
-private fun NotesHeader(isGrid: Boolean, onToggleGrid: () -> Unit, onSort: () -> Unit) {
+private fun NotesHeader(isGrid: Boolean, noteCount: Int, onToggleGrid: () -> Unit, onSort: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -114,7 +134,7 @@ private fun NotesHeader(isGrid: Boolean, onToggleGrid: () -> Unit, onSort: () ->
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Ghi chú & Tài\nliệu", fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = (-0.6).sp, fontWeight = FontWeight.Bold, color = NotesInk)
             Surface(color = Color(0xFFE8E6FC), shape = CircleShape) {
-                Text("16 ghi\nchú", modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp), fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = NotesBrand)
+                Text("$noteCount ghi\nchú", modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp), fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = NotesBrand)
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -215,7 +235,7 @@ private fun AttachmentPill(text: String) {
 }
 
 @Composable
-private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean, onEditNote: () -> Unit) {
+private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean, onEditNote: (Long) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Gần đây", fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, color = NotesInk)
@@ -226,11 +246,11 @@ private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean, onEditNot
         if (notes.isEmpty()) {
             Text("Không tìm thấy ghi chú phù hợp.", modifier = Modifier.padding(vertical = 20.dp), fontSize = 13.sp, color = NotesMuted)
         } else if (!isGrid) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { notes.forEach { NoteCard(it, Modifier.fillMaxWidth(), onEditNote) } }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { notes.forEach { NoteCard(it, Modifier.fillMaxWidth()) { onEditNote(it.id) } } }
         } else {
             notes.chunked(2).forEach { rowNotes ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
-                    rowNotes.forEach { note -> NoteCard(note, Modifier.weight(1f), onEditNote) }
+                    rowNotes.forEach { note -> NoteCard(note, Modifier.weight(1f)) { onEditNote(note.id) } }
                     if (rowNotes.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
