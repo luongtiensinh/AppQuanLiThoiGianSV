@@ -36,6 +36,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.apphotrohoctap.ui.schedule.StudyClass
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,37 +60,6 @@ private val HomeMutedInk = Color(0xFF767586)
 private val HomeDivider = Color(0xFFE3E0F7)
 private val HomeCardShadow = Color(0x105B5FEF)
 
-private data class StudyClass(
-    val time: String,
-    val session: String,
-    val status: String,
-    val title: String,
-    val place: String,
-    val teacher: String,
-    val leadingColor: Color,
-    val timeColor: Color = HomeSecondaryInk,
-    val statusColor: Color = Color(0xFFE8E6FC),
-    val statusTextColor: Color = HomeSecondaryInk,
-    val statusIcon: String? = null,
-    val placeIcon: String = "home_location.svg",
-    val timeIcon: String = "home_clock.svg"
-)
-
-private data class DeadlineTask(
-    val subject: String,
-    val urgency: String,
-    val title: String,
-    val dueDate: String,
-    val progress: Float,
-    val progressLabel: String,
-    val accent: Color,
-    val urgencyBackground: Color,
-    val urgencyColor: Color,
-    val timeColor: Color,
-    val urgencyIcon: String? = null,
-    val dateIcon: String = "home_date.svg"
-)
-
 @Composable
 fun StudyFlowHomeScreen(
     onNotificationClick: () -> Unit = {},
@@ -98,6 +71,9 @@ fun StudyFlowHomeScreen(
     onAddTask: () -> Unit = {},
     onTabSelected: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context))
+    val uiState by viewModel.uiState.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -119,10 +95,10 @@ fun StudyFlowHomeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     GreetingSection()
-                    GoalProgressCard()
-                    StatisticsRow()
-                    TodayScheduleSection(onSeeAllClasses, onCourseClick)
-                    UpcomingDeadlinesSection(onFilterDeadlines)
+                    GoalProgressCard(uiState.tasksDone, uiState.tasksTotalThisWeek)
+                    StatisticsRow(uiState.tasksToday, uiState.tasksUrgent, uiState.deadlinesThisWeek, uiState.tasksDone)
+                    TodayScheduleSection(uiState.todaySchedules, onSeeAllClasses, onCourseClick)
+                    UpcomingDeadlinesSection(uiState.upcomingDeadlines, onFilterDeadlines)
                     FocusSessionCard(onStartFocus)
                 }
             }
@@ -276,7 +252,11 @@ private fun GreetingSection() {
 }
 
 @Composable
-private fun GoalProgressCard() {
+private fun GoalProgressCard(tasksDone: Int, tasksTotal: Int) {
+    val total = if (tasksTotal == 0) 1 else tasksTotal
+    val progress = (tasksDone.toFloat() / total).coerceIn(0f, 1f)
+    val percentage = (progress * 100).toInt()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -314,7 +294,7 @@ private fun GoalProgressCard() {
             }
             Surface(color = Color.White, shape = CircleShape, shadowElevation = 1.dp) {
                 Text(
-                    "78%",
+                    "${percentage}%",
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
@@ -327,7 +307,7 @@ private fun GoalProgressCard() {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Tiến độ bài tập & đồ án", fontSize = 12.sp, lineHeight = 16.sp, color = Color(0xFFF9F6FF))
                 Spacer(Modifier.weight(1f))
-                Text("14 / 18 hoàn thành", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                Text("$tasksDone / $tasksTotal hoàn thành", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
             }
             Box(
                 modifier = Modifier
@@ -339,7 +319,7 @@ private fun GoalProgressCard() {
             ) {
                 Box(
                     Modifier
-                        .fillMaxWidth(0.78f)
+                        .fillMaxWidth(progress)
                         .fillMaxHeight()
                         .clip(CircleShape)
                         .background(Color.White)
@@ -349,7 +329,8 @@ private fun GoalProgressCard() {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             HomeIcon("home_sparkle.svg", Modifier.size(14.667.dp), "")
             Text(
-                "Cố lên! Bạn chỉ còn 4 bài tập nữa là hoàn thành tuần 8.",
+                if (tasksDone == tasksTotal && tasksTotal > 0) "Tuyệt vời! Bạn đã hoàn thành toàn bộ mục tiêu tuần này."
+                else "Cố lên! Bạn chỉ còn ${tasksTotal - tasksDone} bài tập nữa là hoàn thành tuần này.",
                 fontSize = 12.sp,
                 lineHeight = 16.sp,
                 color = Color(0xFFF5F2FF)
@@ -359,11 +340,11 @@ private fun GoalProgressCard() {
 }
 
 @Composable
-private fun StatisticsRow() {
+private fun StatisticsRow(tasksToday: Int, tasksUrgent: Int, deadlinesThisWeek: Int, tasksDone: Int) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        StatisticCard("home_tasks.svg", Modifier.width(15.dp).height(11.306.dp), "Hôm nay", "5", "2 ưu tiên", Color(0xFFE1E0FF), Color(0xFFBA1A1A), Modifier.weight(1f))
-        StatisticCard("home_alarm.svg", Modifier.width(15.975.dp).height(14.738.dp), "Hạn nộp", "3", "Gần: 23:59", Color(0xFFFFDAD6), Color(0xFFBA1A1A), Modifier.weight(1f))
-        StatisticCard("home_done.svg", Modifier.size(15.dp), "Đã xong", "12", "+4 tuần này", Color(0xFFE1E0FF), HomeSecondaryInk, Modifier.weight(1f))
+        StatisticCard("home_tasks.svg", Modifier.width(15.dp).height(11.306.dp), "Hôm nay", tasksToday.toString(), "$tasksUrgent ưu tiên", Color(0xFFE1E0FF), Color(0xFFBA1A1A), Modifier.weight(1f))
+        StatisticCard("home_alarm.svg", Modifier.width(15.975.dp).height(14.738.dp), "Hạn nộp", deadlinesThisWeek.toString(), "Tuần này", Color(0xFFFFDAD6), Color(0xFFBA1A1A), Modifier.weight(1f))
+        StatisticCard("home_done.svg", Modifier.size(15.dp), "Đã xong", tasksDone.toString(), "Tổng cộng", Color(0xFFE1E0FF), HomeSecondaryInk, Modifier.weight(1f))
     }
 }
 
@@ -407,18 +388,13 @@ private fun StatisticCard(
 }
 
 @Composable
-private fun TodayScheduleSection(onSeeAll: () -> Unit, onCourseClick: () -> Unit) {
-    val classes = listOf(
-        StudyClass("07:30 - 09:50", "Ca sáng", "Đang diễn ra", "Cơ sở dữ liệu nâng cao (IT3020)", "Phòng B1-302", "TS. Nguyễn Thanh Hải", Color(0xFF5E62F4), HomeBrandBlue, Color(0xFFE1E0FF), Color(0xFF2B2BC5)),
-        StudyClass("13:00 - 15:20", "Ca chiều", "Có bài nộp", "Lập trình Ứng dụng Di động", "Lab 405", "ThS. Lê Hoàng Long", Color(0xFF555962), statusBackgroundRed, Color(0xFFFFDAD6), Color(0xFF93000A), "home_homework.svg", "home_classroom.svg", "home_laptop.svg"),
-        StudyClass("18:00 - 19:30", "Trực tuyến", "Sắp tới", "Tiếng Anh chuyên ngành CNTT", "MS Teams", "Cô Sarah Evans", Color(0xFFC6C5D7), placeIcon = "home_class_link.svg", timeIcon = "home_laptop.svg")
-    )
+private fun TodayScheduleSection(classes: List<StudyClass>, onSeeAll: () -> Unit, onCourseClick: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Lịch hôm nay", fontSize = 18.sp, lineHeight = 24.sp, letterSpacing = (-0.45).sp, fontWeight = FontWeight.SemiBold, color = HomeInk)
                 Surface(color = HomeDivider, shape = CircleShape) {
-                    Text("3 tiết", modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeSecondaryInk)
+                    Text("${classes.size} tiết", modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeSecondaryInk)
                 }
             }
             Spacer(Modifier.weight(1f))
@@ -429,8 +405,12 @@ private fun TodayScheduleSection(onSeeAll: () -> Unit, onCourseClick: () -> Unit
                 }
             }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            classes.forEach { classItem -> StudyClassCard(classItem, onCourseClick) }
+        if (classes.isEmpty()) {
+            Text("Không có lịch học nào.", modifier = Modifier.padding(16.dp), color = HomeSecondaryInk, fontSize = 12.sp)
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                classes.forEach { classItem -> StudyClassCard(classItem, onCourseClick) }
+            }
         }
     }
 }
@@ -489,18 +469,13 @@ private fun StudyClassCard(item: StudyClass, onClick: () -> Unit) {
 }
 
 @Composable
-private fun UpcomingDeadlinesSection(onFilterClick: () -> Unit) {
-    val tasks = listOf(
-        DeadlineTask("CSDL Nâng cao", "Còn 6 giờ", "Báo cáo Đồ án Bản Ký: Thiết kế schema & Indexing", "Hôm nay, 23:59", 0.65f, "65%", Color(0xFFBA1A1A), Color(0xFFFFDAD6), Color(0xFFBA1A1A), Color(0xFFBA1A1A), "home_alert.svg", "home_date.svg"),
-        DeadlineTask("Mobile Dev • CS304", "Còn 1 ngày", "Thiết kế UI Mockup ứng dụng Jetpack Compose", "Ngày mai, 17:00", 0.30f, "30%", Color(0xFF555962), Color(0xFFE3E0F7), Color(0xFF555962), HomeSecondaryInk, "home_document.svg", "home_calendar.svg"),
-        DeadlineTask("Toán Rời Rạc • MA102", "Chưa bắt đầu", "Bài tập tuần 8: Ứng dụng bài toán đồ thị Euler", "Chủ Nhật, 28/04", 0f, "0%", HomeBrandBlue, Color(0xFFE8E6FC), HomeSecondaryInk, HomeSecondaryInk, dateIcon = "home_calendar_alt.svg")
-    )
+private fun UpcomingDeadlinesSection(tasks: List<DeadlineTask>, onFilterClick: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Deadline sắp tới", fontSize = 18.sp, lineHeight = 24.sp, letterSpacing = (-0.45).sp, fontWeight = FontWeight.SemiBold, color = HomeInk)
                 Surface(color = Color(0xFFFFDAD6), shape = CircleShape) {
-                    Text("3", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF93000A))
+                    Text("${tasks.size}", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF93000A))
                 }
             }
             Spacer(Modifier.weight(1f))
