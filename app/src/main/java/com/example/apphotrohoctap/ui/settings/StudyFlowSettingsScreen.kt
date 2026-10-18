@@ -23,16 +23,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
-import android.content.Context
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
-import com.example.apphotrohoctap.worker.ReminderManager
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 private val SettingsBg = Color(0xFFFCF8FF)
 private val SettingsInk = Color(0xFF1A1A2A)
@@ -48,21 +50,21 @@ fun StudyFlowSettingsScreen(
     onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
-    var deadlineReminder by remember { mutableStateOf(prefs.getBoolean("deadlineReminder", false)) }
+    val application = context.applicationContext as android.app.Application
+    val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(application))
+
+    val deadlineReminder by viewModel.isDeadlineReminderEnabled.collectAsState()
     var classReminder by remember { mutableStateOf(true) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            deadlineReminder = true
-            prefs.edit().putBoolean("deadlineReminder", true).apply()
-            ReminderManager.startPeriodicReminder(context)
+            viewModel.toggleDeadlineReminder(true)
             android.widget.Toast.makeText(context, "Đã bật thông báo", android.widget.Toast.LENGTH_SHORT).show()
         } else {
             android.widget.Toast.makeText(context, "Cần quyền thông báo để bật nhắc nhở", android.widget.Toast.LENGTH_SHORT).show()
-            deadlineReminder = false
+            viewModel.toggleDeadlineReminder(false)
         }
     }
 
@@ -102,15 +104,11 @@ fun StudyFlowSettingsScreen(
                             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
-                            deadlineReminder = true
-                            prefs.edit().putBoolean("deadlineReminder", true).apply()
-                            ReminderManager.startPeriodicReminder(context)
+                            viewModel.toggleDeadlineReminder(true)
                             android.widget.Toast.makeText(context, "Đã bật thông báo", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        deadlineReminder = false
-                        prefs.edit().putBoolean("deadlineReminder", false).apply()
-                        ReminderManager.stopPeriodicReminder(context)
+                        viewModel.toggleDeadlineReminder(false)
                     }
                 }
                 SettingsDivider()
@@ -124,7 +122,7 @@ fun StudyFlowSettingsScreen(
             SettingsCard {
                 SettingsNavigationRow("ⓘ", "Thử nghiệm nhắc nhở ngay", null, "TEST", onClick = {
                     if (deadlineReminder) {
-                        ReminderManager.testOneTimeReminder(context)
+                        viewModel.triggerTestReminder()
                         android.widget.Toast.makeText(context, "Đã gửi yêu cầu test", android.widget.Toast.LENGTH_SHORT).show()
                     } else {
                         android.widget.Toast.makeText(context, "Vui lòng bật Nhắc nhở trước", android.widget.Toast.LENGTH_SHORT).show()
