@@ -25,6 +25,14 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.example.apphotrohoctap.worker.ReminderManager
 
 private val SettingsBg = Color(0xFFFCF8FF)
 private val SettingsInk = Color(0xFF1A1A2A)
@@ -39,8 +47,24 @@ fun StudyFlowSettingsScreen(
     onTabSelected: (String) -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-    var deadlineReminder by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
+    var deadlineReminder by remember { mutableStateOf(prefs.getBoolean("deadlineReminder", false)) }
     var classReminder by remember { mutableStateOf(true) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            deadlineReminder = true
+            prefs.edit().putBoolean("deadlineReminder", true).apply()
+            ReminderManager.startPeriodicReminder(context)
+            android.widget.Toast.makeText(context, "Đã bật thông báo", android.widget.Toast.LENGTH_SHORT).show()
+        } else {
+            android.widget.Toast.makeText(context, "Cần quyền thông báo để bật nhắc nhở", android.widget.Toast.LENGTH_SHORT).show()
+            deadlineReminder = false
+        }
+    }
 
     Column(Modifier.fillMaxSize().background(SettingsBg)) {
         Column(
@@ -72,7 +96,23 @@ fun StudyFlowSettingsScreen(
             Spacer(Modifier.height(22.dp))
             SettingsSectionHeader("THÔNG BÁO", "Âm thanh & Rung")
             SettingsCard {
-                SettingsToggleRow("♧", "Nhắc nhở Deadline & Hạn chót", "Thông báo đẩy khi sắp đến hạn…", deadlineReminder) { deadlineReminder = it }
+                SettingsToggleRow("♧", "Nhắc nhở Deadline & Hạn chót", "Thông báo đẩy khi sắp đến hạn…", deadlineReminder) { checked ->
+                    if (checked) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            deadlineReminder = true
+                            prefs.edit().putBoolean("deadlineReminder", true).apply()
+                            ReminderManager.startPeriodicReminder(context)
+                            android.widget.Toast.makeText(context, "Đã bật thông báo", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        deadlineReminder = false
+                        prefs.edit().putBoolean("deadlineReminder", false).apply()
+                        ReminderManager.stopPeriodicReminder(context)
+                    }
+                }
                 SettingsDivider()
                 SettingsToggleRow("▣", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
                 SettingsDivider()
@@ -82,7 +122,14 @@ fun StudyFlowSettingsScreen(
             Spacer(Modifier.height(22.dp))
             SettingsSectionHeader("HỆ THỐNG")
             SettingsCard {
-                SettingsNavigationRow("ⓘ", "Về StudyFlow", null, "v1.0.0")
+                SettingsNavigationRow("ⓘ", "Thử nghiệm nhắc nhở ngay", null, "TEST", onClick = {
+                    if (deadlineReminder) {
+                        ReminderManager.testOneTimeReminder(context)
+                        android.widget.Toast.makeText(context, "Đã gửi yêu cầu test", android.widget.Toast.LENGTH_SHORT).show()
+                    } else {
+                        android.widget.Toast.makeText(context, "Vui lòng bật Nhắc nhở trước", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                })
                 SettingsDivider()
                 SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = onLogout)
             }
