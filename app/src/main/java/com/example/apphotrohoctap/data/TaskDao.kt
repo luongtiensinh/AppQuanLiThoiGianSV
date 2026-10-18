@@ -38,6 +38,6 @@ interface TaskDao {
     suspend fun deleteSubtasksByTaskId(taskId: Long)
 
     @Transaction
-    @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueAtMillis > :now AND dueAtMillis <= :next24Hours")
+    @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueAtMillis > :now AND dueAtMillis <= :next24Hours ORDER BY dueAtMillis ASC")
     suspend fun getUpcomingDeadlines(now: Long, next24Hours: Long): List<TaskWithSubtasks>
 }
