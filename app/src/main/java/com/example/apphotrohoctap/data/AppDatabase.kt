@@ -5,11 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [TaskEntity::class, SubtaskEntity::class, ScheduleEntity::class], version = 4, exportSchema = false)
+@Database(entities = [TaskEntity::class, SubtaskEntity::class, ScheduleEntity::class, NoteEntity::class], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun taskDao(): TaskDao
     abstract fun scheduleDao(): ScheduleDao
+    abstract fun noteDao(): NoteDao
 
     companion object {
         @Volatile

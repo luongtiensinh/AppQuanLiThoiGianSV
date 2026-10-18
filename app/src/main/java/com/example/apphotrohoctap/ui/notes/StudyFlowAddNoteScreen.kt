@@ -23,6 +23,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.apphotrohoctap.data.NoteEntity
 import androidx.compose.ui.unit.sp
 
 private val EditorBackground = Color(0xFFFCF8FF)
@@ -46,6 +49,9 @@ private val noteLabelColors = listOf(
 
 @Composable
 fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
+    val context = LocalContext.current
+    val viewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(context))
+
     var title by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
     var selectedCourse by remember { mutableStateOf("") }
@@ -54,7 +60,24 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
     BackHandler(onBack = onBack)
 
     Column(Modifier.fillMaxSize().background(EditorBackground)) {
-        EditorTopBar(onBack = onBack, onSave = onSave)
+        EditorTopBar(onBack = onBack, onSave = {
+            if (title.isBlank()) {
+                android.widget.Toast.makeText(context, "Vui lòng nhập tiêu đề ghi chú", android.widget.Toast.LENGTH_SHORT).show()
+                return@EditorTopBar
+            }
+            
+            val hexColor = String.format("#%06X", (0xFFFFFF and noteLabelColors[selectedLabelColor].color.value.toInt()))
+            
+            val note = NoteEntity(
+                title = title,
+                content = body,
+                courseName = selectedCourse,
+                colorKey = hexColor,
+                updatedAtMillis = System.currentTimeMillis()
+            )
+            viewModel.addNote(note)
+            onSave()
+        })
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),

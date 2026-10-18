@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
                     composable(Screen.Notes.route) {
                         StudyFlowNotesScreen(
                             onCreateNote = { navController.navigate(Screen.AddNote.route) },
-                            onEditNote = { navController.navigate(Screen.EditNote.createRoute("1")) }, // TODO Pass real note id
+                            onEditNote = { noteId -> navController.navigate(Screen.EditNote.createRoute(noteId.toString())) },
                             onTabSelected = navToTab
                         )
                     }
@@ -142,9 +142,11 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(
                         route = Screen.EditNote.route,
-                        arguments = listOf(navArgument("noteId") { type = NavType.StringType })
-                    ) {
+                        arguments = listOf(navArgument("noteId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val noteId = backStackEntry.arguments?.getLong("noteId") ?: return@composable
                         StudyFlowEditNoteScreen(
+                            noteId = noteId,
                             onBack = { navController.popBackStack() }
                         )
                     }
