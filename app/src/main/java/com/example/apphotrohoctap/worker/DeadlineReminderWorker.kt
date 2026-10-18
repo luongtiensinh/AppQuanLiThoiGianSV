@@ -17,25 +17,43 @@ class DeadlineReminderWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val db = AppDatabase.getDatabase(context)
-        val now = System.currentTimeMillis()
-        val next24h = now + 24 * 60 * 60 * 1000L
+        return try {
+            val db = AppDatabase.getDatabase(context)
+            val now = System.currentTimeMillis()
+            val next24h = now + 24 * 60 * 60 * 1000L
 
-        // Tìm các task chưa hoàn thành có hạn nộp trong 24 giờ tới
-        val upcomingTasks = db.taskDao().getUpcomingDeadlines(now, next24h)
+            // Kiểm tra mốc thời gian báo gần nhất để tránh spam thông báo mỗi 15 phút (Cooldown 4 tiếng)
+            val prefs = context.getSharedPreferences("reminder_prefs", Context.MODE_PRIVATE)
+            val lastNotifiedAt = prefs.getLong("last_notified_at", 0L)
+            val isTestRun = tags.contains("TEST_WORK")
+            val cooldownMillis = 4 * 60 * 60 * 1000L // 4 tiếng
 
-        if (upcomingTasks.isNotEmpty()) {
-            val count = upcomingTasks.size
-            val firstTaskTitle = upcomingTasks.first().task.title
-            
-            val message = if (count == 1) {
-                "Bạn có 1 bài tập sắp đến hạn: $firstTaskTitle"
-            } else {
-                "Bạn có $count bài tập cần hoàn thành trong 24 giờ tới (Gần nhất: $firstTaskTitle)."
+            if (!isTestRun && (now - lastNotifiedAt < cooldownMillis)) {
+                return Result.success()
             }
-            showNotification(message)
+
+            // Tìm các task chưa hoàn thành có hạn nộp trong 24 giờ tới (Đã được ORDER BY dueAtMillis ASC)
+            val upcomingTasks = db.taskDao().getUpcomingDeadlines(now, next24h)
+
+            if (upcomingTasks.isNotEmpty()) {
+                val count = upcomingTasks.size
+                val firstTaskTitle = upcomingTasks.first().task.title
+                
+                val message = if (count == 1) {
+                    "Bạn có 1 bài tập sắp đến hạn: $firstTaskTitle"
+                } else {
+                    "Bạn có $count bài tập cần hoàn thành trong 24 giờ tới (Gần nhất: $firstTaskTitle)."
+                }
+                showNotification(message)
+                
+                // Cập nhật mốc thời gian đã gửi thông báo
+                prefs.edit().putLong("last_notified_at", now).apply()
+            }
+            Result.success()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.retry()
         }
-        return Result.success()
     }
 
     private fun showNotification(message: String) {

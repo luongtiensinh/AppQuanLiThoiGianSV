@@ -31,7 +31,9 @@ object ReminderManager {
 
     // Dùng để Test nhanh xem Notification có hiện lên không
     fun testOneTimeReminder(context: Context) {
-        val request = OneTimeWorkRequestBuilder<DeadlineReminderWorker>().build()
+        val request = OneTimeWorkRequestBuilder<DeadlineReminderWorker>()
+            .addTag("TEST_WORK")
+            .build()
         WorkManager.getInstance(context).enqueueUniqueWork(
             "TEST_REMINDER",
             ExistingWorkPolicy.REPLACE,
