@@ -19,7 +19,7 @@ class StudyFlowApplication : Application() {
                 description = "Kênh thông báo nhắc nhở bài tập sắp tới hạn"
             }
             val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
+            notificationManager?.createNotificationChannel(channel)
         }
     }
 }
