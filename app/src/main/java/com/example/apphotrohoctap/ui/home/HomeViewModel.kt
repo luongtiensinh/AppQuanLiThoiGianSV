@@ -23,6 +23,7 @@ internal class HomeViewModel(
         val now = System.currentTimeMillis()
         val cal = Calendar.getInstance().apply { timeInMillis = now }
 
+        val currentYear = cal.get(Calendar.YEAR)
         val currentDayInt = if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) 7 else cal.get(Calendar.DAY_OF_WEEK) - 1
         val currentWeek = cal.get(Calendar.WEEK_OF_YEAR)
 
@@ -40,7 +41,9 @@ internal class HomeViewModel(
             val isDone = uiModel.completed
             
             val taskCal = Calendar.getInstance().apply { timeInMillis = taskWithSub.task.dueAtMillis }
-            if (taskCal.get(Calendar.WEEK_OF_YEAR) == currentWeek) {
+            val isSameWeek = taskCal.get(Calendar.YEAR) == currentYear && taskCal.get(Calendar.WEEK_OF_YEAR) == currentWeek
+            
+            if (isSameWeek) {
                 tasksTotalThisWeek++
                 if (isDone) tasksDone++
                 else deadlinesThisWeek++
@@ -54,6 +57,8 @@ internal class HomeViewModel(
 
                 if (taskWithSub.task.category == "deadline") {
                     val progressFloat = if (uiModel.subtasks.isEmpty()) 0f else uiModel.subtasks.count { it.isCompleted }.toFloat() / uiModel.subtasks.size
+                    val isUrgent = uiModel.urgency?.contains("Gấp") == true || uiModel.urgency == "Quá hạn"
+                    
                     upcomingDeadlines.add(
                         DeadlineTask(
                             id = uiModel.id,
@@ -61,12 +66,11 @@ internal class HomeViewModel(
                             urgency = uiModel.urgency ?: "Sắp đến",
                             title = uiModel.title,
                             dueDate = uiModel.due,
+                            dueAtMillis = taskWithSub.task.dueAtMillis,
                             progress = progressFloat,
                             progressLabel = "${(progressFloat * 100).toInt()}%",
                             accent = uiModel.accent,
-                            urgencyBackground = androidx.compose.ui.graphics.Color(0xFFFFDAD6),
-                            urgencyColor = androidx.compose.ui.graphics.Color(0xFFBA1A1A),
-                            timeColor = androidx.compose.ui.graphics.Color(0xFF464555)
+                            isUrgent = isUrgent
                         )
                     )
                 }
@@ -86,7 +90,7 @@ internal class HomeViewModel(
             tasksDone = tasksDone,
             tasksTotalThisWeek = tasksTotalThisWeek,
             todaySchedules = todaySchedules,
-            upcomingDeadlines = upcomingDeadlines.sortedBy { it.dueDate }.take(10) // Mocking sort
+            upcomingDeadlines = upcomingDeadlines.sortedBy { it.dueAtMillis }.take(10)
         )
     }.stateIn(
         scope = viewModelScope,

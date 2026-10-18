@@ -9,14 +9,11 @@ internal data class DeadlineTask(
     val urgency: String,
     val title: String,
     val dueDate: String,
+    val dueAtMillis: Long,
     val progress: Float,
     val progressLabel: String,
     val accent: Color,
-    val urgencyBackground: Color,
-    val urgencyColor: Color,
-    val timeColor: Color,
-    val urgencyIcon: String? = null,
-    val dateIcon: String = "home_date.svg"
+    val isUrgent: Boolean
 )
 
 internal data class HomeUiState(

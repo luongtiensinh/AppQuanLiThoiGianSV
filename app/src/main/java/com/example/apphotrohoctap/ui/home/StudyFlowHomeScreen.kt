@@ -50,6 +50,7 @@ import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.example.apphotrohoctap.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private val HomeBackground = Color(0xFFFCF8FF)
 private val HomeBrandBlue = Color(0xFF4143D5)
@@ -71,9 +72,9 @@ fun StudyFlowHomeScreen(
     onAddTask: () -> Unit = {},
     onTabSelected: (String) -> Unit = {}
 ) {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context))
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -510,6 +511,11 @@ private fun DeadlineCard(task: DeadlineTask) {
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Box(Modifier.fillMaxSize()) {
+            val urgencyBackground = if (task.isUrgent) Color(0xFFFFDAD6) else Color(0xFFE8E6FC)
+            val urgencyColor = if (task.isUrgent) Color(0xFFBA1A1A) else HomeSecondaryInk
+            val timeColor = if (task.isUrgent) Color(0xFFBA1A1A) else HomeSecondaryInk
+            val urgencyIcon = if (task.isUrgent) "home_alert.svg" else null
+
             Column(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 verticalArrangement = Arrangement.SpaceBetween
@@ -523,21 +529,22 @@ private fun DeadlineCard(task: DeadlineTask) {
                             Text(task.subject, modifier = Modifier.widthIn(max = 130.dp).padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = HomeBrandBlue, maxLines = 1, overflow = TextOverflow.Clip)
                         }
                         Spacer(Modifier.weight(1f))
-                        Surface(color = task.urgencyBackground, shape = CircleShape) {
+
+                        Surface(color = urgencyBackground, shape = CircleShape) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                task.urgencyIcon?.let { HomeIcon(it, Modifier.width(8.667.dp).height(10.292.dp), "") }
-                                Text(task.urgency, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = task.urgencyColor, maxLines = 1)
+                                urgencyIcon?.let { HomeIcon(it, Modifier.width(8.667.dp).height(10.292.dp), "") }
+                                Text(task.urgency, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = urgencyColor, maxLines = 1)
                             }
                         }
                     }
                     Text(task.title, modifier = Modifier.height(38.5.dp), fontSize = 14.sp, lineHeight = 19.25.sp, fontWeight = FontWeight.SemiBold, color = HomeInk, maxLines = 2, overflow = TextOverflow.Clip)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        HomeIcon(task.dateIcon, Modifier.width(14.2.dp).height(13.1.dp), "")
-                        Text(task.dueDate, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = task.timeColor, maxLines = 1)
+                        HomeIcon("home_date.svg", Modifier.width(14.2.dp).height(13.1.dp), "")
+                        Text(task.dueDate, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = timeColor, maxLines = 1)
                     }
                 }
                 Column(
