@@ -30,6 +30,15 @@ import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.apphotrohoctap.ui.schedule.StudyClass
+import com.example.apphotrohoctap.ui.tasks.TaskItem
+import com.example.apphotrohoctap.data.NoteEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 private val CourseBg = Color(0xFFFCF8FF)
 private val CoursePale = Color(0xFFF5F2FF)
 private val CourseChip = Color(0xFFEDE9FF)
@@ -54,42 +63,32 @@ private data class CourseTask(
 )
 
 @Composable
-fun StudyFlowCourseDetailScreen(onBack: () -> Unit = {}) {
+fun StudyFlowCourseDetailScreen(courseName: String, onBack: () -> Unit = {}) {
     val context = LocalContext.current
+    val viewModel: CourseViewModel = viewModel(factory = CourseViewModelFactory(context))
+    
+    // Nạp tên môn học vào ViewModel lần đầu tiên (hoặc khi đổi môn)
+    LaunchedEffect(courseName) {
+        viewModel.setCourseName(courseName)
+    }
+    
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableStateOf("Bài tập") }
-    var checkedGroupTasks by remember { mutableStateOf(setOf("Mình: Thiết kế ERD phân tán")) }
-    val tasks = listOf(
-        CourseTask("Báo cáo Đồ án Bán kỳ: Thiết kế schema & Indexing", "23:59 hôm nay (Còn 6 giờ)", "Nhóm", .65f, "4/6", "Đồ án nhóm • 1 tệp zip (.sql + .pdf)", CourseRed),
-        CourseTask("Bài tập tuần 8: Tối ưu hóa truy vấn SQL Execution Plan", "28/04/2024 - 17:00", "Cá nhân", .30f, "Đang làm", "Nộp trên cổng LMS trường", CourseAmber),
-        CourseTask("Đọc trước Chapter 4: Distributed Database Transactions", "Đã nộp lúc 09:30 Thứ Tư", "Điểm: 9.5/10", 1f, "Đã lưu trữ", "Hoàn thành 100%", CourseGreen, true)
-    )
     BackHandler(onBack = onBack)
 
     Column(Modifier.fillMaxSize().background(CourseBg)) {
-        CourseHeader(onBack)
+        CourseHeader(onBack = onBack, uiState = uiState)
         Box(Modifier.weight(1f)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 96.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                CourseOverview()
+                CourseOverview(uiState)
                 CourseTabs(selectedTab) { selectedTab = it }
-                if (selectedTab == "Bài tập") {
-                    Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("Bài tập & Hạn chót", fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, color = CourseInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Spacer(Modifier.width(8.dp))
-                            Badge("3 việc", CourseChip, CourseText)
-                            Spacer(Modifier.weight(1f))
-                            Text("Lọc trạng thái ☷", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = CourseBrand)
-                        }
-                        tasks.forEachIndexed { index, task ->
-                            CourseTaskCard(task, index, task.done) {}
-                        }
-                        NextClassCard()
-                        MaterialsCard()
-                        GroupTaskCard(checkedGroupTasks) { label ->
-                            checkedGroupTasks = if (label in checkedGroupTasks) checkedGroupTasks - label else checkedGroupTasks + label
-                        }
-                    }
-                } else CourseTabPlaceholder(selectedTab)
+                if (selectedTab == "Lịch học") {
+                    CourseScheduleTab(uiState.schedules)
+                } else if (selectedTab == "Bài tập") {
+                    CourseTasksTab(uiState.tasks) { taskId -> viewModel.toggleTaskCompletion(taskId) }
+                } else if (selectedTab == "Ghi chú") {
+                    CourseNotesTab(uiState.notes)
+                }
             }
             Surface(
                 onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
@@ -105,19 +104,19 @@ fun StudyFlowCourseDetailScreen(onBack: () -> Unit = {}) {
 }
 
 @Composable
-private fun CourseHeader(onBack: () -> Unit) {
+private fun CourseHeader(onBack: () -> Unit, uiState: CourseUiState) {
     Surface(color = CourseBg.copy(alpha = .98f), shadowElevation = 1.dp) {
         Row(Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(onClick = onBack, modifier = Modifier.size(40.dp), color = Color.Transparent, shape = CircleShape) {
                 Box(contentAlignment = Alignment.Center) { Text("‹", fontSize = 36.sp, lineHeight = 40.sp, color = CourseInk) }
             }
-            Text("Chi Tiết Môn Học", Modifier.padding(start = 12.dp), fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold, color = CourseInk)
+            Text(uiState.courseName, Modifier.padding(start = 12.dp), fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold, color = CourseInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
 
 @Composable
-private fun CourseOverview() {
+private fun CourseOverview(uiState: CourseUiState) {
     val context = LocalContext.current
     Card(Modifier.fillMaxWidth().padding(horizontal = 24.dp), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(3.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -125,20 +124,10 @@ private fun CourseOverview() {
                 Surface(color = CourseBright, shape = RoundedCornerShape(16.dp)) { Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) { Text("▦", fontSize = 31.sp, color = Color.White) } }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Badge("IT3020", CourseChip, CourseBrand); Badge("3 Tín chỉ", CourseChip, CourseText); Badge("Bắt buộc", CourseChip, CourseText)
+                        Badge(uiState.courseCode, CourseChip, CourseBrand)
                     }
-                    Text("Cơ sở dữ liệu nâng cao", fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = CourseInk)
-                    Text("Học kỳ II • Năm học 2023 - 2024", fontSize = 13.sp, color = CourseMuted)
-                }
-            }
-            Surface(color = CoursePale, shape = RoundedCornerShape(16.dp)) {
-                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(color = Color(0xFFD2F2EA), shape = CircleShape) { Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) { Text("◉", fontSize = 20.sp, color = Color(0xFF1BA783)) } }
-                    Column(Modifier.weight(1f).padding(start = 10.dp)) {
-                        Text("Điểm danh: 95% (Đạt)", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
-                        Text("11/12 buổi đã tham gia", fontSize = 12.sp, color = CourseText)
-                    }
-                    Badge("Đủ điều kiện thi", Color.White, Color(0xFF139A76))
+                    Text(uiState.courseName, fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = CourseInk)
+                    Text("Giảng viên: ${uiState.lecturer}", fontSize = 13.sp, color = CourseMuted)
                 }
             }
             Surface(color = CoursePale, shape = RoundedCornerShape(16.dp)) {
@@ -146,14 +135,15 @@ private fun CourseOverview() {
                     Text("♙", fontSize = 22.sp, color = CourseBright)
                     Column(Modifier.weight(1f).padding(start = 10.dp)) {
                         Text("Giảng viên", fontSize = 11.sp, color = CourseMuted)
-                        Text("TS. Nguyễn Thanh Hải", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
+                        Text(uiState.lecturer, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
                     }
                     Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, color = Color.White, shape = RoundedCornerShape(10.dp)) { Box(Modifier.size(42.dp), contentAlignment = Alignment.Center) { Text("✉", fontSize = 20.sp, color = CourseBright) } }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                InfoCard("♙", "Phòng học", "B1-302", "Giảng đường B1", Modifier.weight(1f))
-                InfoCard("▣", "Lịch cố định", "Thứ Tư hàng tuần", "07:30 - 09:50 (Tiết 1-3)", Modifier.weight(1f))
+                InfoCard("♙", "Phòng học", uiState.room, "", Modifier.weight(1f))
+                val firstSch = uiState.schedules.firstOrNull()
+                InfoCard("▣", "Lịch học", if (firstSch != null) firstSch.time else "Chưa xếp", "", Modifier.weight(1f))
             }
         }
     }
@@ -288,6 +278,83 @@ private fun GroupTaskCard(checked: Set<String>, onChecked: (String) -> Unit) {
 }
 
 @Composable
+private fun CourseScheduleTab(schedules: List<StudyClass>) {
+    Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Lịch học", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CourseInk)
+        if (schedules.isEmpty()) {
+            Text("Chưa có lịch học nào.", fontSize = 13.sp, color = CourseMuted)
+        } else {
+            schedules.forEach { sch ->
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Badge(sch.session, CourseChip, CourseBrand)
+                            Spacer(Modifier.weight(1f))
+                            Text(sch.time, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = CourseBrand)
+                        }
+                        Text(sch.title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
+                        Text("Phòng: ${sch.place} • GV: ${sch.teacher}", fontSize = 12.sp, color = CourseMuted)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CourseTasksTab(tasks: List<TaskItem>, onCheck: (String) -> Unit) {
+    Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("Bài tập & Hạn chót", fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, color = CourseInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.weight(1f))
+            Badge("${tasks.size} việc", CourseChip, CourseText)
+        }
+        if (tasks.isEmpty()) {
+            Text("Chưa có bài tập nào.", fontSize = 13.sp, color = CourseMuted)
+        } else {
+            tasks.forEachIndexed { index, task ->
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(3.dp)) {
+                    Row(Modifier.fillMaxWidth().drawBehind { drawRect(task.accent, size = androidx.compose.ui.geometry.Size(4.dp.toPx(), size.height)) }) {
+                        Surface(onClick = { onCheck(task.id) }, modifier = Modifier.padding(start = 22.dp, top = 24.dp).size(22.dp), color = if (task.completed) task.accent else Color.White, shape = RoundedCornerShape(3.dp), border = if (task.completed) null else androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF9D9DA8))) {
+                            Box(contentAlignment = Alignment.Center) { if (task.completed) Text("✓", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White) }
+                        }
+                        Column(Modifier.weight(1f).padding(start = 18.dp, end = 16.dp, top = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Badge(task.due, CoursePale, task.accent)
+                                Spacer(Modifier.weight(1f))
+                                Text(task.category.uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = CourseBrand)
+                            }
+                            Text(task.title, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = CourseInk, textDecoration = if (task.completed) TextDecoration.LineThrough else TextDecoration.None)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CourseNotesTab(notes: List<NoteEntity>) {
+    Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Tài liệu & Ghi chú", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CourseInk)
+        if (notes.isEmpty()) {
+            Text("Chưa có tài liệu hoặc ghi chú nào.", fontSize = 13.sp, color = CourseMuted)
+        } else {
+            notes.forEach { note ->
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(note.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = CourseInk)
+                        Text(note.content, fontSize = 12.sp, color = CourseText, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        val sdf = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
+                        Text("Cập nhật: ${sdf.format(Date(note.updatedAtMillis))}", fontSize = 10.sp, color = CourseMuted)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun CourseTabPlaceholder(tab: String) {
     Surface(Modifier.padding(horizontal = 24.dp), color = Color.White, shape = RoundedCornerShape(20.dp), shadowElevation = 2.dp) {
         Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -303,4 +370,4 @@ private fun CourseIcon(assetName: String, modifier: Modifier, description: Strin
 
 @Preview(showBackground = true)
 @Composable
-private fun CourseDetailPreview() { MaterialTheme { StudyFlowCourseDetailScreen() } }
+private fun CourseDetailPreview() { MaterialTheme { StudyFlowCourseDetailScreen("Tên môn học") } }

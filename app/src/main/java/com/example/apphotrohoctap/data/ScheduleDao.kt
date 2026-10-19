@@ -13,6 +13,9 @@ interface ScheduleDao {
     @Query("SELECT * FROM schedules ORDER BY startPeriod ASC")
     fun getAllSchedules(): Flow<List<ScheduleEntity>>
 
+    @Query("SELECT * FROM schedules WHERE subject = :subject ORDER BY startPeriod ASC")
+    fun getSchedulesBySubject(subject: String): Flow<List<ScheduleEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSchedule(schedule: ScheduleEntity)
 

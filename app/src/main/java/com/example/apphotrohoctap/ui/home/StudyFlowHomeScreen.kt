@@ -66,7 +66,7 @@ fun StudyFlowHomeScreen(
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onSeeAllClasses: () -> Unit = {},
-    onCourseClick: () -> Unit = {},
+    onCourseClick: (String) -> Unit = {},
     onFilterDeadlines: () -> Unit = {},
     onStartFocus: () -> Unit = {},
     onAddTask: () -> Unit = {},
@@ -389,7 +389,7 @@ private fun StatisticCard(
 }
 
 @Composable
-private fun TodayScheduleSection(classes: List<StudyClass>, onSeeAll: () -> Unit, onCourseClick: () -> Unit) {
+private fun TodayScheduleSection(classes: List<StudyClass>, onSeeAll: () -> Unit, onCourseClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -410,7 +410,7 @@ private fun TodayScheduleSection(classes: List<StudyClass>, onSeeAll: () -> Unit
             Text("Không có lịch học nào.", modifier = Modifier.padding(16.dp), color = HomeSecondaryInk, fontSize = 12.sp)
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                classes.forEach { classItem -> StudyClassCard(classItem, onCourseClick) }
+                classes.forEach { classItem -> StudyClassCard(classItem) { onCourseClick(classItem.title) } }
             }
         }
     }
