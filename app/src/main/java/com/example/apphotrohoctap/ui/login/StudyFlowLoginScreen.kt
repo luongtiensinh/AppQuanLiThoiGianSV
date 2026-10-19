@@ -74,6 +74,9 @@ fun StudyFlowLoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var rememberLogin by remember { mutableStateOf(true) }
+    
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -95,14 +98,38 @@ fun StudyFlowLoginScreen(
             Spacer(Modifier.height(24.dp))
             LoginCard(
                 email = email,
-                onEmailChange = { email = it },
+                onEmailChange = { 
+                    email = it
+                    if (it.isNotBlank()) emailError = null
+                },
                 password = password,
-                onPasswordChange = { password = it },
+                onPasswordChange = { 
+                    password = it
+                    if (it.isNotBlank()) passwordError = null 
+                },
                 passwordVisible = passwordVisible,
                 onPasswordVisibilityChange = { passwordVisible = !passwordVisible },
                 rememberLogin = rememberLogin,
                 onRememberLoginChange = { rememberLogin = !rememberLogin },
-                onLogin = onLogin
+                emailError = emailError,
+                passwordError = passwordError,
+                onLogin = {
+                    var isValid = true
+                    if (email.isBlank()) {
+                        emailError = "Email không được để trống"
+                        isValid = false
+                    } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailError = "Email không đúng định dạng"
+                        isValid = false
+                    }
+                    if (password.isBlank()) {
+                        passwordError = "Mật khẩu không được để trống"
+                        isValid = false
+                    }
+                    if (isValid) {
+                        onLogin()
+                    }
+                }
             )
             Spacer(Modifier.height(24.dp))
             RegistrationPrompt(onRegister)
@@ -200,6 +227,8 @@ private fun LoginCard(
     onPasswordVisibilityChange: () -> Unit,
     rememberLogin: Boolean,
     onRememberLoginChange: () -> Unit,
+    emailError: String?,
+    passwordError: String?,
     onLogin: () -> Unit
 ) {
     Card(
@@ -219,7 +248,8 @@ private fun LoginCard(
                 iconModifier = Modifier.size(13.333.dp),
                 value = email,
                 onValueChange = onEmailChange,
-                keyboardType = KeyboardType.Email
+                keyboardType = KeyboardType.Email,
+                errorText = emailError
             )
             LoginInput(
                 label = "Mật khẩu",
@@ -230,6 +260,7 @@ private fun LoginCard(
                 onValueChange = onPasswordChange,
                 keyboardType = KeyboardType.Password,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                errorText = passwordError,
                 trailingContent = {
                     Box(
                         modifier = Modifier
@@ -275,6 +306,7 @@ private fun LoginInput(
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    errorText: String? = null,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -284,7 +316,7 @@ private fun LoginInput(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 16.sp),
-                color = SecondaryInk
+                color = if (errorText != null) MaterialTheme.colorScheme.error else SecondaryInk
             )
         }
         Row(
@@ -315,6 +347,14 @@ private fun LoginInput(
                 }
             )
             trailingContent?.invoke()
+        }
+        if (errorText != null) {
+            Text(
+                text = errorText,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 24.dp)
+            )
         }
     }
 }
