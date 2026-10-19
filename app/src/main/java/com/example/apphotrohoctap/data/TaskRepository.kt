@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 class TaskRepository(private val taskDao: TaskDao) {
     fun getTasks(): Flow<List<TaskWithSubtasks>> = taskDao.getAllTasks()
+    fun getTasksBySubject(subject: String): Flow<List<TaskWithSubtasks>> = taskDao.getTasksBySubject(subject)
     suspend fun getTaskById(id: Long): TaskWithSubtasks? = taskDao.getTaskById(id)
     
     suspend fun addTaskWithSubtasks(task: TaskEntity, subtasks: List<String>) {

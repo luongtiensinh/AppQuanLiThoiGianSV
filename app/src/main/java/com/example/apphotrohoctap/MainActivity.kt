@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                     composable(Screen.Home.route) {
                         StudyFlowHomeScreen(
                             onAddTask = { navController.navigate(Screen.AddTask.route) },
-                            onCourseClick = { navController.navigate(Screen.CourseDetail.route) },
+                            onCourseClick = { courseName -> navController.navigate(Screen.CourseDetail.createRoute(courseName)) },
                             onTabSelected = navToTab
                         )
                     }
@@ -117,8 +117,13 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
-                    composable(Screen.CourseDetail.route) {
+                    composable(
+                        route = Screen.CourseDetail.route,
+                        arguments = listOf(navArgument("courseName") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val courseName = backStackEntry.arguments?.getString("courseName") ?: ""
                         StudyFlowCourseDetailScreen(
+                            courseName = courseName,
                             onBack = { navController.popBackStack() }
                         )
                     }

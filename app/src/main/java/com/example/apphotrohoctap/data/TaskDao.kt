@@ -16,6 +16,10 @@ interface TaskDao {
     fun getAllTasks(): Flow<List<TaskWithSubtasks>>
 
     @Transaction
+    @Query("SELECT * FROM tasks WHERE subject = :subject ORDER BY dueAtMillis ASC")
+    fun getTasksBySubject(subject: String): Flow<List<TaskWithSubtasks>>
+
+    @Transaction
     @Query("SELECT * FROM tasks WHERE id = :id")
     suspend fun getTaskById(id: Long): TaskWithSubtasks?
 
