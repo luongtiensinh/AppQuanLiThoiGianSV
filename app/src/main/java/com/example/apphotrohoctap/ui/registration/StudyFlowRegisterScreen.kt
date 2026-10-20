@@ -76,6 +76,11 @@ fun StudyFlowRegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var agreedToTerms by remember { mutableStateOf(false) }
 
+    var fullNameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var termsError by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,8 +108,12 @@ fun StudyFlowRegisterScreen(
                     icon = "register_person.svg",
                     iconModifier = Modifier.size(13.333.dp),
                     value = fullName,
-                    onValueChange = { fullName = it },
-                    keyboardType = KeyboardType.Text
+                    onValueChange = { 
+                        fullName = it
+                        if (it.isNotBlank()) fullNameError = null
+                    },
+                    keyboardType = KeyboardType.Text,
+                    errorText = fullNameError
                 )
                 RegisterInput(
                     label = "Email",
@@ -112,22 +121,30 @@ fun StudyFlowRegisterScreen(
                     icon = "register_email.svg",
                     iconModifier = Modifier.width(16.667.dp).height(13.333.dp),
                     value = email,
-                    onValueChange = { email = it },
-                    keyboardType = KeyboardType.Email
+                    onValueChange = { 
+                        email = it
+                        if (it.isNotBlank()) emailError = null
+                    },
+                    keyboardType = KeyboardType.Email,
+                    errorText = emailError
                 )
                 RegisterInput(
                     label = "Mật khẩu",
-                    hint = "Tối thiểu 8 ký tự",
+                    hint = "Tối thiểu 6 ký tự",
                     icon = "register_lock.svg",
                     iconModifier = Modifier.width(13.333.dp).height(17.5.dp),
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { 
+                        password = it
+                        if (it.length >= 6) passwordError = null
+                    },
                     keyboardType = KeyboardType.Password,
                     visualTransformation = if (passwordVisible) {
                         VisualTransformation.None
                     } else {
                         PasswordVisualTransformation()
                     },
+                    errorText = passwordError,
                     trailingContent = {
                         Box(
                             modifier = Modifier
@@ -145,11 +162,40 @@ fun StudyFlowRegisterScreen(
                 )
                 AgreementRow(
                     checked = agreedToTerms,
-                    onCheckedChange = { agreedToTerms = it }
+                    onCheckedChange = { 
+                        agreedToTerms = it
+                        if (it) termsError = null
+                    },
+                    errorText = termsError
                 )
                 Button(
                     onClick = {
-                        if (agreedToTerms && fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
+                        var isValid = true
+                        
+                        if (fullName.isBlank()) {
+                            fullNameError = "Họ tên không được để trống"
+                            isValid = false
+                        }
+                        
+                        if (email.isBlank()) {
+                            emailError = "Email không được để trống"
+                            isValid = false
+                        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            emailError = "Email không hợp lệ"
+                            isValid = false
+                        }
+                        
+                        if (password.length < 6) {
+                            passwordError = "Mật khẩu phải từ 6 ký tự trở lên"
+                            isValid = false
+                        }
+                        
+                        if (!agreedToTerms) {
+                            termsError = "Bạn phải đồng ý với Điều khoản"
+                            isValid = false
+                        }
+                        
+                        if (isValid) {
                             onSignIn()
                         }
                     },
@@ -248,13 +294,14 @@ private fun RegisterInput(
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    errorText: String? = null,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 16.sp),
-            color = RegisterInk
+            color = if (errorText != null) MaterialTheme.colorScheme.error else RegisterInk
         )
         Surface(
             modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -291,58 +338,76 @@ private fun RegisterInput(
                 trailingContent?.invoke()
             }
         }
+        if (errorText != null) {
+            Text(
+                text = errorText,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
     }
 }
 
 @Composable
-private fun AgreementRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val checkboxShape = RoundedCornerShape(2.5.dp)
-        Box(
-            modifier = Modifier
-                .size(16.dp)
-                .clip(checkboxShape)
-                .background(if (checked) RegisterBrandBlue else Color.White)
-                .border(1.dp, if (checked) RegisterBrandBlue else RegisterMutedInk, checkboxShape)
-                .toggleable(checked, role = Role.Checkbox, onValueChange = onCheckedChange),
-            contentAlignment = Alignment.Center
+private fun AgreementRow(checked: Boolean, errorText: String? = null, onCheckedChange: (Boolean) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (checked) {
-                Canvas(Modifier.size(10.dp)) {
-                    val check = Path().apply {
-                        moveTo(size.width * 0.12f, size.height * 0.52f)
-                        lineTo(size.width * 0.4f, size.height * 0.8f)
-                        lineTo(size.width * 0.9f, size.height * 0.2f)
-                    }
-                    drawPath(
-                        path = check,
-                        color = Color.White,
-                        style = Stroke(
-                            width = 1.5.dp.toPx(),
-                            cap = StrokeCap.Round,
-                            join = StrokeJoin.Round
+            val checkboxShape = RoundedCornerShape(2.5.dp)
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .clip(checkboxShape)
+                    .background(if (checked) RegisterBrandBlue else Color.White)
+                    .border(1.dp, if (checked) RegisterBrandBlue else (if (errorText != null) MaterialTheme.colorScheme.error else RegisterMutedInk), checkboxShape)
+                    .toggleable(checked, role = Role.Checkbox, onValueChange = onCheckedChange),
+                contentAlignment = Alignment.Center
+            ) {
+                if (checked) {
+                    Canvas(Modifier.size(10.dp)) {
+                        val check = Path().apply {
+                            moveTo(size.width * 0.12f, size.height * 0.52f)
+                            lineTo(size.width * 0.4f, size.height * 0.8f)
+                            lineTo(size.width * 0.9f, size.height * 0.2f)
+                        }
+                        drawPath(
+                            path = check,
+                            color = Color.White,
+                            style = Stroke(
+                                width = 1.5.dp.toPx(),
+                                cap = StrokeCap.Round,
+                                join = StrokeJoin.Round
+                            )
                         )
-                    )
+                    }
                 }
             }
+            Spacer(Modifier.width(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Tôi đồng ý với ",
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    color = RegisterSecondaryInk
+                )
+                Text(
+                    text = "Điều khoản & Chính sách",
+                    modifier = Modifier.clickable { },
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    color = RegisterBrandBlue
+                )
+            }
         }
-        Spacer(Modifier.width(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        if (errorText != null) {
             Text(
-                text = "Tôi đồng ý với ",
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
-                color = RegisterSecondaryInk
-            )
-            Text(
-                text = "Điều khoản & Chính sách",
-                modifier = Modifier.clickable { },
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
-                color = RegisterBrandBlue
+                text = errorText,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 26.dp)
             )
         }
     }
