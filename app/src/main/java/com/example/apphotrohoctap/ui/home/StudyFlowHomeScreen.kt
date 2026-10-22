@@ -215,6 +215,12 @@ private fun HomeHeader(onNotificationClick: () -> Unit, onProfileClick: () -> Un
 
 @Composable
 private fun GreetingSection() {
+    val now = System.currentTimeMillis()
+    val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(now)
+    val weekLabel = if (weekNumber > 0) "Tuần học thứ $weekNumber" else "Chưa bắt đầu học kỳ"
+    val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterLabelShort(now).substringBefore(" (") // Lấy phần "HK I" hoặc "Học kỳ 1"
+    val dateLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.formatTodayVi(now)
+
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -223,7 +229,7 @@ private fun GreetingSection() {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "Chào Minh Anh",
+                    "Chào bạn",
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
                     letterSpacing = (-0.6).sp,
@@ -239,15 +245,15 @@ private fun GreetingSection() {
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Box(Modifier.size(6.dp).clip(CircleShape).background(HomeBrandBlue))
-                    Text("Học kỳ 2", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeBrandBlue)
+                    Text(semesterLabel, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeBrandBlue)
                 }
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             HomeIcon("home_calendar.svg", Modifier.width(12.dp).height(13.333.dp), "")
-            Text("Thứ Tư, 24 Tháng 4", fontSize = 12.sp, lineHeight = 16.sp, color = HomeSecondaryInk)
+            Text(dateLabel, fontSize = 12.sp, lineHeight = 16.sp, color = HomeSecondaryInk)
             Box(Modifier.size(4.dp).clip(CircleShape).background(Color(0xFFC6C5D7)))
-            Text("Tuần học thứ 8", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = HomeBrandBlue)
+            Text(weekLabel, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = HomeBrandBlue)
         }
     }
 }
