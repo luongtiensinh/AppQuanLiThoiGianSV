@@ -65,18 +65,6 @@ private val SchedulePale = Color(0xFFF5F2FF)
 private val ScheduleRed = Color(0xFFBA1A1A)
 private val ScheduleRedPale = Color(0xFFFFEDEA)
 
-private data class CalendarDay(val weekday: String, val day: String, val hasEvents: Boolean = false)
-
-private val calendarDays = listOf(
-    CalendarDay("T2", "22", true),
-    CalendarDay("T3", "23", true),
-    CalendarDay("T4", "24", true),
-    CalendarDay("T5", "25", true),
-    CalendarDay("T6", "26", true),
-    CalendarDay("T7", "27"),
-    CalendarDay("CN", "28")
-)
-
 @Composable
 fun StudyFlowScheduleScreen(
     onTabSelected: (String) -> Unit = {},
@@ -88,11 +76,12 @@ fun StudyFlowScheduleScreen(
     val viewModel: ScheduleViewModel = viewModel(factory = ScheduleViewModelFactory(context))
     val schedules by viewModel.schedules.collectAsState()
 
-    var selectedView by remember { mutableStateOf("Tuần") }
-    var selectedDay by remember { mutableStateOf("24") }
-
     val now = System.currentTimeMillis()
-    val selectedWeekdayStr = calendarDays.find { it.day == selectedDay }?.weekday ?: "T4"
+    val weekDays = com.example.apphotrohoctap.ui.common.AcademicCalendar.generateWeekDays(now)
+    var selectedView by remember { mutableStateOf("Tuần") }
+    var selectedDay by remember { mutableStateOf(com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(now)) }
+
+    val selectedWeekdayStr = weekDays.find { it.second == selectedDay }?.first ?: "T4"
     val selectedDayInt = when (selectedWeekdayStr) {
         "T2" -> 1
         "T3" -> 2
@@ -149,10 +138,12 @@ fun StudyFlowScheduleScreen(
                         }
                     } else {
                         MonthInformationBanner()
-                        WeekDateCarousel(selectedDay, onDaySelected = { selectedDay = it })
+                        WeekDateCarousel(weekDays, selectedDay, onDaySelected = { selectedDay = it })
                         DailySummary(dayClasses.size)
                         DailyTimeline(dayClasses)
-                        AttendanceSummary()
+                        val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(now)
+                        val weekLabel = if (weekNumber > 0) "tuần $weekNumber" else ""
+                        AttendanceSummary(weekLabel)
                     }
                 }
             }
@@ -232,11 +223,14 @@ private fun ScheduleHeader(onNotificationClick: () -> Unit, onProfileClick: () -
 @Composable
 private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Unit) {
     val context = LocalContext.current
+    val now = System.currentTimeMillis()
+    val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterLabel(now)
+    
     Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Column {
                 Text("Thời khóa biểu", fontSize = 20.sp, lineHeight = 28.sp, letterSpacing = (-0.5).sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
-                Text("Học kỳ II (2023 - 2024)", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleMuted)
+                Text(semesterLabel, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleMuted)
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(color = Color(0xFFEFECFF), shape = CircleShape, shadowElevation = 1.dp) {
@@ -276,6 +270,11 @@ private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Uni
 
 @Composable
 private fun MonthInformationBanner() {
+    val now = System.currentTimeMillis()
+    val monthYearLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.monthYearLabel(now)
+    val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(now)
+    val weekLabel = if (weekNumber > 0) "Tuần $weekNumber" else ""
+    
     Surface(color = SchedulePale, shape = RoundedCornerShape(12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
@@ -283,11 +282,13 @@ private fun MonthInformationBanner() {
         ) {
             ScheduleIcon(1, Modifier.width(13.5.dp).height(15.dp), "")
             Spacer(Modifier.width(8.dp))
-            Text("Tháng 4, 2024", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
-            Spacer(Modifier.width(8.dp))
-            Box(Modifier.size(4.dp).clip(CircleShape).background(Color(0xFFC6C5D7)))
-            Spacer(Modifier.width(8.dp))
-            Text("Tuần 8", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
+            Text(monthYearLabel, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
+            if (weekLabel.isNotEmpty()) {
+                Spacer(Modifier.width(8.dp))
+                Box(Modifier.size(4.dp).clip(CircleShape).background(Color(0xFFC6C5D7)))
+                Spacer(Modifier.width(8.dp))
+                Text(weekLabel, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
+            }
             Spacer(Modifier.weight(1f))
             Text("Hôm nay", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
             Spacer(Modifier.width(2.dp))
@@ -297,16 +298,16 @@ private fun MonthInformationBanner() {
 }
 
 @Composable
-private fun WeekDateCarousel(selectedDay: String, onDaySelected: (String) -> Unit) {
+private fun WeekDateCarousel(weekDays: List<Pair<String, String>>, selectedDay: String, onDaySelected: (String) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        calendarDays.forEach { day ->
-            val selected = day.day == selectedDay
+        weekDays.forEach { (weekday, dayStr) ->
+            val selected = dayStr == selectedDay
             Surface(
-                onClick = { onDaySelected(day.day) },
+                onClick = { onDaySelected(dayStr) },
                 modifier = Modifier.width(if (selected) 50.dp else 44.dp).height(if (selected) 72.dp else 68.dp),
                 color = if (selected) ScheduleBrightBlue else Color.White,
                 shape = RoundedCornerShape(16.dp),
@@ -317,7 +318,7 @@ private fun WeekDateCarousel(selectedDay: String, onDaySelected: (String) -> Uni
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        day.weekday,
+                        weekday,
                         fontSize = 10.sp,
                         lineHeight = 14.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -325,18 +326,17 @@ private fun WeekDateCarousel(selectedDay: String, onDaySelected: (String) -> Uni
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        day.day,
+                        dayStr,
                         fontSize = 18.sp,
                         lineHeight = 24.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                        color = if (selected) Color.White else if (day.weekday == "CN") ScheduleRed else ScheduleSecondary
+                        color = if (selected) Color.White else if (weekday == "CN") ScheduleRed else ScheduleSecondary
                     )
                     Box(
                         modifier = Modifier.padding(top = 4.dp).size(6.dp)
                             .clip(CircleShape)
                             .background(
                                 when {
-                                    !day.hasEvents -> Color.Transparent
                                     selected -> Color.White
                                     else -> ScheduleBrandBlue.copy(alpha = 0.4f)
                                 }
@@ -607,7 +607,7 @@ private fun StudyGroupBlock() {
 }
 
 @Composable
-private fun AttendanceSummary() {
+private fun AttendanceSummary(weekLabel: String) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
         shape = RoundedCornerShape(16.dp),
@@ -625,7 +625,7 @@ private fun AttendanceSummary() {
                 }
             }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("Tiến độ điểm danh tuần 8", fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
+                Text(if (weekLabel.isNotEmpty()) "Tiến độ điểm danh $weekLabel" else "Tiến độ điểm danh", fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
                 Text("Đạt 95% số tiết theo quy định", fontSize = 9.sp, lineHeight = 12.sp, color = ScheduleSecondary)
             }
             Surface(color = Color(0xFFE1E0FF), shape = CircleShape) {
