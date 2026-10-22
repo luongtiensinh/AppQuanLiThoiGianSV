@@ -45,6 +45,28 @@ internal class TasksViewModel(private val repository: TaskRepository) : ViewMode
             initialValue = emptyList()
         )
 
+    fun updateTitle(title: String) { _addTaskFormState.update { it.copy(title = title) } }
+    fun updateCourse(course: String) { _addTaskFormState.update { it.copy(selectedCourse = course) } }
+    fun updateCategory(category: String) { _addTaskFormState.update { it.copy(selectedCategory = category) } }
+    fun updateDate(millis: Long) { _addTaskFormState.update { it.copy(selectedDateUtcMillis = millis) } }
+    fun updateTime(hour: Int, minute: Int) { _addTaskFormState.update { it.copy(selectedHour = hour, selectedMinute = minute) } }
+    fun updateReminder(enabled: Boolean) { _addTaskFormState.update { it.copy(reminderEnabled = enabled) } }
+    fun updatePriority(priority: String) { _addTaskFormState.update { it.copy(selectedPriority = priority) } }
+    fun updateNotes(notes: String) { _addTaskFormState.update { it.copy(notes = notes) } }
+    
+    fun updateSubtaskText(text: String) { _addTaskFormState.update { it.copy(subtaskText = text) } }
+    fun addSubtask() {
+        _addTaskFormState.update { state ->
+            val text = state.subtaskText.trim()
+            if (text.isNotBlank()) {
+                state.copy(subtasks = state.subtasks + text, subtaskText = "")
+            } else state
+        }
+    }
+    fun clearAddTaskForm() {
+        _addTaskFormState.value = AddTaskFormState()
+    }
+
     fun addTaskWithSubtasks(task: TaskEntity, subtasks: List<String>) {
         viewModelScope.launch {
             repository.addTaskWithSubtasks(task, subtasks)
