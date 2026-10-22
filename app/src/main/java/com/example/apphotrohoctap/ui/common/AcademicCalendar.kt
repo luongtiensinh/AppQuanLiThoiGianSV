@@ -66,4 +66,33 @@ object AcademicCalendar {
         val formatter = SimpleDateFormat("'Tháng' M, yyyy", Locale.forLanguageTag("vi-VN"))
         return formatter.format(now)
     }
+
+    /**
+     * Trả về chuỗi ngày hiện tại (VD: "22")
+     */
+    fun currentDayString(now: Long): String {
+        val formatter = SimpleDateFormat("dd", Locale.forLanguageTag("vi-VN"))
+        return formatter.format(now)
+    }
+
+    /**
+     * Tạo danh sách 7 ngày trong tuần chứa [now], bắt đầu từ Thứ 2.
+     */
+    fun generateWeekDays(now: Long): List<Pair<String, String>> {
+        val calendar = Calendar.getInstance().apply { timeInMillis = now }
+        // Lùi về đầu tuần (Thứ 2)
+        while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
+            calendar.add(Calendar.DAY_OF_MONTH, -1)
+        }
+
+        val weekDays = mutableListOf<Pair<String, String>>()
+        val dayFormat = SimpleDateFormat("dd", Locale.forLanguageTag("vi-VN"))
+        val weekdays = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+
+        for (i in 0..6) {
+            weekDays.add(Pair(weekdays[i], dayFormat.format(calendar.timeInMillis)))
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        return weekDays
+    }
 }
