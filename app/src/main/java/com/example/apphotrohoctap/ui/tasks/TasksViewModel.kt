@@ -67,6 +67,40 @@ internal class TasksViewModel(private val repository: TaskRepository) : ViewMode
         _addTaskFormState.value = AddTaskFormState()
     }
 
+    /**
+     * @return true nếu hạn chót hợp lệ và đã được lưu thành công.
+     *         false nếu hạn chót nằm trong quá khứ (cần xác nhận).
+     */
+    fun saveTask(forceSave: Boolean = false): Boolean {
+        val state = _addTaskFormState.value
+        val dueAtMillis = DateTimeUtils.toDueAtMillis(state.selectedDateUtcMillis, state.selectedHour, state.selectedMinute)
+        
+        if (!forceSave && dueAtMillis < System.currentTimeMillis()) {
+            return false
+        }
+        
+        val categoryKey = when (state.selectedCategory) {
+            "Deadline" -> "deadline"
+            "Lịch học" -> "class"
+            else -> "assignment"
+        }
+        
+        val newEntity = TaskEntity(
+            subject = state.selectedCourse,
+            title = state.title,
+            dueAtMillis = dueAtMillis,
+            category = categoryKey,
+            priority = state.selectedPriority,
+            place = null,
+            notes = state.notes,
+            isCompleted = false
+        )
+        
+        addTaskWithSubtasks(newEntity, state.subtasks)
+        clearAddTaskForm()
+        return true
+    }
+
     fun addTaskWithSubtasks(task: TaskEntity, subtasks: List<String>) {
         viewModelScope.launch {
             repository.addTaskWithSubtasks(task, subtasks)
