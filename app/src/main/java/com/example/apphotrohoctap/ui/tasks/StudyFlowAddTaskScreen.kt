@@ -59,6 +59,8 @@ import com.example.apphotrohoctap.ui.common.StudyFlowDatePickerDialog
 import com.example.apphotrohoctap.ui.common.StudyFlowTimePickerDialog
 import java.util.Calendar
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 @Composable
 fun StudyFlowAddTaskScreen(
     onBack: () -> Unit = {},
@@ -66,27 +68,21 @@ fun StudyFlowAddTaskScreen(
 ) {
     val context = LocalContext.current
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(context))
+    val formState by viewModel.addTaskFormState.collectAsStateWithLifecycle()
     
-    var title by rememberSaveable { mutableStateOf("") }
-    var selectedCourse by rememberSaveable { mutableStateOf(addTaskCourses.firstOrNull() ?: "") }
-    var selectedCategory by rememberSaveable { mutableStateOf("Deadline") }
-    
-    var selectedDateUtcMillis by rememberSaveable { mutableStateOf(DateTimeUtils.getLocalDayUtcMillis(0)) }
-    var selectedHour by rememberSaveable { mutableStateOf(23) }
-    var selectedMinute by rememberSaveable { mutableStateOf(59) }
-    
-    var reminderEnabled by rememberSaveable { mutableStateOf(true) }
-    var selectedPriority by rememberSaveable { mutableStateOf("Cao") }
-    var notes by rememberSaveable { mutableStateOf("") }
-    
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    var showMoreCourses by remember { mutableStateOf(false) }
-    var showSubtaskDialog by remember { mutableStateOf(false) }
-    var showPastDeadlineDialog by remember { mutableStateOf(false) }
-    
-    var subtaskText by remember { mutableStateOf("") }
-    var subtasks by remember { mutableStateOf(emptyList<String>()) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    var showMoreCourses by rememberSaveable { mutableStateOf(false) }
+    var showSubtaskDialog by rememberSaveable { mutableStateOf(false) }
+    var showPastDeadlineDialog by rememberSaveable { mutableStateOf(false) }
+
+    // Đảm bảo môn học mặc định được chọn nếu list danh sách môn học không rỗng
+    // Cần side-effect hoặc khởi tạo ở state ViewModel, nhưng để đảm bảo ta gán một lần:
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (formState.selectedCourse.isEmpty() && addTaskCourses.isNotEmpty()) {
+            viewModel.updateCourse(addTaskCourses.first())
+        }
+    }
 
     BackHandler(onBack = onBack)
 
@@ -99,64 +95,45 @@ fun StudyFlowAddTaskScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 GuidanceBanner()
-                TaskTitleCard(title = title, onTitleChange = { title = it })
+                TaskTitleCard(title = formState.title, onTitleChange = { viewModel.updateTitle(it) })
                 CourseAndCategoryCard(
-                    selectedCourse = selectedCourse,
-                    selectedCategory = selectedCategory,
+                    selectedCourse = formState.selectedCourse,
+                    selectedCategory = formState.selectedCategory,
                     showMoreCourses = showMoreCourses,
-                    onCourseSelected = { selectedCourse = it },
-                    onCategorySelected = { selectedCategory = it },
+                    onCourseSelected = { viewModel.updateCourse(it) },
+                    onCategorySelected = { viewModel.updateCategory(it) },
                     onShowMoreCourses = { showMoreCourses = true }
                 )
                 DateCard(
-                    selectedDateUtcMillis = selectedDateUtcMillis,
+                    selectedDateUtcMillis = formState.selectedDateUtcMillis,
                     onOpenDatePicker = { showDatePicker = true },
-                    onDateSelected = { selectedDateUtcMillis = it },
+                    onDateSelected = { viewModel.updateDate(it) },
                     onOpenOtherDate = { showDatePicker = true }
                 )
                 ReminderCard(
-                    selectedHour = selectedHour,
-                    selectedMinute = selectedMinute,
-                    reminderEnabled = reminderEnabled,
+                    selectedHour = formState.selectedHour,
+                    selectedMinute = formState.selectedMinute,
+                    reminderEnabled = formState.reminderEnabled,
                     onOpenTimePicker = { showTimePicker = true },
-                    onTimeSelected = { h, m -> selectedHour = h; selectedMinute = m },
-                    onReminderChange = { reminderEnabled = it }
+                    onTimeSelected = { h, m -> viewModel.updateTime(h, m) },
+                    onReminderChange = { viewModel.updateReminder(it) }
                 )
-                PriorityCard(selectedPriority = selectedPriority, onPrioritySelected = { selectedPriority = it })
+                PriorityCard(selectedPriority = formState.selectedPriority, onPrioritySelected = { viewModel.updatePriority(it) })
                 NotesCard(
-                    notes = notes,
-                    onNotesChange = { notes = it },
-                    subtasks = subtasks,
+                    notes = formState.notes,
+                    onNotesChange = { viewModel.updateNotes(it) },
+                    subtasks = formState.subtasks,
                     onAttach = {
                         Toast.makeText(context, "Tính năng đang được phát triển", Toast.LENGTH_SHORT).show()
                     },
                     onAddSubtask = { showSubtaskDialog = true }
                 )
             }
-            SaveFooter(enabled = title.isNotBlank(), onSave = {
-                val dueAtMillis = DateTimeUtils.toDueAtMillis(selectedDateUtcMillis, selectedHour, selectedMinute)
-                
-                if (dueAtMillis < System.currentTimeMillis()) {
+            SaveFooter(enabled = formState.title.isNotBlank(), onSave = {
+                val success = viewModel.saveTask(forceSave = false)
+                if (!success) {
                     showPastDeadlineDialog = true
                 } else {
-                    val categoryKey = when (selectedCategory) {
-                        "Deadline" -> "deadline"
-                        "Lịch học" -> "class"
-                        else -> "assignment"
-                    }
-                    
-                    val newEntity = TaskEntity(
-                        subject = selectedCourse,
-                        title = title,
-                        dueAtMillis = dueAtMillis,
-                        category = categoryKey,
-                        priority = selectedPriority,
-                        place = null,
-                        notes = notes,
-                        isCompleted = false
-                    )
-
-                    viewModel.addTaskWithSubtasks(newEntity, subtasks)
                     onSave()
                 }
             })
@@ -165,22 +142,21 @@ fun StudyFlowAddTaskScreen(
 
     if (showDatePicker) {
         StudyFlowDatePickerDialog(
-            initialMillis = selectedDateUtcMillis,
+            initialMillis = formState.selectedDateUtcMillis,
             onDismiss = { showDatePicker = false },
             onConfirm = { millis -> 
-                selectedDateUtcMillis = millis
+                viewModel.updateDate(millis)
                 showDatePicker = false 
             }
         )
     }
     if (showTimePicker) {
         StudyFlowTimePickerDialog(
-            initialHour = selectedHour,
-            initialMinute = selectedMinute,
+            initialHour = formState.selectedHour,
+            initialMinute = formState.selectedMinute,
             onDismiss = { showTimePicker = false },
             onConfirm = { h, m -> 
-                selectedHour = h
-                selectedMinute = m
+                viewModel.updateTime(h, m)
                 showTimePicker = false
             }
         )
@@ -190,7 +166,7 @@ fun StudyFlowAddTaskScreen(
             title = "Chọn môn học",
             choices = addTaskCourses + "Môn khác",
             onDismiss = { showMoreCourses = false },
-            onChoice = { selectedCourse = it; showMoreCourses = false }
+            onChoice = { viewModel.updateCourse(it); showMoreCourses = false }
         )
     }
     if (showSubtaskDialog) {
@@ -199,8 +175,8 @@ fun StudyFlowAddTaskScreen(
             title = { Text("Thêm việc con", fontWeight = FontWeight.SemiBold) },
             text = {
                 OutlinedTextField(
-                    value = subtaskText,
-                    onValueChange = { subtaskText = it },
+                    value = formState.subtaskText,
+                    onValueChange = { viewModel.updateSubtaskText(it) },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Nhập tên việc con") },
                     singleLine = true
@@ -208,8 +184,7 @@ fun StudyFlowAddTaskScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (subtaskText.isNotBlank()) subtasks = subtasks + subtaskText.trim()
-                    subtaskText = ""
+                    viewModel.addSubtask()
                     showSubtaskDialog = false
                 }) { Text("Thêm") }
             },
@@ -224,23 +199,7 @@ fun StudyFlowAddTaskScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showPastDeadlineDialog = false
-                    val dueAtMillis = DateTimeUtils.toDueAtMillis(selectedDateUtcMillis, selectedHour, selectedMinute)
-                    val categoryKey = when (selectedCategory) {
-                        "Deadline" -> "deadline"
-                        "Lịch học" -> "class"
-                        else -> "assignment"
-                    }
-                    val newEntity = TaskEntity(
-                        subject = selectedCourse,
-                        title = title,
-                        dueAtMillis = dueAtMillis,
-                        category = categoryKey,
-                        priority = selectedPriority,
-                        place = null,
-                        notes = notes,
-                        isCompleted = false
-                    )
-                    viewModel.addTaskWithSubtasks(newEntity, subtasks)
+                    viewModel.saveTask(forceSave = true)
                     onSave()
                 }) { Text("Lưu") }
             },
