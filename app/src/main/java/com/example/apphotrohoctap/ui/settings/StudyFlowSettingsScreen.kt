@@ -196,7 +196,9 @@ private fun SettingsNavigationRow(
             subtitle?.let { Text(it, fontSize = 9.sp, lineHeight = 14.sp, color = SettingsMuted, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         Text(trailing, fontSize = if (trailing.length > 14) 8.sp else 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = if (danger) Color(0xFFBA1A1A) else trailingColor, maxLines = 1)
-        if (trailing == "›" || trailing == "HK II (2023 - 2024)" || trailing == "Tiêu chuẩn (M)") Text("›", fontSize = 14.sp, color = SettingsMuted)
+        val now = System.currentTimeMillis()
+        val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterLabelShort(now)
+        if (trailing == "›" || trailing == semesterLabel || trailing == "Tiêu chuẩn (M)") Text("›", fontSize = 14.sp, color = SettingsMuted)
     }
 }
 
