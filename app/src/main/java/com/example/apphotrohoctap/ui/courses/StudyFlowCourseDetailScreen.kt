@@ -91,7 +91,7 @@ fun StudyFlowCourseDetailScreen(courseName: String, onBack: () -> Unit = {}) {
                 }
             }
             Surface(
-                onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
+                onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
                 color = CourseBright, shape = RoundedCornerShape(18.dp), shadowElevation = 8.dp
             ) {
                 Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -137,7 +137,7 @@ private fun CourseOverview(uiState: CourseUiState) {
                         Text("Giảng viên", fontSize = 11.sp, color = CourseMuted)
                         Text(uiState.lecturer, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
                     }
-                    Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, color = Color.White, shape = RoundedCornerShape(10.dp)) { Box(Modifier.size(42.dp), contentAlignment = Alignment.Center) { Text("✉", fontSize = 20.sp, color = CourseBright) } }
+                    Surface(onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, color = Color.White, shape = RoundedCornerShape(10.dp)) { Box(Modifier.size(42.dp), contentAlignment = Alignment.Center) { Text("✉", fontSize = 20.sp, color = CourseBright) } }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -215,7 +215,7 @@ private fun CourseTaskCard(task: CourseTask, index: Int, checked: Boolean, onChe
 @Composable
 private fun CourseAction(label: String, color: Color, textColor: Color = Color.White) {
     val context = LocalContext.current
-    Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, color = color, shape = CircleShape) { Text(label, Modifier.padding(horizontal = 13.dp, vertical = 7.dp), fontSize = 11.sp, lineHeight = 13.sp, fontWeight = FontWeight.SemiBold, color = textColor) }
+    Surface(onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, color = color, shape = CircleShape) { Text(label, Modifier.padding(horizontal = 13.dp, vertical = 7.dp), fontSize = 11.sp, lineHeight = 13.sp, fontWeight = FontWeight.SemiBold, color = textColor) }
 }
 
 @Composable

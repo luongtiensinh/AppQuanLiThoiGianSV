@@ -58,12 +58,15 @@ import com.example.apphotrohoctap.R
 @Composable
 fun StudyFlowTasksScreen(
     onTabSelected: (String) -> Unit = {},
-    onNotificationClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
+    onNotificationClick: (() -> Unit)? = null,
+    onProfileClick: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
     onTaskClick: (String) -> Unit = {}
 ) {
-    val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
+    val context = LocalContext.current
+    val handleNotificationClick = onNotificationClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
+    val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
+    val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(context))
     val tasks by viewModel.tasks.collectAsState()
 
     var searchText by remember { mutableStateOf("") }
@@ -82,7 +85,7 @@ fun StudyFlowTasksScreen(
 
     Box(Modifier.fillMaxSize().background(TasksBackground)) {
         Column(Modifier.fillMaxSize()) {
-            TasksHeader(onNotificationClick, onProfileClick)
+            TasksHeader(handleNotificationClick, handleProfileClick)
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
                     .padding(bottom = 24.dp)

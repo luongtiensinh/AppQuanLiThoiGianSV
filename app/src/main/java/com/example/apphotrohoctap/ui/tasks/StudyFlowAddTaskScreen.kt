@@ -124,7 +124,7 @@ fun StudyFlowAddTaskScreen(
                     onNotesChange = { viewModel.updateNotes(it) },
                     subtasks = formState.subtasks,
                     onAttach = {
-                        Toast.makeText(context, "Tính năng đang được phát triển", Toast.LENGTH_SHORT).show()
+                        com.example.apphotrohoctap.ui.common.showComingSoon(context)
                     },
                     onAddSubtask = { showSubtaskDialog = true }
                 )
