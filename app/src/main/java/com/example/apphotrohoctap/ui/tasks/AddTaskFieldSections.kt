@@ -81,20 +81,42 @@ internal fun CourseAndCategoryCard(
     onShowMoreCourses: () -> Unit
 ) {
     FormCard(spacing = 8.dp) {
-        FieldLabel("Môn học & Loại công việc")
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            (addTaskCourses + "Môn khác").forEach { course ->
-                ChoicePill(
-                    label = course,
-                    selected = if (course == "Môn khác") showMoreCourses else course == selectedCourse,
-                    onClick = if (course == "Môn khác") onShowMoreCourses else ({ onCourseSelected(course) }),
-                    compact = true
-                )
+        FieldLabel("Loại công việc")
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("Deadline", "Bài tập", "Lịch học", "Ghi chú").forEach { category ->
+                ChoicePill(category, category == selectedCategory, { onCategorySelected(category) }, compact = true)
             }
         }
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Lịch học", "Deadline", "Bài tập", "Ghi chú").forEach { category ->
-                ChoicePill(category, category == selectedCategory, { onCategorySelected(category) }, compact = true)
+
+        if (selectedCategory == "Lịch học") {
+            Spacer(Modifier.height(4.dp))
+            FieldLabel("Tên môn học / Lớp học")
+            FormTextField(
+                value = selectedCourse,
+                onValueChange = onCourseSelected,
+                placeholder = "Nhập tên môn học (VD: CSDL, Di động...)",
+                trailingText = "⊗",
+                onTrailingClick = { onCourseSelected("") }
+            )
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                (addTaskCourses + "Môn khác").forEach { course ->
+                    ChoicePill(
+                        label = course,
+                        selected = if (course == "Môn khác") showMoreCourses else course == selectedCourse,
+                        onClick = if (course == "Môn khác") onShowMoreCourses else ({ onCourseSelected(course) }),
+                        compact = true
+                    )
+                }
             }
         }
     }

@@ -76,14 +76,6 @@ fun StudyFlowAddTaskScreen(
     var showSubtaskDialog by rememberSaveable { mutableStateOf(false) }
     var showPastDeadlineDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Đảm bảo môn học mặc định được chọn nếu list danh sách môn học không rỗng
-    // Cần side-effect hoặc khởi tạo ở state ViewModel, nhưng để đảm bảo ta gán một lần:
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        if (formState.selectedCourse.isEmpty() && addTaskCourses.isNotEmpty()) {
-            viewModel.updateCourse(addTaskCourses.first())
-        }
-    }
-
     BackHandler(onBack = onBack)
 
     Box(Modifier.fillMaxSize().background(AddTaskBackground)) {

@@ -85,8 +85,14 @@ internal class TasksViewModel(private val repository: TaskRepository) : ViewMode
             else -> "assignment"
         }
         
+        val subject = if (state.selectedCategory == "Lịch học") {
+            state.selectedCourse.ifBlank { "Lịch học" }
+        } else {
+            state.selectedCourse
+        }
+        
         val newEntity = TaskEntity(
-            subject = state.selectedCourse,
+            subject = subject,
             title = state.title,
             dueAtMillis = dueAtMillis,
             category = categoryKey,
