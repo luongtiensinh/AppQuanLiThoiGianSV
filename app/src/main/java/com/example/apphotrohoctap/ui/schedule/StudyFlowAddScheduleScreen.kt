@@ -266,7 +266,9 @@ private fun SemesterHintCard() {
     Row(Modifier.fillMaxWidth().background(Color(0xFFF5F2FF), RoundedCornerShape(16.dp)).padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Surface(color = AddScheduleBright.copy(alpha = .1f), shape = RoundedCornerShape(12.dp)) { Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) { Text("▣", fontSize = 18.sp, color = AddScheduleBrand) } }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("Học kỳ 2 • Năm học 2025-2026", fontSize = 10.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = AddScheduleBrand)
+            val now = System.currentTimeMillis()
+            val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterHeaderLabel(now)
+            Text(semesterLabel, fontSize = 10.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = AddScheduleBrand)
             Text("Sắp xếp thời khóa biểu thông minh, giảm áp lực ôn thi.", fontSize = 9.sp, lineHeight = 14.sp, color = AddScheduleText, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }

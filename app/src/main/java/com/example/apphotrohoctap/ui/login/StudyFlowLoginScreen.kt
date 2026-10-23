@@ -70,6 +70,7 @@ fun StudyFlowLoginScreen(
     onRegister: () -> Unit = {},
     onLogin: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -127,6 +128,10 @@ fun StudyFlowLoginScreen(
                         isValid = false
                     }
                     if (isValid) {
+                        if (rememberLogin) {
+                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                            sessionManager.saveLoginSession(email)
+                        }
                         onLogin()
                     }
                 }
@@ -277,11 +282,7 @@ private fun LoginCard(
                 onCheckedChange = onRememberLoginChange
             )
             Button(
-                onClick = {
-                    if (email.isNotBlank() && password.isNotBlank()) {
-                        onLogin()
-                    }
-                },
+                onClick = onLogin,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),

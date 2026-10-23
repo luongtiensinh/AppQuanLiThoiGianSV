@@ -129,7 +129,11 @@ fun StudyFlowSettingsScreen(
                     }
                 })
                 SettingsDivider()
-                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = onLogout)
+                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = {
+                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                    sessionManager.clearSession()
+                    onLogout()
+                })
             }
             Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("♧  StudyFlow for Students", fontSize = 10.sp, color = SettingsMuted)
@@ -196,7 +200,9 @@ private fun SettingsNavigationRow(
             subtitle?.let { Text(it, fontSize = 9.sp, lineHeight = 14.sp, color = SettingsMuted, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         Text(trailing, fontSize = if (trailing.length > 14) 8.sp else 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = if (danger) Color(0xFFBA1A1A) else trailingColor, maxLines = 1)
-        if (trailing == "›" || trailing == "HK II (2023 - 2024)" || trailing == "Tiêu chuẩn (M)") Text("›", fontSize = 14.sp, color = SettingsMuted)
+        val now = System.currentTimeMillis()
+        val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterLabelShort(now)
+        if (trailing == "›" || trailing == semesterLabel || trailing == "Tiêu chuẩn (M)") Text("›", fontSize = 14.sp, color = SettingsMuted)
     }
 }
 
