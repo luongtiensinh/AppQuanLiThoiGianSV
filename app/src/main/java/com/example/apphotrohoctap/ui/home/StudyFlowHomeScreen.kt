@@ -367,28 +367,26 @@ private fun StatisticCard(
     modifier: Modifier
 ) {
     Card(
-        modifier = modifier.height(107.dp),
+        modifier = modifier.widthIn(min = 100.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    Surface(color = iconBackground, shape = RoundedCornerShape(8.dp)) {
-                        Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
-                            HomeIcon(icon, iconSize, "")
-                        }
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Surface(color = iconBackground, shape = RoundedCornerShape(8.dp)) {
+                    Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
+                        HomeIcon(icon, iconSize, "")
                     }
-                    Text(label, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = HomeSecondaryInk, maxLines = 1)
                 }
+                Text(label, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = HomeSecondaryInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(value, fontSize = 24.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, color = HomeInk)
-                Text(caption, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = captionColor, maxLines = 1, overflow = TextOverflow.Clip)
+                Text(caption, fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = captionColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
