@@ -254,8 +254,10 @@ internal fun TaskCard(task: TaskItem, isDone: Boolean, onClick: () -> Unit, onTo
                             Text(task.urgency, Modifier.padding(horizontal = 7.dp, vertical = 2.dp), fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = if (urgent) Color(0xFF93000A) else Color(0xFF8A4B00), maxLines = 1)
                         }
                     }
-                    Surface(color = Color(0xFFE1E0FF), shape = CircleShape) {
-                        Text(task.subject, Modifier.padding(horizontal = 7.dp, vertical = 2.dp), fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF05006C), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (task.subject.isNotBlank()) {
+                        Surface(color = Color(0xFFE1E0FF), shape = CircleShape) {
+                            Text(task.subject, Modifier.padding(horizontal = 7.dp, vertical = 2.dp), fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF05006C), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
                 }
                 Text(
