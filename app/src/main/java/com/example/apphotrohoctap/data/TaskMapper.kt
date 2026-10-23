@@ -49,6 +49,7 @@ internal fun TaskWithSubtasks.toUiModel(now: Long): TaskItem {
         urgency = urgency,
         place = task.place,
         completed = task.isCompleted,
+        notes = task.notes ?: "",
         subtasks = uiSubtasks
     )
 }

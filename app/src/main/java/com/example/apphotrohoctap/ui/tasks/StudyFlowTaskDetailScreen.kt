@@ -103,8 +103,9 @@ fun StudyFlowTaskDetailScreen(
                         // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
                     }
                 )
-                TaskAttachmentCard()
-                TaskNotesCard()
+                if (currentTask.notes.isNotBlank()) {
+                    TaskNotesCard(notes = currentTask.notes)
+                }
                 Spacer(Modifier.height(56.dp))
             }
         }
