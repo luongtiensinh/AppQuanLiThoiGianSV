@@ -48,29 +48,54 @@ private val AddScheduleChip = Color(0xFFEFECFF)
 
 @Composable
 fun StudyFlowAddScheduleScreen(
+    scheduleId: Long? = null,
     onBack: () -> Unit = {},
     onSave: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: ScheduleViewModel = viewModel(factory = ScheduleViewModelFactory(context))
+    
+    val schedules by viewModel.schedules.collectAsState()
+    val existingSchedule = remember(scheduleId, schedules) {
+        if (scheduleId != null) schedules.find { it.id == scheduleId } else null
+    }
 
     var selectedType by remember { mutableStateOf("Buổi học") }
-    var courseName by remember { mutableStateOf("Lập trình Di động") }
-    var courseCode by remember { mutableStateOf("IT4785") }
+    var courseName by remember { mutableStateOf("") }
+    var courseCode by remember { mutableStateOf("") }
     var selectedDay by remember { mutableStateOf("T4") }
     var startPeriod by remember { mutableStateOf("Tiết 1") }
     var endPeriod by remember { mutableStateOf("Tiết 3") }
-    var room by remember { mutableStateOf("A3-204") }
-    var instructor by remember { mutableStateOf("TS. Trần Văn Minh") }
+    var room by remember { mutableStateOf("") }
+    var instructor by remember { mutableStateOf("") }
     var repeatsWeekly by remember { mutableStateOf(true) }
     var startDate by remember { mutableStateOf("15/01/2026") }
     var endDate by remember { mutableStateOf("28/05/2026") }
     var selectedColor by remember { mutableIntStateOf(4) }
-    var notes by remember { mutableStateOf("Mang theo laptop cài sẵn Android Studio, chuẩn bị báo cáo tiến độ tuần 4.") }
+    var notes by remember { mutableStateOf("") }
+
+    LaunchedEffect(existingSchedule) {
+        existingSchedule?.let {
+            courseName = it.subject
+            courseCode = it.courseCode ?: ""
+            selectedDay = dayNameReverse(it.dayOfWeek)
+            startPeriod = "Tiết ${it.startPeriod}"
+            endPeriod = "Tiết ${it.endPeriod}"
+            room = it.room ?: ""
+            instructor = it.lecturer ?: ""
+            repeatsWeekly = it.repeatWeekly
+            
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            startDate = sdf.format(it.startDateMillis)
+            endDate = sdf.format(it.endDateMillis)
+            selectedColor = it.colorKey.toIntOrNull() ?: 4
+            notes = ""
+        }
+    }
 
     BackHandler(onBack = onBack)
     Column(Modifier.fillMaxSize().background(AddScheduleBg)) {
-        AddScheduleHeader(onBack)
+        AddScheduleHeader(isEdit = scheduleId != null, onBack = onBack)
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, bottom = 20.dp),
@@ -192,6 +217,7 @@ fun StudyFlowAddScheduleScreen(
                     }
 
                     val schedule = ScheduleEntity(
+                        id = scheduleId ?: 0,
                         subject = courseName,
                         courseCode = courseCode,
                         dayOfWeek = dayInt,
@@ -205,15 +231,11 @@ fun StudyFlowAddScheduleScreen(
                         colorKey = selectedColor.toString()
                     )
 
-                    viewModel.addSchedule(
-                        schedule = schedule,
-                        onError = { errorMsg ->
-                            android.widget.Toast.makeText(context, errorMsg, android.widget.Toast.LENGTH_SHORT).show()
-                        },
-                        onSuccess = {
-                            onSave()
-                        }
-                    )
+                    if (scheduleId != null) {
+                        viewModel.updateSchedule(schedule, onError = { android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show() }, onSuccess = onSave)
+                    } else {
+                        viewModel.addSchedule(schedule, onError = { android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show() }, onSuccess = onSave)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp).height(48.dp),
                 shape = RoundedCornerShape(12.dp),
@@ -228,7 +250,7 @@ fun StudyFlowAddScheduleScreen(
 }
 
 @Composable
-private fun AddScheduleHeader(onBack: () -> Unit) {
+private fun AddScheduleHeader(isEdit: Boolean, onBack: () -> Unit) {
     Surface(color = AddScheduleBg.copy(alpha = .96f), shadowElevation = 2.dp) {
         Row(
             Modifier.fillMaxWidth().statusBarsPadding().height(64.dp).padding(horizontal = 16.dp),
@@ -238,7 +260,7 @@ private fun AddScheduleHeader(onBack: () -> Unit) {
                 Box(contentAlignment = Alignment.CenterStart) { Text("×", fontSize = 25.sp, color = AddScheduleText) }
             }
             Spacer(Modifier.width(8.dp))
-            Text("Thêm Lịch học Mới", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = AddScheduleInk)
+            Text(if (isEdit) "Sửa Lịch Học" else "Thêm Lịch học Mới", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = AddScheduleInk)
         }
     }
 }
@@ -351,4 +373,14 @@ private fun dayName(day: String): String = when (day) {
     "T6" -> "Thứ 6"
     "T7" -> "Thứ 7"
     else -> "Chủ nhật"
+}
+
+private fun dayNameReverse(dayOfWeek: Int): String = when (dayOfWeek) {
+    1 -> "T2"
+    2 -> "T3"
+    3 -> "T4"
+    4 -> "T5"
+    5 -> "T6"
+    6 -> "T7"
+    else -> "CN"
 }

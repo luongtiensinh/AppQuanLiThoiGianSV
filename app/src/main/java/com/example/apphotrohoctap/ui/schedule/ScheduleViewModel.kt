@@ -39,4 +39,20 @@ internal class ScheduleViewModel(private val repository: ScheduleRepository) : V
             repository.deleteSchedule(schedule)
         }
     }
+
+    fun updateSchedule(schedule: ScheduleEntity, onError: (String) -> Unit, onSuccess: () -> Unit) {
+        if (schedule.subject.isBlank()) {
+            onError("Tên môn học không được để trống")
+            return
+        }
+        if (schedule.endPeriod < schedule.startPeriod) {
+            onError("Tiết kết thúc phải lớn hơn hoặc bằng tiết bắt đầu")
+            return
+        }
+
+        viewModelScope.launch {
+            repository.updateSchedule(schedule)
+            onSuccess()
+        }
+    }
 }

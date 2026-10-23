@@ -94,6 +94,7 @@ class MainActivity : ComponentActivity() {
                     composable(Screen.Schedule.route) {
                         StudyFlowScheduleScreen(
                             onAddEvent = { navController.navigate(Screen.AddSchedule.route) },
+                            onEditEvent = { scheduleId -> navController.navigate(Screen.EditSchedule.createRoute(scheduleId)) },
                             onTabSelected = navToTab
                         )
                     }
@@ -139,6 +140,18 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(Screen.AddSchedule.route) {
                         StudyFlowAddScheduleScreen(
+                            scheduleId = null,
+                            onBack = { navController.popBackStack() },
+                            onSave = { navController.popBackStack() }
+                        )
+                    }
+                    composable(
+                        route = Screen.EditSchedule.route,
+                        arguments = listOf(navArgument("scheduleId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val scheduleId = backStackEntry.arguments?.getLong("scheduleId")
+                        StudyFlowAddScheduleScreen(
+                            scheduleId = scheduleId,
                             onBack = { navController.popBackStack() },
                             onSave = { navController.popBackStack() }
                         )

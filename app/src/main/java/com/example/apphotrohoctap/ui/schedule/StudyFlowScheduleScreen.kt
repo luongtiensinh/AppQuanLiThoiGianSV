@@ -53,6 +53,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apphotrohoctap.data.toUiModel
 import com.example.apphotrohoctap.R
+import androidx.compose.foundation.combinedClickable
 
 private val ScheduleBackground = Color(0xFFFCF8FF)
 private val ScheduleBrandBlue = Color(0xFF4143D5)
@@ -70,7 +71,8 @@ fun StudyFlowScheduleScreen(
     onTabSelected: (String) -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onAddEvent: () -> Unit = {}
+    onAddEvent: () -> Unit = {},
+    onEditEvent: (Long) -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: ScheduleViewModel = viewModel(factory = ScheduleViewModelFactory(context))
@@ -95,6 +97,27 @@ fun StudyFlowScheduleScreen(
     val dayClasses = schedules
         .filter { it.dayOfWeek == selectedDayInt }
         .map { it.toUiModel(now) }
+        
+    var scheduleToDelete by remember { mutableStateOf<com.example.apphotrohoctap.data.ScheduleEntity?>(null) }
+    
+    if (scheduleToDelete != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { scheduleToDelete = null },
+            title = { Text("Xóa lịch học", fontWeight = FontWeight.SemiBold) },
+            text = { Text("Bạn có chắc chắn muốn xóa lịch học này không? Nếu đây là lịch lặp hàng tuần, hành động này sẽ xóa toàn bộ chuỗi lặp (các task và ghi chú liên quan sẽ không bị ảnh hưởng).") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        scheduleToDelete?.let { viewModel.deleteSchedule(it) }
+                        scheduleToDelete = null
+                    }
+                ) { Text("Xóa", color = ScheduleRed) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { scheduleToDelete = null }) { Text("Hủy") }
+            }
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(ScheduleBackground)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -140,7 +163,13 @@ fun StudyFlowScheduleScreen(
                         MonthInformationBanner()
                         WeekDateCarousel(weekDays, selectedDay, onDaySelected = { selectedDay = it })
                         DailySummary(dayClasses.size)
-                        DailyTimeline(dayClasses)
+                        DailyTimeline(
+                            classes = dayClasses,
+                            onEdit = onEditEvent,
+                            onDelete = { classId ->
+                                scheduleToDelete = schedules.find { it.id == classId }
+                            }
+                        )
                         val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(now)
                         val weekLabel = if (weekNumber > 0) "tuần $weekNumber" else ""
                         AttendanceSummary(weekLabel)
@@ -365,7 +394,7 @@ private fun DailySummary(classCount: Int) {
 }
 
 @Composable
-private fun DailyTimeline(classes: List<StudyClass>) {
+private fun DailyTimeline(classes: List<StudyClass>, onEdit: (Long) -> Unit, onDelete: (Long) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         if (classes.isEmpty()) {
             Text(
@@ -379,7 +408,7 @@ private fun DailyTimeline(classes: List<StudyClass>) {
             classes.forEach { item ->
                 val startTimeStr = item.time.substringBefore(" - ")
                 TimelineEventRow(time = startTimeStr, content = {
-                    DynamicClassCard(item)
+                    DynamicClassCard(item, onEdit, onDelete)
                 }, topSpacing = 8.dp)
             }
         }
@@ -388,23 +417,54 @@ private fun DailyTimeline(classes: List<StudyClass>) {
 }
 
 @Composable
-private fun DynamicClassCard(item: StudyClass) {
-    ScheduleClassCard(accent = item.leadingColor) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Surface(color = item.statusColor, shape = CircleShape) {
-                Row(Modifier.padding(horizontal = 8.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (item.status == "Đang diễn ra") Box(Modifier.size(6.dp).clip(CircleShape).background(ScheduleBrandBlue))
-                    Text(item.status, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = item.statusTextColor)
+private fun DynamicClassCard(item: StudyClass, onEdit: (Long) -> Unit, onDelete: (Long) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Box {
+        ScheduleClassCard(accent = item.leadingColor, onLongClick = { expanded = true }) {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Surface(color = item.statusColor, shape = CircleShape) {
+                    Row(Modifier.padding(horizontal = 8.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (item.status == "Đang diễn ra") Box(Modifier.size(6.dp).clip(CircleShape).background(ScheduleBrandBlue))
+                        Text(item.status, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = item.statusTextColor)
+                    }
+                }
+                Spacer(Modifier.width(6.dp))
+                Text(item.session, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, color = ScheduleMuted)
+                Spacer(Modifier.weight(1f))
+                Text(item.time, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
+                androidx.compose.material3.IconButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.size(24.dp).padding(start = 4.dp)
+                ) {
+                    Text("⋮", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ScheduleSecondary)
                 }
             }
-            Spacer(Modifier.width(6.dp))
-            Text(item.session, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium, color = ScheduleMuted)
-            Spacer(Modifier.weight(1f))
-            Text(item.time, fontSize = 9.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
+            Text(item.title, fontSize = 16.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
+            ScheduleMetaRow(4, Modifier.size(12.dp), "Phòng ${item.place}")
+            ScheduleMetaRow(5, Modifier.size(10.667.dp), "GV: ${item.teacher}")
         }
-        Text(item.title, fontSize = 16.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold, color = ScheduleInk)
-        ScheduleMetaRow(4, Modifier.size(12.dp), "Phòng ${item.place}")
-        ScheduleMetaRow(5, Modifier.size(10.667.dp), "GV: ${item.teacher}")
+        
+        androidx.compose.material3.DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            androidx.compose.material3.DropdownMenuItem(
+                text = { Text("Sửa lịch học") },
+                onClick = {
+                    expanded = false
+                    onEdit(item.id)
+                }
+            )
+            androidx.compose.material3.DropdownMenuItem(
+                text = { Text("Xóa lịch học", color = ScheduleRed) },
+                onClick = {
+                    expanded = false
+                    onDelete(item.id)
+                }
+            )
+        }
     }
 }
 
@@ -555,24 +615,35 @@ private fun EveningClassCard() {
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun ScheduleClassCard(accent: Color, content: @Composable ColumnScope.() -> Unit) {
+private fun ScheduleClassCard(accent: Color, onLongClick: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .drawBehind {
-                    drawRect(color = accent, size = androidx.compose.ui.geometry.Size(6.dp.toPx(), size.height))
-                }
-                .padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            content = content
-        )
+        val baseModifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRect(color = accent, size = androidx.compose.ui.geometry.Size(6.dp.toPx(), size.height))
+            }
+        
+        Box(
+            modifier = if (onLongClick != null) {
+                baseModifier.combinedClickable(
+                    onClick = {},
+                    onLongClick = onLongClick
+                )
+            } else baseModifier
+        ) {
+            Column(
+                modifier = Modifier.padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                content = content
+            )
+        }
     }
 }
 
