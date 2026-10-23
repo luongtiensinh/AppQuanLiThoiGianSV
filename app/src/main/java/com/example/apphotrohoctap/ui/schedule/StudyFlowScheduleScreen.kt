@@ -81,7 +81,7 @@ fun StudyFlowScheduleScreen(
     var selectedView by remember { mutableStateOf("Tuần") }
     var selectedDay by remember { mutableStateOf(com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(now)) }
 
-    val selectedWeekdayStr = weekDays.find { it.second == selectedDay }?.first ?: "T4"
+    val selectedWeekdayStr = weekDays.find { it.dayOfMonth == selectedDay }?.weekdayLabel ?: "T4"
     val selectedDayInt = when (selectedWeekdayStr) {
         "T2" -> 1
         "T3" -> 2
@@ -298,13 +298,15 @@ private fun MonthInformationBanner() {
 }
 
 @Composable
-private fun WeekDateCarousel(weekDays: List<Pair<String, String>>, selectedDay: String, onDaySelected: (String) -> Unit) {
+private fun WeekDateCarousel(weekDays: List<com.example.apphotrohoctap.ui.common.WeekDayUi>, selectedDay: String, onDaySelected: (String) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        weekDays.forEach { (weekday, dayStr) ->
+        weekDays.forEach { uiObj ->
+            val weekday = uiObj.weekdayLabel
+            val dayStr = uiObj.dayOfMonth
             val selected = dayStr == selectedDay
             Surface(
                 onClick = { onDaySelected(dayStr) },
