@@ -10,6 +10,9 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object AddTask : Screen("addTask")
     object AddSchedule : Screen("addSchedule")
+    object EditSchedule : Screen("editSchedule/{scheduleId}") {
+        fun createRoute(scheduleId: Long) = "editSchedule/$scheduleId"
+    }
     object AddNote : Screen("addNote")
     object CourseDetail : Screen("courseDetail/{courseName}") {
         fun createRoute(courseName: String) = "courseDetail/${android.net.Uri.encode(courseName)}"
