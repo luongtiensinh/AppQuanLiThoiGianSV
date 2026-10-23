@@ -37,6 +37,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        val sessionManager = com.example.apphotrohoctap.data.SessionManager(this)
+        val startDest = if (sessionManager.isLoggedIn()) Screen.Home.route else Screen.Login.route
+        
         setContent {
             AppHoTroHocTapTheme {
                 val navController = rememberNavController()
@@ -59,7 +63,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                NavHost(navController = navController, startDestination = Screen.Login.route) {
+                NavHost(navController = navController, startDestination = startDest) {
                     composable(Screen.Login.route) {
                         StudyFlowLoginScreen(
                             onRegister = { navController.navigate(Screen.Register.route) },

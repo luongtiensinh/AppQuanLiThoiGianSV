@@ -129,7 +129,11 @@ fun StudyFlowSettingsScreen(
                     }
                 })
                 SettingsDivider()
-                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = onLogout)
+                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = {
+                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                    sessionManager.clearSession()
+                    onLogout()
+                })
             }
             Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("♧  StudyFlow for Students", fontSize = 10.sp, color = SettingsMuted)
