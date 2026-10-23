@@ -278,7 +278,7 @@ internal fun TaskCard(task: TaskItem, isDone: Boolean, onClick: () -> Unit, onTo
                     }
                 }
             }
-            Surface(onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() }, modifier = Modifier.padding(top = 10.dp, end = 6.dp).size(32.dp), color = Color.Transparent, shape = CircleShape) {
+            Surface(onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, modifier = Modifier.padding(top = 10.dp, end = 6.dp).size(32.dp), color = Color.Transparent, shape = CircleShape) {
                 Box(contentAlignment = Alignment.Center) { Text("⋮", fontSize = 18.sp, color = TasksSecondary) }
             }
         }

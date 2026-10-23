@@ -421,7 +421,7 @@ private fun SocialOptions() {
 private fun SocialButton(icon: String, label: String) {
     val context = LocalContext.current
     Surface(
-        onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() },
+        onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) },
         modifier = Modifier.fillMaxWidth().height(48.dp),
         shape = RoundedCornerShape(12.dp),
         color = FieldBackground

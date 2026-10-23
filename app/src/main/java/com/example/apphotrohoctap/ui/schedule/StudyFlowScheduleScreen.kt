@@ -69,12 +69,14 @@ private val ScheduleRedPale = Color(0xFFFFEDEA)
 @Composable
 fun StudyFlowScheduleScreen(
     onTabSelected: (String) -> Unit = {},
-    onNotificationClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
+    onNotificationClick: (() -> Unit)? = null,
+    onProfileClick: (() -> Unit)? = null,
     onAddEvent: () -> Unit = {},
     onEditEvent: (Long) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val handleNotificationClick = onNotificationClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
+    val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
     val viewModel: ScheduleViewModel = viewModel(factory = ScheduleViewModelFactory(context))
     val schedules by viewModel.schedules.collectAsState()
 
@@ -121,7 +123,7 @@ fun StudyFlowScheduleScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(ScheduleBackground)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            ScheduleHeader(onNotificationClick, onProfileClick)
+            ScheduleHeader(handleNotificationClick, handleProfileClick)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -285,7 +287,7 @@ private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Uni
                     }
                 }
                 Surface(
-                    onClick = { android.widget.Toast.makeText(context, "Tính năng đang được phát triển", android.widget.Toast.LENGTH_SHORT).show() },
+                    onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) },
                     modifier = Modifier.size(36.dp),
                     color = Color(0xFFEFECFF),
                     shape = CircleShape

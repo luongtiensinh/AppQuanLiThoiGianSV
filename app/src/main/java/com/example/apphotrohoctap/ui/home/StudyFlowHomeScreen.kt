@@ -63,15 +63,21 @@ private val HomeCardShadow = Color(0x105B5FEF)
 
 @Composable
 fun StudyFlowHomeScreen(
-    onNotificationClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
-    onSeeAllClasses: () -> Unit = {},
+    onNotificationClick: (() -> Unit)? = null,
+    onProfileClick: (() -> Unit)? = null,
+    onSeeAllClasses: (() -> Unit)? = null,
     onCourseClick: (String) -> Unit = {},
-    onFilterDeadlines: () -> Unit = {},
-    onStartFocus: () -> Unit = {},
+    onFilterDeadlines: (() -> Unit)? = null,
+    onStartFocus: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
     onTabSelected: (String) -> Unit = {}
 ) {
+    val localContext = LocalContext.current
+    val handleNotificationClick = onNotificationClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
+    val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
+    val handleSeeAllClasses = onSeeAllClasses ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
+    val handleFilterDeadlines = onFilterDeadlines ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
+    val handleStartFocus = onStartFocus ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
     val context = LocalContext.current.applicationContext
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(context))
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,7 +87,7 @@ fun StudyFlowHomeScreen(
             .background(HomeBackground)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            HomeHeader(onNotificationClick, onProfileClick)
+            HomeHeader(handleNotificationClick, handleProfileClick)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -98,9 +104,9 @@ fun StudyFlowHomeScreen(
                     GreetingSection()
                     GoalProgressCard(uiState.tasksDone, uiState.tasksTotalThisWeek)
                     StatisticsRow(uiState.tasksToday, uiState.tasksUrgent, uiState.deadlinesThisWeek, uiState.tasksDone)
-                    TodayScheduleSection(uiState.todaySchedules, onSeeAllClasses, onCourseClick)
-                    UpcomingDeadlinesSection(uiState.upcomingDeadlines, onFilterDeadlines)
-                    FocusSessionCard(onStartFocus)
+                    TodayScheduleSection(uiState.todaySchedules, handleSeeAllClasses, onCourseClick)
+                    UpcomingDeadlinesSection(uiState.upcomingDeadlines, handleFilterDeadlines)
+                    FocusSessionCard(handleStartFocus)
                 }
             }
             HomeBottomNavigation(onTabSelected)
