@@ -70,6 +70,7 @@ fun StudyFlowRegisterScreen(
     onBack: () -> Unit,
     onSignIn: () -> Unit
 ) {
+    val context = LocalContext.current
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -117,7 +118,7 @@ fun StudyFlowRegisterScreen(
                 )
                 RegisterInput(
                     label = "Email",
-                    hint = "name@school.edu.vn",
+                    hint = "Email",
                     icon = "register_email.svg",
                     iconModifier = Modifier.width(16.667.dp).height(13.333.dp),
                     value = email,
@@ -196,6 +197,9 @@ fun StudyFlowRegisterScreen(
                         }
                         
                         if (isValid) {
+                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                            sessionManager.registerUser(email, password, fullName)
+                            android.widget.Toast.makeText(context, "Đăng ký thành công! Hãy đăng nhập.", android.widget.Toast.LENGTH_SHORT).show()
                             onSignIn()
                         }
                     },

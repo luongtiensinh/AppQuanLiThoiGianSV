@@ -128,11 +128,15 @@ fun StudyFlowLoginScreen(
                         isValid = false
                     }
                     if (isValid) {
-                        if (rememberLogin) {
-                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                            sessionManager.saveLoginSession(email)
+                        val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                        if (sessionManager.checkLogin(email, password)) {
+                            if (rememberLogin) {
+                                sessionManager.saveLoginSession(email)
+                            }
+                            onLogin()
+                        } else {
+                            passwordError = "Email hoặc mật khẩu không chính xác"
                         }
-                        onLogin()
                     }
                 }
             )
@@ -247,8 +251,8 @@ private fun LoginCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             LoginInput(
-                label = "Email sinh viên / Mã số SV",
-                hint = "Email hoặc MSSV",
+                label = "Email / Tên đăng nhập",
+                hint = "Email hoặc Tên đăng nhập",
                 icon = "email.svg",
                 iconModifier = Modifier.size(13.333.dp),
                 value = email,
@@ -412,7 +416,6 @@ private fun SocialOptions() {
         Spacer(Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             SocialButton("google.svg", "Tiếp tục với Google")
-            SocialButton("university.svg", "Cổng trường Đại học / SSO")
         }
     }
 }
