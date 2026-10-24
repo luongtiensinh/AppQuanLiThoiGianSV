@@ -8,6 +8,7 @@ sealed class Screen(val route: String) {
     object Tasks : Screen("tasks")
     object Notes : Screen("notes")
     object Settings : Screen("settings")
+    object Pomodoro : Screen("pomodoro")
     object AddTask : Screen("addTask")
     object AddSchedule : Screen("addSchedule")
     object EditSchedule : Screen("editSchedule/{scheduleId}") {
