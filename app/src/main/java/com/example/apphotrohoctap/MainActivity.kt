@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
 import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
-import com.example.apphotrohoctap.ui.home.StudyFlowFocusScreen
+import com.example.apphotrohoctap.ui.pomodoro.StudyFlowPomodoroScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowAddScheduleScreen
@@ -98,8 +98,11 @@ class MainActivity : ComponentActivity() {
                             pomodoroState = pomodoroState
                         )
                     }
-                    composable(Screen.Focus.route) {
-                        StudyFlowFocusScreen(onClose = { navController.popBackStack() })
+                    composable(Screen.Pomodoro.route) {
+                        StudyFlowPomodoroScreen(
+                            pomodoroViewModel = pomodoroViewModel,
+                            onClose = { navController.popBackStack() }
+                        )
                     }
                     composable(Screen.Schedule.route) {
                         StudyFlowScheduleScreen(
