@@ -78,3 +78,143 @@ fun PomodoroTimerArc(
         )
     }
 }
+
+@Composable
+fun PomodoroControls(
+    status: PomodoroStatus,
+    onStart: () -> Unit,
+    onPause: () -> Unit,
+    onSkip: () -> Unit,
+    onReset: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(onClick = onReset, color = Color(0xFFF5F2FF), shape = CircleShape) {
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                Text("↻", fontSize = 24.sp, color = Color(0xFF4143D5))
+            }
+        }
+        
+        Surface(
+            onClick = {
+                if (status == PomodoroStatus.RUNNING) onPause() else onStart()
+            }, 
+            color = Color(0xFF4143D5), 
+            shape = CircleShape,
+            shadowElevation = 4.dp
+        ) {
+            Box(Modifier.size(72.dp), contentAlignment = Alignment.Center) {
+                Text(
+                    if (status == PomodoroStatus.RUNNING) "⏸" else "▶", 
+                    fontSize = 32.sp, 
+                    color = Color.White
+                )
+            }
+        }
+        
+        Surface(onClick = onSkip, color = Color(0xFFF5F2FF), shape = CircleShape) {
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                Text("⏭", fontSize = 24.sp, color = Color(0xFF4143D5))
+            }
+        }
+    }
+}
+
+@Composable
+fun ModeSelector(currentMode: PomodoroMode, onModeSelect: (PomodoroMode) -> Unit) {
+    Surface(color = Color(0xFFF5F2FF), shape = RoundedCornerShape(24.dp)) {
+        Row(Modifier.padding(4.dp)) {
+            listOf(
+                PomodoroMode.FOCUS to "Tập trung",
+                PomodoroMode.SHORT_BREAK to "Nghỉ ngắn",
+                PomodoroMode.LONG_BREAK to "Nghỉ dài"
+            ).forEach { (mode, label) ->
+                val isSelected = currentMode == mode
+                Surface(
+                    onClick = { onModeSelect(mode) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (isSelected) Color.White else Color.Transparent,
+                    shadowElevation = if (isSelected) 2.dp else 0.dp
+                ) {
+                    Text(
+                        label,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isSelected) Color(0xFF4143D5) else Color(0xFF767586)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CycleDots(completedCount: Int) {
+    val currentCycle = completedCount % 4
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        for (i in 0 until 4) {
+            val color = if (i < currentCycle) Color(0xFF4143D5) else Color(0xFFE3E0F7)
+            Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+        }
+    }
+}
+
+@Composable
+internal fun TaskSelector(
+    linkedTaskTitle: String?,
+    incompleteTasks: List<com.example.apphotrohoctap.ui.tasks.TaskItem>,
+    onTaskSelect: (String?) -> Unit
+) {
+    val expanded = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    
+    Box {
+        Surface(
+            onClick = { expanded.value = true },
+            color = Color(0xFFF5F2FF),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = linkedTaskTitle ?: "Không liên kết với bài tập nào",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (linkedTaskTitle != null) Color(0xFF4143D5) else Color(0xFF767586),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 200.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("⌄", fontSize = 14.sp, color = Color(0xFF767586))
+            }
+        }
+        
+        androidx.compose.material3.DropdownMenu(
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false }
+        ) {
+            androidx.compose.material3.DropdownMenuItem(
+                text = { Text("Không liên kết") },
+                onClick = { 
+                    onTaskSelect(null)
+                    expanded.value = false
+                }
+            )
+            incompleteTasks.forEach { task ->
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text(task.title, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                    onClick = { 
+                        onTaskSelect(task.title)
+                        expanded.value = false
+                    }
+                )
+            }
+        }
+    }
+}
