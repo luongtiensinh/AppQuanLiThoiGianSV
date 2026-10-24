@@ -251,8 +251,8 @@ private fun LoginCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             LoginInput(
-                label = "Email / Tên đăng nhập",
-                hint = "Email hoặc Tên đăng nhập",
+                label = "Email",
+                hint = "Email",
                 icon = "email.svg",
                 iconModifier = Modifier.size(13.333.dp),
                 value = email,
