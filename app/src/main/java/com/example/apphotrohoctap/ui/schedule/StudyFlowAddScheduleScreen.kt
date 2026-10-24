@@ -64,8 +64,7 @@ fun StudyFlowAddScheduleScreen(
     var courseName by remember { mutableStateOf("") }
     var courseCode by remember { mutableStateOf("") }
     var selectedDay by remember { mutableStateOf("T4") }
-    var startPeriod by remember { mutableStateOf("Tiết 1") }
-    var endPeriod by remember { mutableStateOf("Tiết 3") }
+    var selectedSession by remember { mutableStateOf("Ca sáng") }
     var room by remember { mutableStateOf("") }
     var instructor by remember { mutableStateOf("") }
     var repeatsWeekly by remember { mutableStateOf(true) }
@@ -79,8 +78,11 @@ fun StudyFlowAddScheduleScreen(
             courseName = it.subject
             courseCode = it.courseCode ?: ""
             selectedDay = dayNameReverse(it.dayOfWeek)
-            startPeriod = "Tiết ${it.startPeriod}"
-            endPeriod = "Tiết ${it.endPeriod}"
+            selectedSession = when {
+                it.startPeriod <= 6 -> "Ca sáng"
+                it.startPeriod <= 12 -> "Ca chiều"
+                else -> "Ca tối"
+            }
             room = it.room ?: ""
             instructor = it.lecturer ?: ""
             repeatsWeekly = it.repeatWeekly
@@ -126,17 +128,26 @@ fun StudyFlowAddScheduleScreen(
 
             FormSection {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Tiết học & Thời gian *", modifier = Modifier.weight(1f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = AddScheduleInk)
-                    Text("Buổi sáng (Ca 1)", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = AddScheduleText)
+                    Text("Thời gian học *", modifier = Modifier.weight(1f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = AddScheduleInk)
+                    Text("Chọn ca", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = AddScheduleText)
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PeriodPicker("Từ tiết", startPeriod, Modifier.weight(1f)) { startPeriod = it }
-                    PeriodPicker("Đến tiết", endPeriod, Modifier.weight(1f)) { endPeriod = it }
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("Ca sáng", "Ca chiều", "Ca tối").forEach { session ->
+                        val selected = session == selectedSession
+                        Surface(onClick = { selectedSession = session }, modifier = Modifier.height(44.dp).padding(end = 4.dp), color = if (selected) AddScheduleBrand else AddScheduleInput, shape = RoundedCornerShape(12.dp)) {
+                            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 16.dp)) { Text(session, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = if (selected) Color.White else AddScheduleText) }
+                        }
+                    }
                 }
                 Surface(color = AddScheduleChip, shape = RoundedCornerShape(12.dp)) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("◷", fontSize = 13.sp, color = AddScheduleBrand)
-                        Text("${startPeriod.substringAfter("Tiết ")} - ${endPeriod.substringAfter("Tiết ")} • 07:00 - 09:45 (3 tiết học)", fontSize = 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = AddScheduleBrand)
+                        val hint = when (selectedSession) {
+                            "Ca sáng" -> "06:00 - 12:00"
+                            "Ca chiều" -> "12:00 - 18:00"
+                            else -> "18:00 - 23:59"
+                        }
+                        Text("$selectedSession • $hint", fontSize = 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = AddScheduleBrand)
                     }
                 }
             }
@@ -204,8 +215,16 @@ fun StudyFlowAddScheduleScreen(
                     val startMillis = try { sdf.parse(startDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
                     val endMillis = try { sdf.parse(endDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
 
-                    val startP = startPeriod.substringAfter("Tiết ").toIntOrNull() ?: 1
-                    val endP = endPeriod.substringAfter("Tiết ").toIntOrNull() ?: 3
+                    val startP = when (selectedSession) {
+                        "Ca sáng" -> 1
+                        "Ca chiều" -> 7
+                        else -> 13
+                    }
+                    val endP = when (selectedSession) {
+                        "Ca sáng" -> 6
+                        "Ca chiều" -> 12
+                        else -> 15
+                    }
 
                     val dayInt = when (selectedDay) {
                         "T2" -> 1
@@ -332,26 +351,7 @@ private fun FormTextField(label: String, value: String, onValueChange: (String) 
     }
 }
 
-@Composable
-private fun PeriodPicker(label: String, value: String, modifier: Modifier, onSelected: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label, fontSize = 9.sp, color = AddScheduleText)
-        Box {
-            Surface(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth(), color = AddScheduleInput, shape = RoundedCornerShape(12.dp)) {
-                Row(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(value, modifier = Modifier.weight(1f), fontSize = 10.sp, color = AddScheduleText)
-                    Text("⌄", fontSize = 12.sp, color = AddScheduleMuted)
-                }
-            }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                (1..12).forEach { period ->
-                    DropdownMenuItem(text = { Text("Tiết $period", fontSize = 12.sp) }, onClick = { onSelected("Tiết $period"); expanded = false })
-                }
-            }
-        }
-    }
-}
+
 
 @Composable
 private fun DateField(label: String, value: String, onChange: (Long) -> Unit, modifier: Modifier) {
