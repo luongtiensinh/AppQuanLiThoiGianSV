@@ -1,25 +1,43 @@
 package com.example.apphotrohoctap
 
 import android.app.Application
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.os.Build
+import android.os.Bundle
+import android.app.Activity
+import com.example.apphotrohoctap.notification.NotificationHelper
+import com.example.apphotrohoctap.worker.ReminderManager
 
-class StudyFlowApplication : Application() {
+class StudyFlowApplication : Application(), Application.ActivityLifecycleCallbacks {
+    
+    var startedActivityCount = 0
+        private set
+        
+    val isAppInForeground: Boolean
+        get() = startedActivityCount > 0
+
     override fun onCreate() {
         super.onCreate()
         
-        // Tạo Notification Channel cho Android 8.0 (API 26) trở lên
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "deadline_channel",
-                "Nhắc nhở Deadline",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Kênh thông báo nhắc nhở bài tập sắp tới hạn"
-            }
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager?.createNotificationChannel(channel)
+        // Đăng ký theo dõi vòng đời Activity để biết app đang ở Foreground hay Background
+        registerActivityLifecycleCallbacks(this)
+        
+        // Khởi tạo kênh thông báo với độ ưu tiên cao & âm thanh báo thức
+        NotificationHelper.initChannels(this)
+
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val isReminderEnabled = prefs.getBoolean("deadlineReminder", true)
+        if (!prefs.contains("deadlineReminder")) {
+            prefs.edit().putBoolean("deadlineReminder", true).apply()
+        }
+        if (isReminderEnabled) {
+            ReminderManager.startPeriodicReminder(this)
         }
     }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+    override fun onActivityStarted(activity: Activity) { startedActivityCount++ }
+    override fun onActivityResumed(activity: Activity) {}
+    override fun onActivityPaused(activity: Activity) {}
+    override fun onActivityStopped(activity: Activity) { startedActivityCount-- }
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+    override fun onActivityDestroyed(activity: Activity) {}
 }
