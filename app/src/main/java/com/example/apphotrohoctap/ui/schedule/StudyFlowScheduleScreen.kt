@@ -143,7 +143,15 @@ fun StudyFlowScheduleScreen(
                 ) {
                     ScheduleControls(selectedView, onViewChange = { selectedView = it })
                     if (selectedView == "Tháng") {
-                        MonthInformationBanner(selectedDateMillis)
+                        MonthInformationBanner(
+                            dateMillis = selectedDateMillis,
+                            onToday = {
+                                val current = System.currentTimeMillis()
+                                selectedDateMillis = current
+                                currentMonthMillis = current
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(current)
+                            }
+                        )
                         MonthCalendarWidget(
                             currentMonthMillis = currentMonthMillis,
                             selectedDateMillis = selectedDateMillis,
@@ -161,7 +169,26 @@ fun StudyFlowScheduleScreen(
                             onDelete = { classId -> scheduleToDelete = schedules.find { it.id == classId } }
                         )
                     } else {
-                        MonthInformationBanner(selectedDateMillis)
+                        MonthInformationBanner(
+                            dateMillis = selectedDateMillis,
+                            onPrevious = {
+                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+                                cal.add(java.util.Calendar.DAY_OF_YEAR, -7)
+                                selectedDateMillis = cal.timeInMillis
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(selectedDateMillis)
+                            },
+                            onNext = {
+                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+                                cal.add(java.util.Calendar.DAY_OF_YEAR, 7)
+                                selectedDateMillis = cal.timeInMillis
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(selectedDateMillis)
+                            },
+                            onToday = {
+                                val current = System.currentTimeMillis()
+                                selectedDateMillis = current
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(current)
+                            }
+                        )
                         WeekDateCarousel(weekDays, selectedDay, onDaySelected = { 
                             selectedDay = it 
                             // Convert string day back to selectedDateMillis approx (for seamless switching to month view)
@@ -180,7 +207,7 @@ fun StudyFlowScheduleScreen(
                                 scheduleToDelete = schedules.find { it.id == classId }
                             }
                         )
-                        val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(now)
+                        val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(selectedDateMillis)
                         val weekLabel = if (weekNumber > 0) "tuần $weekNumber" else ""
                         AttendanceSummary(weekLabel)
                     }
@@ -308,7 +335,12 @@ private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Uni
 }
 
 @Composable
-private fun MonthInformationBanner(dateMillis: Long) {
+private fun MonthInformationBanner(
+    dateMillis: Long,
+    onPrevious: (() -> Unit)? = null,
+    onNext: (() -> Unit)? = null,
+    onToday: (() -> Unit)? = null
+) {
     val monthYearLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.monthYearLabel(dateMillis)
     val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(dateMillis)
     val weekLabel = if (weekNumber > 0) "Tuần $weekNumber" else ""
@@ -328,9 +360,32 @@ private fun MonthInformationBanner(dateMillis: Long) {
                 Text(weekLabel, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
             }
             Spacer(Modifier.weight(1f))
-            Text("Hôm nay", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
-            Spacer(Modifier.width(2.dp))
-            ScheduleIcon(2, Modifier.width(4.317.dp).height(7.dp), "")
+            
+            if (onPrevious != null && onNext != null) {
+                androidx.compose.material3.IconButton(onClick = onPrevious, modifier = Modifier.size(24.dp)) {
+                    Text("‹", fontSize = 18.sp, color = ScheduleBrandBlue, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(4.dp))
+            }
+            
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .clickable(enabled = onToday != null) { onToday?.invoke() }
+                    .padding(horizontal = 4.dp, vertical = 2.dp), 
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Hôm nay", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
+                Spacer(Modifier.width(2.dp))
+                ScheduleIcon(2, Modifier.width(4.317.dp).height(7.dp), "")
+            }
+            
+            if (onPrevious != null && onNext != null) {
+                Spacer(Modifier.width(4.dp))
+                androidx.compose.material3.IconButton(onClick = onNext, modifier = Modifier.size(24.dp)) {
+                    Text("›", fontSize = 18.sp, color = ScheduleBrandBlue, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
