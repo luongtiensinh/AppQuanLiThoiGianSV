@@ -31,17 +31,14 @@ class PomodoroViewModel(
     val sessionFinishedEvent: SharedFlow<PomodoroMode> = _sessionFinishedEvent.asSharedFlow()
 
     private var timerJob: Job? = null
-    
-    // Mốc thời gian kết thúc tuyệt đối
     private var endTimeMillis: Long = 0L
 
-    /**
-     * Bắt đầu hoặc tiếp tục bộ đếm.
-     * Giải thích: Thay vì dùng hàm `delay(1000)` rồi trừ đi 1000ms mỗi vòng lặp (cách này bị sai
-     * số dồn tụ do hệ điều hành cấp phát thread không đều), ta TÍNH TOÁN NGƯỢC TỪ mốc thời gian 
-     * kết thúc tuyệt đối (`endTime = now + remaining`). Khi vòng lặp chạy, ta chỉ việc 
-     * lấy `endTime - now` hiện tại, độ chính xác sẽ là tuyệt đối dù CPU có bị throttle.
-     */
+    private var appContext: android.content.Context? = null
+
+    fun setContext(ctx: android.content.Context) {
+        appContext = ctx.applicationContext
+    }
+
     fun start() {
         if (_uiState.value.status == PomodoroStatus.RUNNING) return
 
@@ -63,6 +60,15 @@ class PomodoroViewModel(
                 delay(250) // Cập nhật UI nhanh, mịn hơn
             }
         }
+        
+        // Đặt lịch thông báo nền (WorkManager) khi hẹn giờ hoàn tất
+        appContext?.let { 
+            com.example.apphotrohoctap.worker.PomodoroReminderManager.schedule(
+                it, 
+                _uiState.value.remainingMillis, 
+                _uiState.value.mode
+            )
+        }
     }
 
     /**
@@ -80,6 +86,7 @@ class PomodoroViewModel(
                 remainingMillis = rem
             ) 
         }
+        appContext?.let { com.example.apphotrohoctap.worker.PomodoroReminderManager.cancel(it) }
     }
 
     /**
@@ -87,6 +94,7 @@ class PomodoroViewModel(
      */
     fun reset() {
         timerJob?.cancel()
+        appContext?.let { com.example.apphotrohoctap.worker.PomodoroReminderManager.cancel(it) }
         _uiState.update { state ->
             state.copy(
                 status = PomodoroStatus.IDLE,
@@ -102,6 +110,7 @@ class PomodoroViewModel(
     fun selectMode(mode: PomodoroMode) {
         if (_uiState.value.status == PomodoroStatus.RUNNING) return
         timerJob?.cancel()
+        appContext?.let { com.example.apphotrohoctap.worker.PomodoroReminderManager.cancel(it) }
         _uiState.update { state ->
             state.copy(
                 mode = mode,
