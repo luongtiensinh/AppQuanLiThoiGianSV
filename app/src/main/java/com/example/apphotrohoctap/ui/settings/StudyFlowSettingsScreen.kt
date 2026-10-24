@@ -33,6 +33,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -54,6 +55,7 @@ fun StudyFlowSettingsScreen(
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(application))
 
     val deadlineReminder by viewModel.isDeadlineReminderEnabled.collectAsState()
+    val useAlarmSound by viewModel.useAlarmSound.collectAsState()
     var classReminder by remember { mutableStateOf(true) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -77,19 +79,24 @@ fun StudyFlowSettingsScreen(
             SettingsSectionHeader("TÀI KHOẢN", "Đã xác minh SV")
             SettingsCard {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                    val fullName = sessionManager.getRegisteredFullName() ?: "Sinh viên"
+                    val email = sessionManager.getUserEmail() ?: "student@sis.hust.edu.vn"
+                    val initials = fullName.split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.takeLast(2).joinToString("")
+                    
                     Box {
                         Surface(color = SettingsPale, shape = CircleShape) {
-                            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) { Text("ML", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = SettingsBrand) }
+                            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) { Text(initials, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = SettingsBrand) }
                         }
                         Box(Modifier.align(Alignment.BottomEnd).padding(1.dp).size(13.dp).clip(CircleShape).background(Color(0xFF10B981)))
                     }
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Nguyễn Mai Linh", fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = SettingsInk)
+                            Text(fullName, fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = SettingsInk)
                             Text("✦", fontSize = 12.sp, color = SettingsBrand)
                         }
                         Text("K66 - Khoa Công nghệ Thông tin", fontSize = 10.sp, lineHeight = 14.sp, color = SettingsText, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("linh.nm21@sis.hust.edu.vn", fontSize = 10.sp, lineHeight = 14.sp, color = SettingsMuted)
+                        Text(email, fontSize = 10.sp, lineHeight = 14.sp, color = SettingsMuted)
                     }
                     SettingsPill("Chỉnh sửa", SettingsPale, SettingsBrand)
                 }
@@ -112,6 +119,10 @@ fun StudyFlowSettingsScreen(
                     }
                 }
                 SettingsDivider()
+                SettingsToggleRow("⏰", "Âm thanh kiểu báo thức", "Phát chuông báo thức lớn khi có deadline", useAlarmSound) { checked ->
+                    viewModel.toggleUseAlarmSound(checked)
+                }
+                SettingsDivider()
                 SettingsToggleRow("▣", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
                 SettingsDivider()
                 SettingsNavigationRow("⌛", "Báo trước thời gian", "Áp dụng cho tất cả bài học", "Trước 60 phút")
@@ -121,11 +132,12 @@ fun StudyFlowSettingsScreen(
             SettingsSectionHeader("HỆ THỐNG")
             SettingsCard {
                 SettingsNavigationRow("ⓘ", "Thử nghiệm nhắc nhở ngay", null, "TEST", onClick = {
-                    if (deadlineReminder) {
-                        viewModel.triggerTestReminder()
-                        android.widget.Toast.makeText(context, "Đã gửi yêu cầu test", android.widget.Toast.LENGTH_SHORT).show()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     } else {
-                        android.widget.Toast.makeText(context, "Vui lòng bật Nhắc nhở trước", android.widget.Toast.LENGTH_SHORT).show()
+                        viewModel.triggerTestReminder(context)
+                        android.widget.Toast.makeText(context, "🔔 Đã phát chuông & thông báo thử nghiệm!", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 })
                 SettingsDivider()
