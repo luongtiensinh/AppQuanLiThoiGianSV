@@ -72,17 +72,8 @@ fun StudyFlowAddTaskScreen(
     
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
-    var showMoreCourses by rememberSaveable { mutableStateOf(false) }
     var showSubtaskDialog by rememberSaveable { mutableStateOf(false) }
     var showPastDeadlineDialog by rememberSaveable { mutableStateOf(false) }
-
-    // Đảm bảo môn học mặc định được chọn nếu list danh sách môn học không rỗng
-    // Cần side-effect hoặc khởi tạo ở state ViewModel, nhưng để đảm bảo ta gán một lần:
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        if (formState.selectedCourse.isEmpty() && addTaskCourses.isNotEmpty()) {
-            viewModel.updateCourse(addTaskCourses.first())
-        }
-    }
 
     BackHandler(onBack = onBack)
 
@@ -96,13 +87,9 @@ fun StudyFlowAddTaskScreen(
             ) {
                 GuidanceBanner()
                 TaskTitleCard(title = formState.title, onTitleChange = { viewModel.updateTitle(it) })
-                CourseAndCategoryCard(
-                    selectedCourse = formState.selectedCourse,
+                CategoryCard(
                     selectedCategory = formState.selectedCategory,
-                    showMoreCourses = showMoreCourses,
-                    onCourseSelected = { viewModel.updateCourse(it) },
-                    onCategorySelected = { viewModel.updateCategory(it) },
-                    onShowMoreCourses = { showMoreCourses = true }
+                    onCategorySelected = { viewModel.updateCategory(it) }
                 )
                 DateCard(
                     selectedDateUtcMillis = formState.selectedDateUtcMillis,
@@ -159,14 +146,6 @@ fun StudyFlowAddTaskScreen(
                 viewModel.updateTime(h, m)
                 showTimePicker = false
             }
-        )
-    }
-    if (showMoreCourses) {
-        ChoiceDialog(
-            title = "Chọn môn học",
-            choices = addTaskCourses + "Môn khác",
-            onDismiss = { showMoreCourses = false },
-            onChoice = { viewModel.updateCourse(it); showMoreCourses = false }
         )
     }
     if (showSubtaskDialog) {

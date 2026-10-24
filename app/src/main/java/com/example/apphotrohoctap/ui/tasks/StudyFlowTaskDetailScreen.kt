@@ -103,8 +103,9 @@ fun StudyFlowTaskDetailScreen(
                         // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
                     }
                 )
-                TaskAttachmentCard()
-                TaskNotesCard()
+                if (currentTask.notes.isNotBlank()) {
+                    TaskNotesCard(notes = currentTask.notes)
+                }
                 Spacer(Modifier.height(56.dp))
             }
         }
@@ -308,10 +309,10 @@ private fun TaskAttachmentCard() {
 }
 
 @Composable
-private fun TaskNotesCard() {
+private fun TaskNotesCard(notes: String) {
     DetailSectionCard(title = "☷  Ghi chú", trailing = "✎  Chỉnh sửa") {
         Text(
-            "Yêu cầu giảng viên TS. Trần Văn Minh: Nộp source code trên GitHub và nộp file báo cáo PDF qua hệ thống LMS trước 23h59. Chú ý kiến trúc MVVM, tách biệt Repository và ViewModel. Video demo phải nói rõ các tính năng chính và xử lý ngoại lệ mất mạng.",
+            notes,
             Modifier.fillMaxWidth().background(DetailPale, RoundedCornerShape(12.dp)).padding(12.dp),
             fontSize = 11.sp,
             lineHeight = 17.sp,

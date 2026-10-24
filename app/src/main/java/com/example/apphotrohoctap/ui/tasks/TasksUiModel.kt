@@ -29,6 +29,7 @@ internal data class TaskItem(
     val urgency: String? = null,
     val place: String? = null,
     val completed: Boolean = false,
+    val notes: String = "",
     val subtasks: List<Subtask> = emptyList()
 )
 

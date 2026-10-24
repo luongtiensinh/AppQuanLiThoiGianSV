@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
 import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
+import com.example.apphotrohoctap.ui.pomodoro.StudyFlowPomodoroScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowScheduleScreen
 import com.example.apphotrohoctap.ui.schedule.StudyFlowAddScheduleScreen
@@ -23,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.apphotrohoctap.ui.navigation.Screen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowTaskDetailScreen
 import com.example.apphotrohoctap.ui.tasks.StudyFlowAddTaskScreen
@@ -62,6 +64,8 @@ class MainActivity : ComponentActivity() {
                         restoreState = true
                     }
                 }
+                
+                val pomodoroViewModel: com.example.apphotrohoctap.ui.pomodoro.PomodoroViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
                 NavHost(navController = navController, startDestination = startDest) {
                     composable(Screen.Login.route) {
@@ -85,10 +89,19 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable(Screen.Home.route) {
+                        val pomodoroState by pomodoroViewModel.uiState.collectAsStateWithLifecycle()
                         StudyFlowHomeScreen(
                             onAddTask = { navController.navigate(Screen.AddTask.route) },
+                            onStartFocus = { navController.navigate(Screen.Pomodoro.route) },
                             onCourseClick = { courseName -> navController.navigate(Screen.CourseDetail.createRoute(courseName)) },
-                            onTabSelected = navToTab
+                            onTabSelected = navToTab,
+                            pomodoroState = pomodoroState
+                        )
+                    }
+                    composable(Screen.Pomodoro.route) {
+                        StudyFlowPomodoroScreen(
+                            pomodoroViewModel = pomodoroViewModel,
+                            onClose = { navController.popBackStack() }
                         )
                     }
                     composable(Screen.Schedule.route) {

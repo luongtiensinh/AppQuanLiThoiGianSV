@@ -72,28 +72,19 @@ internal fun TaskTitleCard(title: String, onTitleChange: (String) -> Unit) {
 }
 
 @Composable
-internal fun CourseAndCategoryCard(
-    selectedCourse: String,
+internal fun CategoryCard(
     selectedCategory: String,
-    showMoreCourses: Boolean,
-    onCourseSelected: (String) -> Unit,
-    onCategorySelected: (String) -> Unit,
-    onShowMoreCourses: () -> Unit
+    onCategorySelected: (String) -> Unit
 ) {
     FormCard(spacing = 8.dp) {
-        FieldLabel("Môn học & Loại công việc")
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            (addTaskCourses + "Môn khác").forEach { course ->
-                ChoicePill(
-                    label = course,
-                    selected = if (course == "Môn khác") showMoreCourses else course == selectedCourse,
-                    onClick = if (course == "Môn khác") onShowMoreCourses else ({ onCourseSelected(course) }),
-                    compact = true
-                )
-            }
-        }
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Lịch học", "Deadline", "Bài tập", "Ghi chú").forEach { category ->
+        FieldLabel("Phân loại công việc")
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("Deadline", "Bài tập", "Ghi chú").forEach { category ->
                 ChoicePill(category, category == selectedCategory, { onCategorySelected(category) }, compact = true)
             }
         }

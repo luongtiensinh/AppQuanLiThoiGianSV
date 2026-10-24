@@ -54,6 +54,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apphotrohoctap.data.toUiModel
 import com.example.apphotrohoctap.R
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.aspectRatio
 
 private val ScheduleBackground = Color(0xFFFCF8FF)
 private val ScheduleBrandBlue = Color(0xFF4143D5)
@@ -81,9 +83,12 @@ fun StudyFlowScheduleScreen(
     val schedules by viewModel.schedules.collectAsState()
 
     val now = System.currentTimeMillis()
-    val weekDays = com.example.apphotrohoctap.ui.common.AcademicCalendar.generateWeekDays(now)
+    var selectedDateMillis by remember { mutableStateOf(now) }
+    var currentMonthMillis by remember { mutableStateOf(now) }
+    
+    val weekDays = com.example.apphotrohoctap.ui.common.AcademicCalendar.generateWeekDays(selectedDateMillis)
     var selectedView by remember { mutableStateOf("Tuần") }
-    var selectedDay by remember { mutableStateOf(com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(now)) }
+    var selectedDay by remember(selectedDateMillis) { mutableStateOf(com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(selectedDateMillis)) }
 
     val selectedWeekdayStr = weekDays.find { it.dayOfMonth == selectedDay }?.weekdayLabel ?: "T4"
     val selectedDayInt = when (selectedWeekdayStr) {
@@ -96,6 +101,7 @@ fun StudyFlowScheduleScreen(
         else -> 7
     }
 
+    // For Week View and timeline underneath Month View
     val dayClasses = schedules
         .filter { it.dayOfWeek == selectedDayInt }
         .map { it.toUiModel(now) }
@@ -137,33 +143,62 @@ fun StudyFlowScheduleScreen(
                 ) {
                     ScheduleControls(selectedView, onViewChange = { selectedView = it })
                     if (selectedView == "Tháng") {
-                        MonthInformationBanner()
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp)
-                                .background(SchedulePale, RoundedCornerShape(16.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(
-                                    text = "Chế độ xem Tháng\nđang được phát triển",
-                                    fontSize = 16.sp,
-                                    lineHeight = 24.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = ScheduleSecondary,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = "Vui lòng sử dụng chế độ xem Tuần",
-                                    fontSize = 12.sp,
-                                    color = ScheduleMuted
-                                )
+                        MonthInformationBanner(
+                            dateMillis = selectedDateMillis,
+                            onToday = {
+                                val current = System.currentTimeMillis()
+                                selectedDateMillis = current
+                                currentMonthMillis = current
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(current)
                             }
-                        }
+                        )
+                        MonthCalendarWidget(
+                            currentMonthMillis = currentMonthMillis,
+                            selectedDateMillis = selectedDateMillis,
+                            schedules = schedules,
+                            onMonthChange = { currentMonthMillis = it },
+                            onDateSelected = { millis -> 
+                                selectedDateMillis = millis
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(millis)
+                            }
+                        )
+                        DailySummary(dayClasses.size)
+                        DailyTimeline(
+                            classes = dayClasses,
+                            onEdit = onEditEvent,
+                            onDelete = { classId -> scheduleToDelete = schedules.find { it.id == classId } }
+                        )
                     } else {
-                        MonthInformationBanner()
-                        WeekDateCarousel(weekDays, selectedDay, onDaySelected = { selectedDay = it })
+                        MonthInformationBanner(
+                            dateMillis = selectedDateMillis,
+                            onPrevious = {
+                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+                                cal.add(java.util.Calendar.DAY_OF_YEAR, -7)
+                                selectedDateMillis = cal.timeInMillis
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(selectedDateMillis)
+                            },
+                            onNext = {
+                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+                                cal.add(java.util.Calendar.DAY_OF_YEAR, 7)
+                                selectedDateMillis = cal.timeInMillis
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(selectedDateMillis)
+                            },
+                            onToday = {
+                                val current = System.currentTimeMillis()
+                                selectedDateMillis = current
+                                selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(current)
+                            }
+                        )
+                        WeekDateCarousel(weekDays, selectedDay, onDaySelected = { 
+                            selectedDay = it 
+                            // Convert string day back to selectedDateMillis approx (for seamless switching to month view)
+                            val dayInt = it.toIntOrNull()
+                            if (dayInt != null) {
+                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+                                cal.set(java.util.Calendar.DAY_OF_MONTH, dayInt)
+                                selectedDateMillis = cal.timeInMillis
+                            }
+                        })
                         DailySummary(dayClasses.size)
                         DailyTimeline(
                             classes = dayClasses,
@@ -172,7 +207,7 @@ fun StudyFlowScheduleScreen(
                                 scheduleToDelete = schedules.find { it.id == classId }
                             }
                         )
-                        val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(now)
+                        val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(selectedDateMillis)
                         val weekLabel = if (weekNumber > 0) "tuần $weekNumber" else ""
                         AttendanceSummary(weekLabel)
                     }
@@ -300,10 +335,14 @@ private fun ScheduleControls(selectedView: String, onViewChange: (String) -> Uni
 }
 
 @Composable
-private fun MonthInformationBanner() {
-    val now = System.currentTimeMillis()
-    val monthYearLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.monthYearLabel(now)
-    val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(now)
+private fun MonthInformationBanner(
+    dateMillis: Long,
+    onPrevious: (() -> Unit)? = null,
+    onNext: (() -> Unit)? = null,
+    onToday: (() -> Unit)? = null
+) {
+    val monthYearLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.monthYearLabel(dateMillis)
+    val weekNumber = com.example.apphotrohoctap.ui.common.AcademicCalendar.weekOfSemester(dateMillis)
     val weekLabel = if (weekNumber > 0) "Tuần $weekNumber" else ""
     
     Surface(color = SchedulePale, shape = RoundedCornerShape(12.dp)) {
@@ -321,9 +360,146 @@ private fun MonthInformationBanner() {
                 Text(weekLabel, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
             }
             Spacer(Modifier.weight(1f))
-            Text("Hôm nay", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
-            Spacer(Modifier.width(2.dp))
-            ScheduleIcon(2, Modifier.width(4.317.dp).height(7.dp), "")
+            
+            if (onPrevious != null && onNext != null) {
+                androidx.compose.material3.IconButton(onClick = onPrevious, modifier = Modifier.size(24.dp)) {
+                    Text("‹", fontSize = 18.sp, color = ScheduleBrandBlue, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(4.dp))
+            }
+            
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .clickable(enabled = onToday != null) { onToday?.invoke() }
+                    .padding(horizontal = 4.dp, vertical = 2.dp), 
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Hôm nay", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = ScheduleBrandBlue)
+                Spacer(Modifier.width(2.dp))
+                ScheduleIcon(2, Modifier.width(4.317.dp).height(7.dp), "")
+            }
+            
+            if (onPrevious != null && onNext != null) {
+                Spacer(Modifier.width(4.dp))
+                androidx.compose.material3.IconButton(onClick = onNext, modifier = Modifier.size(24.dp)) {
+                    Text("›", fontSize = 18.sp, color = ScheduleBrandBlue, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthCalendarWidget(
+    currentMonthMillis: Long,
+    selectedDateMillis: Long,
+    schedules: List<com.example.apphotrohoctap.data.ScheduleEntity>,
+    onMonthChange: (Long) -> Unit,
+    onDateSelected: (Long) -> Unit
+) {
+    val cal = java.util.Calendar.getInstance().apply { timeInMillis = currentMonthMillis }
+    cal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+    val month = cal.get(java.util.Calendar.MONTH)
+    val year = cal.get(java.util.Calendar.YEAR)
+    
+    val daysInMonth = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+    var firstDayOfWeek = cal.get(java.util.Calendar.DAY_OF_WEEK) - 1
+    if (firstDayOfWeek == 0) firstDayOfWeek = 7
+    
+    val monthName = "Tháng ${month + 1}, $year"
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            // Header
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.IconButton(onClick = { 
+                    val navCal = java.util.Calendar.getInstance().apply { timeInMillis = currentMonthMillis }
+                    navCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                    navCal.add(java.util.Calendar.MONTH, -1)
+                    onMonthChange(navCal.timeInMillis)
+                }) { Text("‹", fontSize = 24.sp, color = ScheduleInk) }
+                
+                Text(monthName, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ScheduleInk)
+                
+                androidx.compose.material3.IconButton(onClick = { 
+                    val navCal = java.util.Calendar.getInstance().apply { timeInMillis = currentMonthMillis }
+                    navCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                    navCal.add(java.util.Calendar.MONTH, 1)
+                    onMonthChange(navCal.timeInMillis)
+                }) { Text("›", fontSize = 24.sp, color = ScheduleInk) }
+            }
+            
+            // Weekdays
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN").forEach {
+                    Text(it, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp, color = ScheduleSecondary, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            
+            // Days Grid
+            val gridItems = List(firstDayOfWeek - 1) { 0 } + (1..daysInMonth).toList()
+            val rows = gridItems.chunked(7)
+            
+            rows.forEach { row ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    row.forEach { day ->
+                        if (day == 0) {
+                            Spacer(Modifier.weight(1f))
+                        } else {
+                            val dayCal = java.util.Calendar.getInstance().apply {
+                                timeInMillis = currentMonthMillis
+                                set(java.util.Calendar.DAY_OF_MONTH, day)
+                                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                                set(java.util.Calendar.MINUTE, 0)
+                                set(java.util.Calendar.SECOND, 0)
+                                set(java.util.Calendar.MILLISECOND, 0)
+                            }
+                            val dayMillis = dayCal.timeInMillis
+                            
+                            val selCal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+                            val isSelected = day == selCal.get(java.util.Calendar.DAY_OF_MONTH) && month == selCal.get(java.util.Calendar.MONTH) && year == selCal.get(java.util.Calendar.YEAR)
+                            
+                            val nowCal = java.util.Calendar.getInstance()
+                            val isToday = day == nowCal.get(java.util.Calendar.DAY_OF_MONTH) && month == nowCal.get(java.util.Calendar.MONTH) && year == nowCal.get(java.util.Calendar.YEAR)
+                            
+                            val hasEvents = schedules.any { s ->
+                                val dow = if (dayCal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.SUNDAY) 7 else dayCal.get(java.util.Calendar.DAY_OF_WEEK) - 1
+                                s.dayOfWeek == dow && dayMillis in s.startDateMillis..s.endDateMillis
+                            }
+                            
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(1f)
+                                    .padding(2.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) ScheduleBrightBlue else Color.Transparent)
+                                    .clickable { onDateSelected(dayMillis) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                    Text(
+                                        day.toString(),
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) Color.White else if (isToday) ScheduleBrandBlue else ScheduleInk
+                                    )
+                                    if (hasEvents) {
+                                        Box(Modifier.padding(top = 2.dp).size(4.dp).clip(CircleShape).background(if (isSelected) Color.White else ScheduleBrandBlue))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    repeat(7 - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
         }
     }
 }

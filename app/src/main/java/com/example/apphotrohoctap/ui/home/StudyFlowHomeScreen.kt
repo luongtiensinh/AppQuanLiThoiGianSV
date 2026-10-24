@@ -70,7 +70,8 @@ fun StudyFlowHomeScreen(
     onFilterDeadlines: (() -> Unit)? = null,
     onStartFocus: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (String) -> Unit = {},
+    pomodoroState: com.example.apphotrohoctap.ui.pomodoro.PomodoroUiState? = null
 ) {
     val localContext = LocalContext.current
     val handleNotificationClick = onNotificationClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
@@ -106,7 +107,10 @@ fun StudyFlowHomeScreen(
                     StatisticsRow(uiState.tasksToday, uiState.tasksUrgent, uiState.deadlinesThisWeek, uiState.tasksDone)
                     TodayScheduleSection(uiState.todaySchedules, handleSeeAllClasses, onCourseClick)
                     UpcomingDeadlinesSection(uiState.upcomingDeadlines, handleFilterDeadlines)
-                    FocusSessionCard(handleStartFocus)
+                    FocusSessionCard(
+                        onStart = handleStartFocus,
+                        pomodoroState = pomodoroState
+                    )
                 }
             }
             HomeBottomNavigation(onTabSelected)
@@ -227,6 +231,10 @@ private fun GreetingSection() {
     val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterLabelShort(now).substringBefore(" (") // Lấy phần "HK I" hoặc "Học kỳ 1"
     val dateLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.formatTodayVi(now)
 
+    val sessionManager = com.example.apphotrohoctap.data.SessionManager(androidx.compose.ui.platform.LocalContext.current)
+    val fullName = sessionManager.getRegisteredFullName() ?: "bạn"
+    val firstName = fullName.split(" ").lastOrNull() ?: "bạn"
+    
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -235,7 +243,7 @@ private fun GreetingSection() {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "Chào bạn",
+                    "Chào $firstName",
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
                     letterSpacing = (-0.6).sp,
@@ -577,7 +585,7 @@ private fun DeadlineCard(task: DeadlineTask) {
 }
 
 @Composable
-private fun FocusSessionCard(onStart: () -> Unit) {
+private fun FocusSessionCard(onStart: () -> Unit, pomodoroState: com.example.apphotrohoctap.ui.pomodoro.PomodoroUiState?) {
     Card(
         modifier = Modifier.fillMaxWidth().height(132.dp),
         shape = RoundedCornerShape(16.dp),
@@ -596,7 +604,14 @@ private fun FocusSessionCard(onStart: () -> Unit) {
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("Góc tập trung Pomodoro", fontSize = 18.sp, lineHeight = 22.5.sp, fontWeight = FontWeight.SemiBold, color = HomeInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("25 phút giải quyết dứt điểm bài tập IT3020", fontSize = 12.sp, lineHeight = 16.sp, color = HomeSecondaryInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    
+                    val linkedTask = pomodoroState?.linkedTaskTitle
+                    val subtitle = if (linkedTask != null) {
+                        "Đang tập trung: $linkedTask"
+                    } else {
+                        "25 phút giải quyết dứt điểm bài tập"
+                    }
+                    Text(subtitle, fontSize = 12.sp, lineHeight = 16.sp, color = HomeSecondaryInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -611,13 +626,16 @@ private fun FocusSessionCard(onStart: () -> Unit) {
                             Text("Âm thanh lo-fi", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeSecondaryInk)
                         }
                     }
-                    Text("• 4 chu kỳ", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeSecondaryInk)
+                    Text("• ${pomodoroState?.completedFocusSessions ?: 0} chu kỳ", fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeSecondaryInk)
                 }
                 Spacer(Modifier.weight(1f))
+                
+                val isRunning = pomodoroState?.status == com.example.apphotrohoctap.ui.pomodoro.PomodoroStatus.RUNNING
+                
                 Surface(
                     onClick = onStart,
                     shape = CircleShape,
-                    color = HomeBrandBlue,
+                    color = if (isRunning) Color(0xFFE1E0FF) else HomeBrandBlue,
                     shadowElevation = 1.dp
                 ) {
                     Row(
@@ -625,8 +643,16 @@ private fun FocusSessionCard(onStart: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        HomeIcon("home_play.svg", Modifier.width(8.25.dp).height(10.5.dp), "")
-                        Text("Bắt đầu ngay", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                        if (isRunning) {
+                            val remSecs = pomodoroState.remainingMillis / 1000
+                            val m = remSecs / 60
+                            val s = remSecs % 60
+                            val timeStr = String.format(java.util.Locale.getDefault(), "%02d:%02d", m, s)
+                            Text("Đang chạy • $timeStr", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = HomeBrandBlue)
+                        } else {
+                            HomeIcon("home_play.svg", Modifier.width(8.25.dp).height(10.5.dp), "")
+                            Text("Bắt đầu ngay", fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                        }
                     }
                 }
             }
