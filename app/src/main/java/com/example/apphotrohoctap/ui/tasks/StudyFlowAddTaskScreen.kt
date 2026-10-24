@@ -87,6 +87,10 @@ fun StudyFlowAddTaskScreen(
             ) {
                 GuidanceBanner()
                 TaskTitleCard(title = formState.title, onTitleChange = { viewModel.updateTitle(it) })
+                CategoryCard(
+                    selectedCategory = formState.selectedCategory,
+                    onCategorySelected = { viewModel.updateCategory(it) }
+                )
                 DateCard(
                     selectedDateUtcMillis = formState.selectedDateUtcMillis,
                     onOpenDatePicker = { showDatePicker = true },

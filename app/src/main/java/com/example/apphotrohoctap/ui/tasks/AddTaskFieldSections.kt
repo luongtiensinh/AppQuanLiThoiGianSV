@@ -71,7 +71,25 @@ internal fun TaskTitleCard(title: String, onTitleChange: (String) -> Unit) {
     }
 }
 
-
+@Composable
+internal fun CategoryCard(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
+    FormCard(spacing = 8.dp) {
+        FieldLabel("Phân loại công việc")
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("Deadline", "Bài tập", "Ghi chú").forEach { category ->
+                ChoicePill(category, category == selectedCategory, { onCategorySelected(category) }, compact = true)
+            }
+        }
+    }
+}
 
 @Composable
 internal fun DateCard(
