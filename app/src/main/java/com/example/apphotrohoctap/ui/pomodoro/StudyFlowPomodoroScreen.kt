@@ -35,6 +35,12 @@ fun StudyFlowPomodoroScreen(
 ) {
     val context = LocalContext.current
     val view = LocalView.current
+    
+    // Cấp Context cho ViewModel để đặt lịch WorkManager
+    LaunchedEffect(Unit) {
+        pomodoroViewModel.setContext(context)
+    }
+
     val tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(context))
 
     val uiState by pomodoroViewModel.uiState.collectAsStateWithLifecycle()
