@@ -5,13 +5,18 @@ import com.example.apphotrohoctap.ui.schedule.StudyClass
 import java.util.Calendar
 
 internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
+    val startTimes = listOf("06:45", "07:30", "08:25", "09:20", "10:05", "10:50", "12:30", "13:15", "14:10", "15:05", "15:50", "16:35", "18:00")
+    val endTimes = listOf("07:30", "08:15", "09:10", "10:05", "10:50", "11:35", "13:15", "14:00", "14:55", "15:50", "16:35", "17:20", "20:15")
+
+    val sIdx = (startPeriod - 1).coerceIn(0, 12)
+    val eIdx = (endPeriod - 1).coerceIn(0, 12)
+    val timeString = "${startTimes[sIdx]} - ${endTimes[eIdx]}"
+
     val session = when {
         startPeriod <= 6 -> "Ca sáng"
         startPeriod <= 12 -> "Ca chiều"
         else -> "Ca tối"
     }
-    
-    val timeString = session
 
     val leadingColor = when (colorKey) {
         "0" -> Color(0xFF2563EB)
@@ -30,17 +35,8 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
     val currentMin = cal.get(Calendar.MINUTE)
     val currentTotalMin = currentHour * 60 + currentMin
 
-    val startTotalMin = when {
-        startPeriod <= 6 -> 6 * 60
-        startPeriod <= 12 -> 12 * 60
-        else -> 18 * 60
-    }
-    
-    val endTotalMin = when {
-        startPeriod <= 6 -> 12 * 60
-        startPeriod <= 12 -> 18 * 60
-        else -> 23 * 60 + 59
-    }
+    val startTotalMin = startTimes[sIdx].split(":").let { it[0].toInt() * 60 + it[1].toInt() }
+    val endTotalMin = endTimes[eIdx].split(":").let { it[0].toInt() * 60 + it[1].toInt() }
 
     var status = "Sắp tới"
     var statusColor = Color(0xFFE8E6FC)
