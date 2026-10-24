@@ -159,8 +159,9 @@ fun StudyFlowAddScheduleScreen(
                     )
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DateField("Ngày bắt đầu", startDate, { startDate = it }, Modifier.weight(1f))
-                    DateField("Ngày kết thúc", endDate, { endDate = it }, Modifier.weight(1f))
+                    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    DateField("Ngày bắt đầu", startDate, { startDate = sdf.format(it) }, Modifier.weight(1f))
+                    DateField("Ngày kết thúc", endDate, { endDate = sdf.format(it) }, Modifier.weight(1f))
                 }
             }
 
@@ -353,15 +354,36 @@ private fun PeriodPicker(label: String, value: String, modifier: Modifier, onSel
 }
 
 @Composable
-private fun DateField(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier) {
+private fun DateField(label: String, value: String, onChange: (Long) -> Unit, modifier: Modifier) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, fontSize = 9.sp, color = AddScheduleText)
-        Surface(onClick = { onChange(if (value == "15/01/2026") "22/01/2026" else "15/01/2026") }, modifier = Modifier.fillMaxWidth(), color = AddScheduleInput, shape = RoundedCornerShape(12.dp)) {
+        Surface(
+            onClick = { showDatePicker = true }, 
+            modifier = Modifier.fillMaxWidth(), 
+            color = AddScheduleInput, 
+            shape = RoundedCornerShape(12.dp)
+        ) {
             Row(Modifier.padding(horizontal = 10.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text("▣", fontSize = 11.sp, color = AddScheduleBrand)
                 Text(value, fontSize = 9.sp, color = AddScheduleText, maxLines = 1)
             }
         }
+    }
+    
+    if (showDatePicker) {
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val currentMillis = try { sdf.parse(value)?.time } catch (e: Exception) { null }
+        
+        com.example.apphotrohoctap.ui.common.StudyFlowDatePickerDialog(
+            initialMillis = currentMillis,
+            onDismiss = { showDatePicker = false },
+            onConfirm = { millis ->
+                onChange(millis)
+                showDatePicker = false
+            }
+        )
     }
 }
 
