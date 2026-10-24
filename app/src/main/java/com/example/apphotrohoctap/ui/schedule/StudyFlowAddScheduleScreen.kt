@@ -66,6 +66,10 @@ fun StudyFlowAddScheduleScreen(
     var selectedDay by remember { mutableStateOf("T4") }
     var startPeriod by remember { mutableStateOf("Tiết 1") }
     var endPeriod by remember { mutableStateOf("Tiết 3") }
+    var startHour by remember { mutableIntStateOf(6) }
+    var startMinute by remember { mutableIntStateOf(45) }
+    var endHour by remember { mutableIntStateOf(9) }
+    var endMinute by remember { mutableIntStateOf(10) }
     var room by remember { mutableStateOf("") }
     var instructor by remember { mutableStateOf("") }
     var repeatsWeekly by remember { mutableStateOf(true) }
@@ -79,8 +83,25 @@ fun StudyFlowAddScheduleScreen(
             courseName = it.subject
             courseCode = it.courseCode ?: ""
             selectedDay = dayNameReverse(it.dayOfWeek)
-            startPeriod = "Tiết ${it.startPeriod}"
-            endPeriod = "Tiết ${it.endPeriod}"
+            
+            val isPackedStart = it.startPeriod >= 10000
+            if (isPackedStart) {
+                startPeriod = "Tiết ${it.startPeriod / 10000}"
+                startHour = (it.startPeriod % 10000) / 100
+                startMinute = it.startPeriod % 100
+            } else {
+                startPeriod = "Tiết ${it.startPeriod}"
+            }
+            
+            val isPackedEnd = it.endPeriod >= 10000
+            if (isPackedEnd) {
+                endPeriod = "Tiết ${it.endPeriod / 10000}"
+                endHour = (it.endPeriod % 10000) / 100
+                endMinute = it.endPeriod % 100
+            } else {
+                endPeriod = "Tiết ${it.endPeriod}"
+            }
+            
             room = it.room ?: ""
             instructor = it.lecturer ?: ""
             repeatsWeekly = it.repeatWeekly
@@ -127,17 +148,15 @@ fun StudyFlowAddScheduleScreen(
             FormSection {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("Tiết học & Thời gian *", modifier = Modifier.weight(1f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = AddScheduleInk)
-                    Text("Buổi sáng (Ca 1)", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = AddScheduleText)
+                    Text("Tùy chỉnh giờ", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = AddScheduleText)
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PeriodPicker("Từ tiết", startPeriod, Modifier.weight(1f)) { startPeriod = it }
                     PeriodPicker("Đến tiết", endPeriod, Modifier.weight(1f)) { endPeriod = it }
                 }
-                Surface(color = AddScheduleChip, shape = RoundedCornerShape(12.dp)) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("◷", fontSize = 13.sp, color = AddScheduleBrand)
-                        Text("${startPeriod.substringAfter("Tiết ")} - ${endPeriod.substringAfter("Tiết ")} • 07:00 - 09:45 (3 tiết học)", fontSize = 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = AddScheduleBrand)
-                    }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TimeField("Giờ bắt đầu", startHour, startMinute, Modifier.weight(1f)) { h, m -> startHour = h; startMinute = m }
+                    TimeField("Giờ kết thúc", endHour, endMinute, Modifier.weight(1f)) { h, m -> endHour = h; endMinute = m }
                 }
             }
 
@@ -206,6 +225,9 @@ fun StudyFlowAddScheduleScreen(
 
                     val startP = startPeriod.substringAfter("Tiết ").toIntOrNull() ?: 1
                     val endP = endPeriod.substringAfter("Tiết ").toIntOrNull() ?: 3
+                    
+                    val packedStart = (startP * 10000) + (startHour * 100) + startMinute
+                    val packedEnd = (endP * 10000) + (endHour * 100) + endMinute
 
                     val dayInt = when (selectedDay) {
                         "T2" -> 1
@@ -222,8 +244,8 @@ fun StudyFlowAddScheduleScreen(
                         subject = courseName,
                         courseCode = courseCode,
                         dayOfWeek = dayInt,
-                        startPeriod = startP,
-                        endPeriod = endP,
+                        startPeriod = packedStart,
+                        endPeriod = packedEnd,
                         room = room,
                         lecturer = instructor,
                         repeatWeekly = repeatsWeekly,
@@ -350,6 +372,28 @@ private fun PeriodPicker(label: String, value: String, modifier: Modifier, onSel
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TimeField(label: String, hour: Int, minute: Int, modifier: Modifier, onChange: (Int, Int) -> Unit) {
+    var showPicker by remember { mutableStateOf(false) }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, fontSize = 9.sp, color = AddScheduleText)
+        Surface(onClick = { showPicker = true }, modifier = Modifier.fillMaxWidth(), color = AddScheduleInput, shape = RoundedCornerShape(12.dp)) {
+            Row(Modifier.padding(horizontal = 10.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text("◷", fontSize = 11.sp, color = AddScheduleBrand)
+                Text(String.format(Locale.getDefault(), "%02d:%02d", hour, minute), fontSize = 10.sp, color = AddScheduleText, maxLines = 1)
+            }
+        }
+    }
+    if (showPicker) {
+        com.example.apphotrohoctap.ui.common.StudyFlowTimePickerDialog(
+            initialHour = hour,
+            initialMinute = minute,
+            onDismiss = { showPicker = false },
+            onConfirm = { h, m -> onChange(h, m); showPicker = false }
+        )
     }
 }
 

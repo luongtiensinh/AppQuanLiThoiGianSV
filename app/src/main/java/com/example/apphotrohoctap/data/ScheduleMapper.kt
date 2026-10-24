@@ -8,13 +8,26 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
     val startTimes = listOf("06:45", "07:30", "08:25", "09:20", "10:05", "10:50", "12:30", "13:15", "14:10", "15:05", "15:50", "16:35", "18:00")
     val endTimes = listOf("07:30", "08:15", "09:10", "10:05", "10:50", "11:35", "13:15", "14:00", "14:55", "15:50", "16:35", "17:20", "20:15")
 
-    val sIdx = (startPeriod - 1).coerceIn(0, 12)
-    val eIdx = (endPeriod - 1).coerceIn(0, 12)
-    val timeString = "${startTimes[sIdx]} - ${endTimes[eIdx]}"
+    val isPackedStart = startPeriod >= 10000
+    val isPackedEnd = endPeriod >= 10000
+
+    val sPeriod = if (isPackedStart) startPeriod / 10000 else startPeriod
+    val ePeriod = if (isPackedEnd) endPeriod / 10000 else endPeriod
+
+    val sIdx = (sPeriod - 1).coerceIn(0, 12)
+    val eIdx = (ePeriod - 1).coerceIn(0, 12)
+
+    val sHour = if (isPackedStart) (startPeriod % 10000) / 100 else startTimes[sIdx].split(":")[0].toInt()
+    val sMin = if (isPackedStart) startPeriod % 100 else startTimes[sIdx].split(":")[1].toInt()
+
+    val eHour = if (isPackedEnd) (endPeriod % 10000) / 100 else endTimes[eIdx].split(":")[0].toInt()
+    val eMin = if (isPackedEnd) endPeriod % 100 else endTimes[eIdx].split(":")[1].toInt()
+
+    val timeString = String.format(java.util.Locale.getDefault(), "%02d:%02d - %02d:%02d", sHour, sMin, eHour, eMin)
 
     val session = when {
-        startPeriod <= 6 -> "Ca sáng"
-        startPeriod <= 12 -> "Ca chiều"
+        sHour < 12 -> "Ca sáng"
+        sHour < 18 -> "Ca chiều"
         else -> "Ca tối"
     }
 
@@ -35,8 +48,8 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
     val currentMin = cal.get(Calendar.MINUTE)
     val currentTotalMin = currentHour * 60 + currentMin
 
-    val startTotalMin = startTimes[sIdx].split(":").let { it[0].toInt() * 60 + it[1].toInt() }
-    val endTotalMin = endTimes[eIdx].split(":").let { it[0].toInt() * 60 + it[1].toInt() }
+    val startTotalMin = sHour * 60 + sMin
+    val endTotalMin = eHour * 60 + eMin
 
     var status = "Sắp tới"
     var statusColor = Color(0xFFE8E6FC)
