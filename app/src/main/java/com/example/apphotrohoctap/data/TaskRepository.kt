@@ -15,8 +15,13 @@ class TaskRepository(private val taskDao: TaskDao) {
         }
     }
     
+    suspend fun addSubtask(taskId: Long, title: String) {
+        taskDao.insertSubtask(SubtaskEntity(taskId = taskId, title = title, isCompleted = false))
+    }
+    
     suspend fun updateTask(task: TaskEntity) = taskDao.updateTask(task)
     suspend fun updateSubtask(subtask: SubtaskEntity) = taskDao.updateSubtask(subtask)
     suspend fun deleteTask(task: TaskEntity) = taskDao.deleteTask(task)
+    suspend fun deleteSubtask(subtaskId: Long) = taskDao.deleteSubtask(subtaskId)
     suspend fun deleteSubtasksByTaskId(taskId: Long) = taskDao.deleteSubtasksByTaskId(taskId)
 }

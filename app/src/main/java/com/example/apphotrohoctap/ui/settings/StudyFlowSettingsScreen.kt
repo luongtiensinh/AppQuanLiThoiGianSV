@@ -55,7 +55,7 @@ fun StudyFlowSettingsScreen(
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(application))
 
     val deadlineReminder by viewModel.isDeadlineReminderEnabled.collectAsState()
-    val useAlarmSound by viewModel.useAlarmSound.collectAsState()
+    var useAlarmSound by remember { mutableStateOf(true) }
     var classReminder by remember { mutableStateOf(true) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -120,7 +120,7 @@ fun StudyFlowSettingsScreen(
                 }
                 SettingsDivider()
                 SettingsToggleRow("⏰", "Âm thanh kiểu báo thức", "Phát chuông báo thức lớn khi có deadline", useAlarmSound) { checked ->
-                    viewModel.toggleUseAlarmSound(checked)
+                    useAlarmSound = checked
                 }
                 SettingsDivider()
                 SettingsToggleRow("▣", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
@@ -136,7 +136,7 @@ fun StudyFlowSettingsScreen(
                         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                         permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     } else {
-                        viewModel.triggerTestReminder(context)
+                        viewModel.triggerTestReminder()
                         android.widget.Toast.makeText(context, "🔔 Đã phát chuông & thông báo thử nghiệm!", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 })

@@ -133,4 +133,38 @@ internal class TasksViewModel(private val repository: TaskRepository) : ViewMode
             }
         }
     }
+
+    fun addSubtaskToExistingTask(taskId: Long, title: String) {
+        val cleanTitle = sanitizeTitle(title) ?: return
+        viewModelScope.launch {
+            repository.addSubtask(taskId, cleanTitle)
+        }
+    }
+
+    fun deleteSubtaskFromTask(subtaskId: Long) {
+        viewModelScope.launch {
+            repository.deleteSubtask(subtaskId)
+        }
+    }
+
+    fun updateTaskDetails(id: String, title: String, notes: String, priority: String, dueAtMillis: Long) {
+        val cleanTitle = sanitizeTitle(title) ?: return
+        val taskId = id.toLongOrNull() ?: return
+        viewModelScope.launch {
+            val taskWithSubtasks = repository.getTaskById(taskId) ?: return@launch
+            val updatedTask = taskWithSubtasks.task.copy(
+                title = cleanTitle,
+                notes = notes,
+                priority = priority,
+                dueAtMillis = dueAtMillis
+            )
+            repository.updateTask(updatedTask)
+        }
+    }
+}
+
+internal fun sanitizeTitle(raw: String?): String? {
+    if (raw == null) return null
+    val trimmed = raw.trim()
+    return if (trimmed.isBlank()) null else trimmed
 }

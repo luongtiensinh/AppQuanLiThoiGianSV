@@ -116,4 +116,41 @@ class TaskMapperTest {
         assertEquals(true, uiModel.subtasks[0].isCompleted)
         assertEquals(false, uiModel.subtasks[1].isCompleted)
     }
+
+    @Test
+    fun sanitizeTitle_trimsAndHandlesNullOrBlank() {
+        assertNull(com.example.apphotrohoctap.ui.tasks.sanitizeTitle(null))
+        assertNull(com.example.apphotrohoctap.ui.tasks.sanitizeTitle("   "))
+        assertEquals("Học bài", com.example.apphotrohoctap.ui.tasks.sanitizeTitle("  Học bài  "))
+    }
+
+    @Test
+    fun taskMapper_mapsPriorityAndDueAtMillisCorrectly() {
+        val now = getMockNow()
+        val dueAt = now + 50000L
+        val task = createTestTask(dueAtMillis = dueAt, priority = "Cao")
+
+        val uiModel = task.toUiModel(now)
+
+        assertEquals("Cao", uiModel.priority)
+        assertEquals(dueAt, uiModel.dueAtMillis)
+    }
+
+    @Test
+    fun taskWithSubtasks_sortsSubtasksBySubtaskIdAscending() {
+        val now = getMockNow()
+        val subtasks = listOf(
+            SubtaskEntity(subtaskId = 10, taskId = 1, title = "Câu 3", isCompleted = false),
+            SubtaskEntity(subtaskId = 2, taskId = 1, title = "Câu 1", isCompleted = true),
+            SubtaskEntity(subtaskId = 5, taskId = 1, title = "Câu 2", isCompleted = false)
+        )
+        val task = createTestTask(dueAtMillis = now + 10000L, subtasks = subtasks)
+
+        val uiModel = task.toUiModel(now)
+
+        assertEquals(3, uiModel.subtasks.size)
+        assertEquals(2L, uiModel.subtasks[0].id)
+        assertEquals(5L, uiModel.subtasks[1].id)
+        assertEquals(10L, uiModel.subtasks[2].id)
+    }
 }

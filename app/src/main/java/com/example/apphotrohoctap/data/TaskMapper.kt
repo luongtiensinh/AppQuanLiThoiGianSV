@@ -36,7 +36,7 @@ internal fun TaskWithSubtasks.toUiModel(now: Long): TaskItem {
     val formatter = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
     val dueStr = formatter.format(Date(task.dueAtMillis))
 
-    val uiSubtasks = subtasks.map { Subtask(it.subtaskId, it.title, it.isCompleted) }
+    val uiSubtasks = subtasks.sortedBy { it.subtaskId }.map { Subtask(it.subtaskId, it.title, it.isCompleted) }
 
     return TaskItem(
         id = task.id.toString(),
@@ -50,6 +50,8 @@ internal fun TaskWithSubtasks.toUiModel(now: Long): TaskItem {
         place = task.place,
         completed = task.isCompleted,
         notes = task.notes ?: "",
-        subtasks = uiSubtasks
+        subtasks = uiSubtasks,
+        priority = task.priority,
+        dueAtMillis = task.dueAtMillis
     )
 }
