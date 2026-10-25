@@ -7,10 +7,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -55,7 +58,15 @@ fun StudyFlowTaskDetailScreen(
     val task = remember(tasks, taskId) { tasks.find { it.id == taskId.toString() } }
 
     var newSubtask by remember { mutableStateOf("") }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
+
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    var pendingDateUtcMillis by rememberSaveable { mutableStateOf(0L) }
+
+    var showEditNotesDialog by rememberSaveable { mutableStateOf(false) }
+    var showEditTitleDialog by rememberSaveable { mutableStateOf(false) }
+
     BackHandler(onBack = onBack)
     
     // Nếu task bị xóa hoặc không tìm thấy, quay về màn trước
@@ -88,8 +99,8 @@ fun StudyFlowTaskDetailScreen(
                     .padding(horizontal = 16.dp).padding(bottom = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                TaskDetailHeader(currentTask)
-                TaskMetadataCard(currentTask)
+                TaskDetailHeader(currentTask, onEditTitle = { showEditTitleDialog = true })
+                TaskMetadataCard(currentTask, onEditTime = { showDatePicker = true })
                 TaskProgressCard(checkedCount, currentTask.subtasks.size, progress)
                 TaskSubtasksCard(
                     subtasks = currentTask.subtasks,
@@ -104,7 +115,7 @@ fun StudyFlowTaskDetailScreen(
                         // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
                     }
                 )
-                TaskNotesCard(notes = currentTask.notes)
+                TaskNotesCard(notes = currentTask.notes, onEditNotes = { showEditNotesDialog = true })
                 Spacer(Modifier.height(56.dp))
             }
         }
@@ -136,6 +147,81 @@ fun StudyFlowTaskDetailScreen(
         }
     }
 
+    if (showDatePicker) {
+        val initialUtc = getUtcDayMillisFromLocal(currentTask.dueAtMillis)
+        com.example.apphotrohoctap.ui.common.StudyFlowDatePickerDialog(
+            initialMillis = initialUtc,
+            onDismiss = { showDatePicker = false },
+            onConfirm = { dateUtcMillis ->
+                pendingDateUtcMillis = dateUtcMillis
+                showDatePicker = false
+                showTimePicker = true
+            }
+        )
+    }
+
+    if (showTimePicker) {
+        val cal = java.util.Calendar.getInstance().apply { timeInMillis = currentTask.dueAtMillis }
+        val initialHour = cal.get(java.util.Calendar.HOUR_OF_DAY)
+        val initialMinute = cal.get(java.util.Calendar.MINUTE)
+
+        com.example.apphotrohoctap.ui.common.StudyFlowTimePickerDialog(
+            initialHour = initialHour,
+            initialMinute = initialMinute,
+            onDismiss = { showTimePicker = false },
+            onConfirm = { hour, minute ->
+                showTimePicker = false
+                val newDueAtMillis = com.example.apphotrohoctap.ui.common.DateTimeUtils.toDueAtMillis(
+                    pendingDateUtcMillis,
+                    hour,
+                    minute
+                )
+                viewModel.updateTaskDetails(
+                    id = currentTask.id,
+                    title = currentTask.title,
+                    notes = currentTask.notes,
+                    priority = currentTask.priority,
+                    dueAtMillis = newDueAtMillis
+                )
+            }
+        )
+    }
+
+    if (showEditNotesDialog) {
+        TaskEditNotesDialog(
+            initialNotes = currentTask.notes,
+            onDismiss = { showEditNotesDialog = false },
+            onConfirm = { newNotes ->
+                showEditNotesDialog = false
+                viewModel.updateTaskDetails(
+                    id = currentTask.id,
+                    title = currentTask.title,
+                    notes = newNotes,
+                    priority = currentTask.priority,
+                    dueAtMillis = currentTask.dueAtMillis
+                )
+            }
+        )
+    }
+
+    if (showEditTitleDialog) {
+        TaskEditTitleDialog(
+            initialTitle = currentTask.title,
+            initialPriority = currentTask.priority,
+            onDismiss = { showEditTitleDialog = false },
+            onConfirm = { newTitle, newPriority ->
+                showEditTitleDialog = false
+                viewModel.updateTaskDetails(
+                    id = currentTask.id,
+                    title = newTitle,
+                    notes = currentTask.notes,
+                    priority = newPriority,
+                    dueAtMillis = currentTask.dueAtMillis
+                )
+            }
+        )
+    }
+
     if (showDeleteConfirmation) {
         TaskDeleteConfirmationDialog(
             taskTitle = currentTask.title,
@@ -150,20 +236,37 @@ fun StudyFlowTaskDetailScreen(
 }
 
 @Composable
-private fun TaskDetailHeader(task: TaskItem) {
+private fun TaskDetailHeader(task: TaskItem, onEditTitle: () -> Unit) {
     Surface(color = DetailCard, shape = RoundedCornerShape(18.dp), shadowElevation = 2.dp) {
         Row(Modifier.fillMaxWidth()) {
             Box(Modifier.width(4.dp).height(124.dp).background(task.accent))
             Column(Modifier.weight(1f).padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Surface(color = Color(0xFFEFECFF), shape = CircleShape) {
-                    Row(Modifier.padding(horizontal = 9.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Box(Modifier.size(7.dp).clip(CircleShape).background(task.accent))
-                        Text(task.subject, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(color = Color(0xFFEFECFF), shape = CircleShape) {
+                        Row(Modifier.padding(horizontal = 9.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Box(Modifier.size(7.dp).clip(CircleShape).background(task.accent))
+                            Text(task.subject, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+                        }
+                    }
+                    Surface(
+                        onClick = onEditTitle,
+                        color = DetailPale,
+                        shape = CircleShape,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("✎", fontSize = 14.sp, color = DetailBrand)
+                        }
                     }
                 }
                 Text(task.title, fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold, color = DetailInk, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     task.urgency?.let { DetailBadge("⚑ $it", DetailRedPale, DetailRed) }
+                    DetailBadge("⚡ ${task.priority}", DetailPale, DetailBrand)
                 }
             }
         }
@@ -178,18 +281,26 @@ private fun DetailBadge(text: String, background: Color, foreground: Color) {
 }
 
 @Composable
-private fun TaskMetadataCard(task: TaskItem) {
+private fun TaskMetadataCard(task: TaskItem, onEditTime: () -> Unit) {
     Surface(color = DetailPale, shape = RoundedCornerShape(18.dp), shadowElevation = 1.dp) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            MetadataRow("▤", "Thời gian", task.due, trailing = "Sửa")
+            MetadataRow("▤", "Thời gian", task.due, trailing = "Sửa", onTrailingClick = onEditTime)
             MetadataDivider()
             MetadataRow("⬡", "Phân loại", task.category.uppercase(), trailing = "Học phần chính")
+            MetadataDivider()
+            MetadataRow("⚡", "Mức ưu tiên", task.priority, trailing = "")
         }
     }
 }
 
 @Composable
-private fun MetadataRow(icon: String, label: String, value: String, trailing: String) {
+private fun MetadataRow(
+    icon: String,
+    label: String,
+    value: String,
+    trailing: String,
+    onTrailingClick: (() -> Unit)? = null
+) {
     Row(Modifier.fillMaxWidth().heightIn(min = 54.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(color = Color(0xFFE3E0F7), shape = CircleShape) {
             Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) { Text(icon, fontSize = 16.sp, color = DetailBrand) }
@@ -198,7 +309,15 @@ private fun MetadataRow(icon: String, label: String, value: String, trailing: St
             Text(label, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailMuted)
             Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = DetailInk)
         }
-        Text(trailing, fontSize = if (trailing == "Sửa") 12.sp else 9.sp, fontWeight = FontWeight.SemiBold, color = if (trailing == "Sửa") DetailBrand else DetailText)
+        if (trailing.isNotBlank()) {
+            Text(
+                trailing,
+                fontSize = if (trailing == "Sửa") 12.sp else 9.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (trailing == "Sửa") DetailBrand else DetailText,
+                modifier = if (onTrailingClick != null) Modifier.clip(RoundedCornerShape(4.dp)).clickable { onTrailingClick() }.padding(horizontal = 4.dp, vertical = 2.dp) else Modifier
+            )
+        }
     }
 }
 
@@ -292,8 +411,12 @@ private fun TaskSubtasksCard(
 }
 
 @Composable
-private fun TaskNotesCard(notes: String) {
-    DetailSectionCard(title = "☷  Ghi chú", trailing = "✎  Chỉnh sửa") {
+private fun TaskNotesCard(notes: String, onEditNotes: () -> Unit) {
+    DetailSectionCard(
+        title = "☷  Ghi chú",
+        trailing = "✎  Chỉnh sửa",
+        onTrailingClick = onEditNotes
+    ) {
         val isNotBlank = notes.isNotBlank()
         Text(
             if (isNotBlank) notes else "Chưa có ghi chú. Nhấn Chỉnh sửa để thêm.",
@@ -306,16 +429,191 @@ private fun TaskNotesCard(notes: String) {
 }
 
 @Composable
-private fun DetailSectionCard(title: String, trailing: String? = null, content: @Composable ColumnScope.() -> Unit) {
+private fun DetailSectionCard(
+    title: String,
+    trailing: String? = null,
+    onTrailingClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
     Surface(color = DetailCard, shape = RoundedCornerShape(18.dp), shadowElevation = 1.dp) {
         Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = DetailInk)
-                trailing?.let { Text(it, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand) }
+                trailing?.let {
+                    Text(
+                        it,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = DetailBrand,
+                        modifier = if (onTrailingClick != null) Modifier.clip(RoundedCornerShape(4.dp)).clickable { onTrailingClick() }.padding(horizontal = 4.dp, vertical = 2.dp) else Modifier
+                    )
+                }
             }
             content()
         }
     }
+}
+
+@Composable
+private fun TaskEditTitleDialog(
+    initialTitle: String,
+    initialPriority: String,
+    onDismiss: () -> Unit,
+    onConfirm: (newTitle: String, newPriority: String) -> Unit
+) {
+    var title by rememberSaveable { mutableStateOf(initialTitle) }
+    var priority by rememberSaveable { mutableStateOf(initialPriority) }
+    var error by rememberSaveable { mutableStateOf<String?>(null) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().widthIn(max = 384.dp),
+            color = Color.White,
+            shape = RoundedCornerShape(24.dp),
+            shadowElevation = 16.dp
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text("Chỉnh sửa bài tập", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DetailInk)
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Tên bài tập *", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DetailInk)
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { 
+                            title = it
+                            if (it.isNotBlank()) error = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Nhập tên bài tập", fontSize = 14.sp) },
+                        isError = error != null,
+                        singleLine = true
+                    )
+                    if (error != null) {
+                        Text(error!!, fontSize = 11.sp, color = DetailRed)
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Mức ưu tiên", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DetailInk)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf("Cao", "Trung bình", "Thấp").forEach { item ->
+                            val selected = item == priority
+                            Surface(
+                                onClick = { priority = item },
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (selected) DetailBrand else DetailPale,
+                                modifier = Modifier.weight(1f).height(38.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        item,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (selected) Color.White else DetailText
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Hủy", color = DetailText)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            if (title.isBlank()) {
+                                error = "Tên bài tập không được để trống"
+                            } else {
+                                onConfirm(title.trim(), priority)
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = DetailBrand),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Lưu", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskEditNotesDialog(
+    initialNotes: String,
+    onDismiss: () -> Unit,
+    onConfirm: (newNotes: String) -> Unit
+) {
+    var notes by rememberSaveable { mutableStateOf(initialNotes) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().widthIn(max = 384.dp),
+            color = Color.White,
+            shape = RoundedCornerShape(24.dp),
+            shadowElevation = 16.dp
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text("Chỉnh sửa Ghi chú", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DetailInk)
+
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp, max = 200.dp),
+                    placeholder = { Text("Nhập ghi chú chi tiết cho bài tập...", fontSize = 14.sp) },
+                    maxLines = 5
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Hủy", color = DetailText)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = { onConfirm(notes) },
+                        colors = ButtonDefaults.buttonColors(containerColor = DetailBrand),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Lưu", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun getUtcDayMillisFromLocal(dueAtMillis: Long): Long {
+    val localCal = java.util.Calendar.getInstance().apply { timeInMillis = dueAtMillis }
+    val utcCal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+        set(java.util.Calendar.YEAR, localCal.get(java.util.Calendar.YEAR))
+        set(java.util.Calendar.MONTH, localCal.get(java.util.Calendar.MONTH))
+        set(java.util.Calendar.DAY_OF_MONTH, localCal.get(java.util.Calendar.DAY_OF_MONTH))
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+    }
+    return utcCal.timeInMillis
 }
 
 @Composable
