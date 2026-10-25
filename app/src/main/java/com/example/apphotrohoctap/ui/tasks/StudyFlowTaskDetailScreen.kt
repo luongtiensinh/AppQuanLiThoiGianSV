@@ -18,7 +18,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.map
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +51,8 @@ fun StudyFlowTaskDetailScreen(
     onDelete: () -> Unit = {}
 ) {
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(LocalContext.current))
-    val task by viewModel.tasks.map { list -> list.find { it.id == taskId.toString() } }.collectAsState(initial = null)
+    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
+    val task = remember(tasks, taskId) { tasks.find { it.id == taskId.toString() } }
 
     var newSubtask by remember { mutableStateOf("") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -103,9 +104,7 @@ fun StudyFlowTaskDetailScreen(
                         // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
                     }
                 )
-                if (currentTask.notes.isNotBlank()) {
-                    TaskNotesCard(notes = currentTask.notes)
-                }
+                TaskNotesCard(notes = currentTask.notes)
                 Spacer(Modifier.height(56.dp))
             }
         }
@@ -293,30 +292,15 @@ private fun TaskSubtasksCard(
 }
 
 @Composable
-private fun TaskAttachmentCard() {
-    val context = LocalContext.current
-    DetailSectionCard(title = "♧  Tài liệu đính kèm") {
-        Row(Modifier.fillMaxWidth().background(DetailPale, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("De_cuong_Bai_tap_lon_v2.pdf", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = DetailInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("2.4 MB • Tải lên từ LMS", fontSize = 9.sp, color = DetailMuted)
-            }
-            Surface(onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, color = Color(0xFFE3E0F7), shape = CircleShape) {
-                Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) { Text("↓", fontSize = 17.sp, color = DetailBrand) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TaskNotesCard() {
+private fun TaskNotesCard(notes: String) {
     DetailSectionCard(title = "☷  Ghi chú", trailing = "✎  Chỉnh sửa") {
+        val isNotBlank = notes.isNotBlank()
         Text(
-            "Yêu cầu giảng viên TS. Trần Văn Minh: Nộp source code trên GitHub và nộp file báo cáo PDF qua hệ thống LMS trước 23h59. Chú ý kiến trúc MVVM, tách biệt Repository và ViewModel. Video demo phải nói rõ các tính năng chính và xử lý ngoại lệ mất mạng.",
+            if (isNotBlank) notes else "Chưa có ghi chú. Nhấn Chỉnh sửa để thêm.",
             Modifier.fillMaxWidth().background(DetailPale, RoundedCornerShape(12.dp)).padding(12.dp),
             fontSize = 11.sp,
             lineHeight = 17.sp,
-            color = DetailText
+            color = if (isNotBlank) DetailText else DetailMuted
         )
     }
 }
