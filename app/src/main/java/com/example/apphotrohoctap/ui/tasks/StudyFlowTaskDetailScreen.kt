@@ -110,9 +110,15 @@ fun StudyFlowTaskDetailScreen(
                         val subtaskId = currentTask.subtasks[index].id
                         viewModel.toggleSubtask(currentTask.id.toLongOrNull() ?: 0L, subtaskId)
                     },
-                    onDelete = { /* TODO implement subtask delete */ },
+                    onDelete = { index ->
+                        val subtaskId = currentTask.subtasks[index].id
+                        viewModel.deleteSubtaskFromTask(subtaskId)
+                    },
                     onAdd = {
-                        // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
+                        if (newSubtask.isNotBlank()) {
+                            viewModel.addSubtaskToExistingTask(currentTask.id.toLongOrNull() ?: 0L, newSubtask)
+                            newSubtask = ""
+                        }
                     }
                 )
                 TaskNotesCard(notes = currentTask.notes, onEditNotes = { showEditNotesDialog = true })
