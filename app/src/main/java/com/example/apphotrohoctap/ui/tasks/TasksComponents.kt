@@ -318,7 +318,7 @@ internal val tasksTabs = listOf(
     TasksTab("Lịch biểu", "home_nav_schedule.svg"),
     TasksTab("Nhiệm vụ", "home_nav_tasks.svg"),
     TasksTab("Ghi chú", "home_nav_notes.svg"),
-    TasksTab("Điểm số", "home_nav_settings.svg")
+    TasksTab("Điểm số", "home_document.svg")
 )
 
 @Composable

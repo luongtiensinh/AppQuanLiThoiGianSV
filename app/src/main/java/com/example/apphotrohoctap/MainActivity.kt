@@ -134,7 +134,8 @@ class MainActivity : ComponentActivity() {
                         StudyFlowGradesScreen(
                             onBack = { navController.popBackStack() },
                             onAddSubject = { navController.navigate(Screen.AddSubject.route) },
-                            onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) }
+                            onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) },
+                            onTabSelected = navToTab
                         )
                     }
                     composable(Screen.AddSubject.route) {
