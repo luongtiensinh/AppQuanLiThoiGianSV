@@ -316,27 +316,8 @@ private fun NotesIcon(assetName: String, modifier: Modifier, contentDescription:
 
 @Composable
 private fun NotesBottomNavigation(onTabSelected: (String) -> Unit) {
-    val items = listOf(
-        "Trang chủ" to "home_nav_home.svg",
-        "Lịch biểu" to "home_nav_schedule.svg",
-        "Nhiệm vụ" to "home_nav_tasks.svg",
-        "Ghi chú" to "home_nav_notes.svg",
-        "Điểm số" to "home_document.svg"
+    com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
+        currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.NOTES,
+        onTabSelected = onTabSelected
     )
-    Surface(color = NotesBackground.copy(alpha = .96f), shadowElevation = 4.dp) {
-        Row(Modifier.fillMaxWidth().navigationBarsPadding().height(80.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
-            items.forEach { (title, icon) ->
-                val selected = title == "Ghi chú"
-                Column(Modifier.weight(1f).height(56.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Surface(onClick = { if (!selected) onTabSelected(title) }, modifier = Modifier.width(56.dp).height(32.dp), color = if (selected) Color(0xFFE1E0FF) else Color.Transparent, shape = CircleShape) {
-                        Box(contentAlignment = Alignment.Center) {
-                            NotesIcon(icon, Modifier.size(18.dp), "")
-                        }
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    Text(title, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold, color = if (selected) NotesBrand else NotesText, maxLines = 1)
-                }
-            }
-        }
-    }
 }
