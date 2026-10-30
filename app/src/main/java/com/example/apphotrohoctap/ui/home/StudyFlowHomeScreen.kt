@@ -658,7 +658,7 @@ private val homeTabs = listOf(
     HomeTab("Lịch biểu", "home_nav_schedule.svg"),
     HomeTab("Nhiệm vụ", "home_nav_tasks.svg"),
     HomeTab("Ghi chú", "home_nav_notes.svg"), 
-    HomeTab("Điểm số", "home_goal.svg")
+    HomeTab("Điểm số", "home_document.svg")
 )
 
 @Composable

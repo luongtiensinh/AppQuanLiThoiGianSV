@@ -221,7 +221,7 @@ private fun GradesBottomNavigation(onTabSelected: (String) -> Unit) {
         GradesTab("Lịch biểu", "home_nav_schedule.svg"),
         GradesTab("Nhiệm vụ", "home_nav_tasks.svg"),
         GradesTab("Ghi chú", "home_nav_notes.svg"),
-        GradesTab("Điểm số", "home_goal.svg")
+        GradesTab("Điểm số", "home_document.svg")
     )
 
     Surface(
