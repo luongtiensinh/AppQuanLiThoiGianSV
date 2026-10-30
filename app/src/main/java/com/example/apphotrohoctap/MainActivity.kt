@@ -99,6 +99,7 @@ class MainActivity : ComponentActivity() {
                             onStartFocus = { navController.navigate(Screen.Pomodoro.route) },
                             onCourseClick = { courseName -> navController.navigate(Screen.CourseDetail.createRoute(courseName)) },
                             onTabSelected = navToTab,
+                            onProfileClick = { navController.navigate(Screen.Settings.route) },
                             pomodoroState = pomodoroState
                         )
                     }
