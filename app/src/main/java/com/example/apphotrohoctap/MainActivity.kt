@@ -32,6 +32,9 @@ import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowNotesScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowAddNoteScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowEditNoteScreen
+import com.example.apphotrohoctap.ui.grades.StudyFlowGradesScreen
+import com.example.apphotrohoctap.ui.grades.StudyFlowAddSubjectScreen
+import com.example.apphotrohoctap.ui.grades.StudyFlowSubjectDetailScreen
 import com.example.apphotrohoctap.ui.settings.StudyFlowSettingsScreen
 import com.example.apphotrohoctap.ui.theme.AppHoTroHocTapTheme
 
@@ -53,6 +56,7 @@ class MainActivity : ComponentActivity() {
                         "Lịch biểu" -> Screen.Schedule.route
                         "Nhiệm vụ" -> Screen.Tasks.route
                         "Ghi chú" -> Screen.Notes.route
+                        "Điểm số" -> Screen.Grades.route
                         "Cài đặt" -> Screen.Settings.route
                         else -> Screen.Home.route
                     }
@@ -123,6 +127,26 @@ class MainActivity : ComponentActivity() {
                             onCreateNote = { navController.navigate(Screen.AddNote.route) },
                             onEditNote = { noteId -> navController.navigate(Screen.EditNote.createRoute(noteId.toString())) },
                             onTabSelected = navToTab
+                        )
+                    }
+                    composable(Screen.Grades.route) {
+                        StudyFlowGradesScreen(
+                            onBack = { navController.popBackStack() },
+                            onAddSubject = { navController.navigate(Screen.AddSubject.route) },
+                            onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) }
+                        )
+                    }
+                    composable(Screen.AddSubject.route) {
+                        StudyFlowAddSubjectScreen(onBack = { navController.popBackStack() })
+                    }
+                    composable(
+                        Screen.SubjectDetail.route,
+                        arguments = listOf(navArgument("subjectId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val subjectId = backStackEntry.arguments?.getLong("subjectId") ?: 0L
+                        StudyFlowSubjectDetailScreen(
+                            subjectId = subjectId,
+                            onBack = { navController.popBackStack() }
                         )
                     }
                     composable(Screen.Settings.route) {
