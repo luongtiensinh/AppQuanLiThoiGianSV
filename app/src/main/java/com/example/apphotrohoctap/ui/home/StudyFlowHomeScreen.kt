@@ -206,16 +206,7 @@ private fun HomeHeader(onNotificationClick: () -> Unit, onProfileClick: () -> Un
                     shape = CircleShape
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data("file:///android_asset/studyflow/home_profile.png")
-                                .build(),
-                            contentDescription = "Hồ sơ cá nhân",
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
+                        HomeIcon("home_nav_settings.svg", Modifier.size(24.dp), "Cài đặt")
                     }
                 }
             }
