@@ -77,12 +77,7 @@ internal fun TasksHeader(onNotificationClick: () -> Unit, onProfileClick: () -> 
                 }
                 Surface(onClick = onProfileClick, modifier = Modifier.size(44.dp), color = Color.Transparent, shape = CircleShape) {
                     Box(contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current).data("file:///android_asset/studyflow/home_profile.png").build(),
-                            contentDescription = "Hồ sơ cá nhân",
-                            modifier = Modifier.size(32.dp).clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
+                        TasksIcon("home_nav_settings.svg", Modifier.size(22.dp), "Cài đặt")
                     }
                 }
             }

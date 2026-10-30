@@ -273,11 +273,11 @@ private fun ScheduleHeader(onNotificationClick: () -> Unit, onProfileClick: () -
                     Box(contentAlignment = Alignment.Center) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data("file:///android_asset/studyflow/home_profile.png")
+                                .data("file:///android_asset/studyflow/home_nav_settings.svg")
+                                .decoderFactory(SvgDecoder.Factory())
                                 .build(),
-                            contentDescription = "Hồ sơ cá nhân",
-                            modifier = Modifier.size(32.dp).clip(CircleShape),
-                            contentScale = ContentScale.Crop
+                            contentDescription = "Cài đặt",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }

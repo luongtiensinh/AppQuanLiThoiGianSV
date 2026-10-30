@@ -113,14 +113,16 @@ class MainActivity : ComponentActivity() {
                         StudyFlowScheduleScreen(
                             onAddEvent = { navController.navigate(Screen.AddSchedule.route) },
                             onEditEvent = { scheduleId -> navController.navigate(Screen.EditSchedule.createRoute(scheduleId)) },
-                            onTabSelected = navToTab
+                            onTabSelected = navToTab,
+                            onProfileClick = { navController.navigate(Screen.Settings.route) }
                         )
                     }
                     composable(Screen.Tasks.route) {
                         StudyFlowTasksScreen(
                             onAddTask = { navController.navigate(Screen.AddTask.route) },
                             onTaskClick = { taskId -> navController.navigate(Screen.TaskDetail.createRoute(taskId.toLongOrNull() ?: 0L)) },
-                            onTabSelected = navToTab
+                            onTabSelected = navToTab,
+                            onProfileClick = { navController.navigate(Screen.Settings.route) }
                         )
                     }
                     composable(Screen.Notes.route) {
