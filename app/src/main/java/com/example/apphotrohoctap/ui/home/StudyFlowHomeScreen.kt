@@ -113,7 +113,10 @@ fun StudyFlowHomeScreen(
                     )
                 }
             }
-            HomeBottomNavigation(onTabSelected)
+            com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
+                currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.HOME,
+                onTabSelected = onTabSelected
+            )
         }
 
         Surface(
@@ -651,66 +654,9 @@ private fun FocusSessionCard(onStart: () -> Unit, pomodoroState: com.example.app
     }
 }
 
-private data class HomeTab(val label: String, val icon: String)
 
-private val homeTabs = listOf(
-    HomeTab("Trang chủ", "home_nav_home.svg"),
-    HomeTab("Lịch biểu", "home_nav_schedule.svg"),
-    HomeTab("Nhiệm vụ", "home_nav_tasks.svg"),
-    HomeTab("Ghi chú", "home_nav_notes.svg"), 
-    HomeTab("Điểm số", "home_document.svg")
-)
 
-@Composable
-private fun HomeBottomNavigation(onTabSelected: (String) -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
-        color = HomeBackground.copy(alpha = 0.96f),
-        shadowElevation = 4.dp
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(80.dp).padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            homeTabs.forEachIndexed { index, tab ->
-                val selected = index == 0
-                Column(
-                    modifier = Modifier.weight(1f).height(56.dp).clip(RoundedCornerShape(14.dp)),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Surface(
-                        onClick = { onTabSelected(tab.label) },
-                        modifier = Modifier.width(56.dp).height(32.dp),
-                        color = if (selected) Color(0xFFEDE9FE) else Color.Transparent,
-                        shape = CircleShape
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            HomeIcon(tab.icon, homeTabIconSize(index), "")
-                        }
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        tab.label,
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                        color = if (selected) Color(0xFF2B2BC5) else HomeSecondaryInk,
-                        maxLines = 1
-                    )
-                }
-            }
-        }
-    }
-}
 
-private fun homeTabIconSize(index: Int): Modifier = when (index) {
-    0 -> Modifier.width(14.667.dp).height(16.5.dp)
-    1 -> Modifier.width(16.5.dp).height(18.333.dp)
-    2 -> Modifier.size(18.333.dp)
-    3 -> Modifier.size(18.333.dp)
-    else -> Modifier.width(18.425.dp).height(18.333.dp)
-}
 
 @Composable
 private fun HomeIcon(assetName: String, modifier: Modifier, contentDescription: String) {
