@@ -666,7 +666,7 @@ private val homeTabs = listOf(
     HomeTab("Trang chủ", "home_nav_home.svg"),
     HomeTab("Lịch biểu", "home_nav_schedule.svg"),
     HomeTab("Nhiệm vụ", "home_nav_tasks.svg"),
-    HomeTab("Ghi chú", "home_nav_notes.svg"),
+    HomeTab("Điểm số", "home_nav_notes.svg"), // Tạm dùng icon notes
     HomeTab("Cài đặt", "home_nav_settings.svg")
 )
 

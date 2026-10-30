@@ -7,6 +7,11 @@ sealed class Screen(val route: String) {
     object Schedule : Screen("schedule")
     object Tasks : Screen("tasks")
     object Notes : Screen("notes")
+    object Grades : Screen("grades")
+    object AddSubject : Screen("addSubject")
+    object SubjectDetail : Screen("subjectDetail/{subjectId}") {
+        fun createRoute(subjectId: Long) = "subjectDetail/$subjectId"
+    }
     object Settings : Screen("settings")
     object Pomodoro : Screen("pomodoro")
     object AddTask : Screen("addTask")
