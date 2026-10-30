@@ -893,7 +893,7 @@ private val scheduleTabs = listOf(
     ScheduleTab("Lịch biểu", 18),
     ScheduleTab("Nhiệm vụ", 19),
     ScheduleTab("Ghi chú", 20),
-    ScheduleTab("Cài đặt", 21)
+    ScheduleTab("Điểm số", 21)
 )
 
 @Composable

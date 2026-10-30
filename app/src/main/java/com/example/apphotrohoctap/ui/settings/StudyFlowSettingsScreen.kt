@@ -47,7 +47,7 @@ private val SettingsCardShadow = Color(0x0F5B5FEF)
 
 @Composable
 fun StudyFlowSettingsScreen(
-    onTabSelected: (String) -> Unit = {},
+    onBack: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -71,9 +71,20 @@ fun StudyFlowSettingsScreen(
     }
 
     Column(Modifier.fillMaxSize().background(SettingsBg)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(onClick = onBack, modifier = Modifier.size(44.dp), color = Color.Transparent, shape = CircleShape) {
+                Box(contentAlignment = Alignment.Center) { Text("‹", fontSize = 30.sp, color = SettingsInk) }
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("Cài đặt", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = SettingsInk)
+        }
+
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
-                .statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 24.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SettingsSectionHeader("TÀI KHOẢN", "Đã xác minh SV")
@@ -152,7 +163,6 @@ fun StudyFlowSettingsScreen(
                 Text("Thiết kế tối ưu cho sinh viên đại học", fontSize = 9.sp, color = SettingsMuted)
             }
         }
-        SettingsBottomNavigation(onTabSelected)
     }
 }
 
@@ -258,33 +268,4 @@ private fun SettingsIcon(assetName: String, modifier: Modifier, contentDescripti
     )
 }
 
-@Composable
-private fun SettingsBottomNavigation(onTabSelected: (String) -> Unit) {
-    val items = listOf(
-        "Trang chủ" to "home_nav_home.svg",
-        "Lịch biểu" to "home_nav_schedule.svg",
-        "Nhiệm vụ" to "home_nav_tasks.svg",
-        "Ghi chú" to "home_nav_notes.svg",
-        "Cài đặt" to "home_nav_settings.svg"
-    )
-    Surface(color = SettingsBg.copy(alpha = .96f), shadowElevation = 4.dp) {
-        Row(Modifier.fillMaxWidth().navigationBarsPadding().height(80.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
-            items.forEachIndexed { index, (title, icon) ->
-                val selected = title == "Cài đặt"
-                Column(Modifier.weight(1f).height(56.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Surface(onClick = { if (!selected) onTabSelected(title) }, modifier = Modifier.width(56.dp).height(32.dp), color = if (selected) Color(0xFFE1E0FF) else Color.Transparent, shape = CircleShape) {
-                        Box(contentAlignment = Alignment.Center) {
-                            val iconModifier = when (index) {
-                                4 -> Modifier.width(18.425.dp).height(18.333.dp)
-                                else -> Modifier.size(18.333.dp)
-                            }
-                            SettingsIcon(icon, iconModifier, "")
-                        }
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    Text(title, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold, color = if (selected) SettingsBrand else SettingsText, maxLines = 1)
-                }
-            }
-        }
-    }
-}
+

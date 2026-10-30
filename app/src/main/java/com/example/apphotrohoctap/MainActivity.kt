@@ -152,7 +152,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(Screen.Settings.route) {
                         StudyFlowSettingsScreen(
-                            onTabSelected = navToTab,
+                            onBack = { navController.popBackStack() },
                             onLogout = {
                                 navController.navigate(Screen.Login.route) {
                                     popUpTo(0) { inclusive = true } // Clear entire back stack

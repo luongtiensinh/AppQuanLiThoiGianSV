@@ -321,7 +321,7 @@ private fun NotesBottomNavigation(onTabSelected: (String) -> Unit) {
         "Lịch biểu" to "home_nav_schedule.svg",
         "Nhiệm vụ" to "home_nav_tasks.svg",
         "Ghi chú" to "home_nav_notes.svg",
-        "Cài đặt" to "home_nav_settings.svg"
+        "Điểm số" to "home_nav_settings.svg"
     )
     Surface(color = NotesBackground.copy(alpha = .96f), shadowElevation = 4.dp) {
         Row(Modifier.fillMaxWidth().navigationBarsPadding().height(80.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
