@@ -77,12 +77,7 @@ internal fun TasksHeader(onNotificationClick: () -> Unit, onProfileClick: () -> 
                 }
                 Surface(onClick = onProfileClick, modifier = Modifier.size(44.dp), color = Color.Transparent, shape = CircleShape) {
                     Box(contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current).data("file:///android_asset/studyflow/home_profile.png").build(),
-                            contentDescription = "Hồ sơ cá nhân",
-                            modifier = Modifier.size(32.dp).clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
+                        TasksIcon("home_nav_settings.svg", Modifier.size(22.dp), "Cài đặt")
                     }
                 }
             }
@@ -311,31 +306,12 @@ internal fun FriendlyBottomCard(onAddTask: () -> Unit) {
     }
 }
 
-internal data class TasksTab(val title: String, val icon: String)
-
-internal val tasksTabs = listOf(
-    TasksTab("Trang chủ", "home_nav_home.svg"),
-    TasksTab("Lịch biểu", "home_nav_schedule.svg"),
-    TasksTab("Nhiệm vụ", "home_nav_tasks.svg"),
-    TasksTab("Ghi chú", "home_nav_notes.svg"),
-    TasksTab("Điểm số", "home_nav_settings.svg")
-)
-
 @Composable
 internal fun TasksBottomNavigation(onTabSelected: (String) -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth().navigationBarsPadding(), color = TasksBackground.copy(alpha = 0.96f), shadowElevation = 4.dp) {
-        Row(Modifier.fillMaxWidth().height(80.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            tasksTabs.forEachIndexed { index, tab ->
-                Column(Modifier.weight(1f).height(56.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Surface(onClick = { onTabSelected(tab.title) }, modifier = Modifier.width(56.dp).height(32.dp), color = if (index == 2) Color(0xFFE1E0FF) else Color.Transparent, shape = CircleShape) {
-                        Box(contentAlignment = Alignment.Center) { TasksIcon(tab.icon, Modifier.size(18.dp), "") }
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    Text(tab.title, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = if (index == 2) FontWeight.Bold else FontWeight.SemiBold, color = if (index == 2) TasksBrand else TasksSecondary, maxLines = 1)
-                }
-            }
-        }
-    }
+    com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
+        currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.TASKS,
+        onTabSelected = onTabSelected
+    )
 }
 
 @Composable

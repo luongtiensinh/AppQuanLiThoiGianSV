@@ -213,7 +213,10 @@ fun StudyFlowScheduleScreen(
                     }
                 }
             }
-            ScheduleBottomNavigation(onTabSelected)
+            com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
+                currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.SCHEDULE,
+                onTabSelected = onTabSelected
+            )
         }
 
         Surface(
@@ -273,11 +276,11 @@ private fun ScheduleHeader(onNotificationClick: () -> Unit, onProfileClick: () -
                     Box(contentAlignment = Alignment.Center) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data("file:///android_asset/studyflow/home_profile.png")
+                                .data("file:///android_asset/studyflow/home_nav_settings.svg")
+                                .decoderFactory(SvgDecoder.Factory())
                                 .build(),
-                            contentDescription = "Hồ sơ cá nhân",
-                            modifier = Modifier.size(32.dp).clip(CircleShape),
-                            contentScale = ContentScale.Crop
+                            contentDescription = "Cài đặt",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -886,46 +889,7 @@ private fun AttendanceSummary(weekLabel: String) {
     }
 }
 
-private data class ScheduleTab(val title: String, val iconIndex: Int)
 
-private val scheduleTabs = listOf(
-    ScheduleTab("Trang chủ", 17),
-    ScheduleTab("Lịch biểu", 18),
-    ScheduleTab("Nhiệm vụ", 19),
-    ScheduleTab("Ghi chú", 20),
-    ScheduleTab("Điểm số", 21)
-)
-
-@Composable
-private fun ScheduleBottomNavigation(onTabSelected: (String) -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth().navigationBarsPadding(), color = ScheduleBackground.copy(alpha = 0.96f), shadowElevation = 4.dp) {
-        Row(modifier = Modifier.fillMaxWidth().height(80.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            scheduleTabs.forEach { tab ->
-                val selected = tab.title == "Lịch biểu"
-                Column(modifier = Modifier.weight(1f).height(56.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Surface(
-                        onClick = { onTabSelected(tab.title) },
-                        modifier = Modifier.width(56.dp).height(32.dp),
-                        color = if (selected) Color(0xFFE1E0FF) else Color.Transparent,
-                        shape = CircleShape
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            val iconModifier = when (tab.iconIndex) {
-                                17 -> Modifier.width(14.667.dp).height(16.5.dp)
-                                18 -> Modifier.width(16.5.dp).height(18.333.dp)
-                                21 -> Modifier.width(18.425.dp).height(18.333.dp)
-                                else -> Modifier.size(18.333.dp)
-                            }
-                            ScheduleIcon(tab.iconIndex, iconModifier, "")
-                        }
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    Text(tab.title, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold, color = if (selected) ScheduleBrandBlue else ScheduleSecondary, maxLines = 1)
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun ScheduleIcon(index: Int, modifier: Modifier, contentDescription: String) {
