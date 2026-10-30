@@ -99,6 +99,7 @@ class MainActivity : ComponentActivity() {
                             onStartFocus = { navController.navigate(Screen.Pomodoro.route) },
                             onCourseClick = { courseName -> navController.navigate(Screen.CourseDetail.createRoute(courseName)) },
                             onTabSelected = navToTab,
+                            onProfileClick = { navController.navigate(Screen.Settings.route) },
                             pomodoroState = pomodoroState
                         )
                     }
@@ -151,7 +152,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(Screen.Settings.route) {
                         StudyFlowSettingsScreen(
-                            onTabSelected = navToTab,
+                            onBack = { navController.popBackStack() },
                             onLogout = {
                                 navController.navigate(Screen.Login.route) {
                                     popUpTo(0) { inclusive = true } // Clear entire back stack

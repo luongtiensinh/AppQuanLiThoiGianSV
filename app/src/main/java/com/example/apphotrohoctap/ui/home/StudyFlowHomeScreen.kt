@@ -206,16 +206,7 @@ private fun HomeHeader(onNotificationClick: () -> Unit, onProfileClick: () -> Un
                     shape = CircleShape
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data("file:///android_asset/studyflow/home_profile.png")
-                                .build(),
-                            contentDescription = "Hồ sơ cá nhân",
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
+                        HomeIcon("home_nav_settings.svg", Modifier.size(24.dp), "Cài đặt")
                     }
                 }
             }
@@ -666,8 +657,8 @@ private val homeTabs = listOf(
     HomeTab("Trang chủ", "home_nav_home.svg"),
     HomeTab("Lịch biểu", "home_nav_schedule.svg"),
     HomeTab("Nhiệm vụ", "home_nav_tasks.svg"),
-    HomeTab("Điểm số", "home_nav_notes.svg"), // Tạm dùng icon notes
-    HomeTab("Cài đặt", "home_nav_settings.svg")
+    HomeTab("Ghi chú", "home_nav_notes.svg"), 
+    HomeTab("Điểm số", "home_document.svg")
 )
 
 @Composable

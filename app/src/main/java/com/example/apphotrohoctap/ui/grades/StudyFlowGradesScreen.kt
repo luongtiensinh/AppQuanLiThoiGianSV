@@ -27,7 +27,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun StudyFlowGradesScreen(
     onBack: () -> Unit = {},
     onAddSubject: () -> Unit = {},
-    onSubjectClick: (Long) -> Unit = {}
+    onSubjectClick: (Long) -> Unit = {},
+    onTabSelected: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))
@@ -128,7 +129,7 @@ fun StudyFlowGradesScreen(
 
         // Subject List
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -147,6 +148,8 @@ fun StudyFlowGradesScreen(
                 SubjectGradeCard(subject = subject, onClick = { onSubjectClick(subject.subjectId) })
             }
         }
+        
+        GradesBottomNavigation(onTabSelected)
     }
 }
 
@@ -203,6 +206,72 @@ private fun SubjectGradeCard(subject: SubjectGradeUiModel, onClick: () -> Unit) 
                     Text("Cần ${String.format(java.util.Locale.US, "%.1f", subject.requiredScoreToTarget)} điểm để đạt ${subject.targetGrade}", fontSize = 12.sp, color = Color(0xFFD97706), fontWeight = FontWeight.Medium)
                 } else {
                     Text("Mục tiêu bất khả thi!", fontSize = 12.sp, color = Color(0xFFBA1A1A), fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+private data class GradesTab(val label: String, val icon: String)
+
+@Composable
+private fun GradesBottomNavigation(onTabSelected: (String) -> Unit) {
+    val tabs = listOf(
+        GradesTab("Trang chủ", "home_nav_home.svg"),
+        GradesTab("Lịch biểu", "home_nav_schedule.svg"),
+        GradesTab("Nhiệm vụ", "home_nav_tasks.svg"),
+        GradesTab("Ghi chú", "home_nav_notes.svg"),
+        GradesTab("Điểm số", "home_document.svg")
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+        color = Color(0xFFFCF8FF).copy(alpha = 0.96f),
+        shadowElevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(80.dp).padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            tabs.forEachIndexed { index, tab ->
+                val selected = tab.label == "Điểm số"
+                Column(
+                    modifier = Modifier.weight(1f).height(56.dp).clip(RoundedCornerShape(14.dp)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Surface(
+                        onClick = { onTabSelected(tab.label) },
+                        modifier = Modifier.width(56.dp).height(32.dp),
+                        color = if (selected) Color(0xFFEDE9FE) else Color.Transparent,
+                        shape = CircleShape
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            val iconModifier = when (index) {
+                                0 -> Modifier.width(14.667.dp).height(16.5.dp)
+                                1 -> Modifier.width(16.5.dp).height(18.333.dp)
+                                4 -> Modifier.width(18.425.dp).height(18.333.dp)
+                                else -> Modifier.size(18.333.dp)
+                            }
+                            coil.compose.AsyncImage(
+                                model = coil.request.ImageRequest.Builder(LocalContext.current)
+                                    .data("file:///android_asset/studyflow/${tab.icon}")
+                                    .decoderFactory(coil.decode.SvgDecoder.Factory())
+                                    .build(),
+                                contentDescription = null,
+                                modifier = iconModifier
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        tab.label,
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+                        color = if (selected) Color(0xFF2B2BC5) else Color(0xFF464555),
+                        maxLines = 1
+                    )
                 }
             }
         }
