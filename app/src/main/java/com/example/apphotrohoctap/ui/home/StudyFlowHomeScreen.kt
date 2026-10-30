@@ -658,7 +658,7 @@ private val homeTabs = listOf(
     HomeTab("Lịch biểu", "home_nav_schedule.svg"),
     HomeTab("Nhiệm vụ", "home_nav_tasks.svg"),
     HomeTab("Ghi chú", "home_nav_notes.svg"), 
-    HomeTab("Điểm số", "home_nav_settings.svg") // Tạm dùng icon settings cho Điểm số để tránh tải file mới
+    HomeTab("Điểm số", "home_goal.svg")
 )
 
 @Composable
