@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "86002353781",
+    "project_id": "studyflowapp-bae15",
+    "storage_bucket": "studyflowapp-bae15.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:86002353781:android:05fefbbfd6cca228eb9a3c",
+        "android_client_info": {
+          "package_name": "com.example.apphotrohoctap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtuvx0kOomZx3EyXFpWr4lOc5zGy3g1F8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
