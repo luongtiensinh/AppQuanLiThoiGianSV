@@ -111,6 +111,32 @@ fun StudyFlowHomeScreen(
                         onStart = handleStartFocus,
                         pomodoroState = pomodoroState
                     )
+
+                    val dailyFocusList = com.example.apphotrohoctap.ui.analytics.PomodoroStatsManager.getWeeklyFocusList(localContext)
+                    val totalFocusMins = dailyFocusList.sumOf { it.focusMinutes }
+                    val weeklyReportData = com.example.apphotrohoctap.ui.analytics.WeeklyReportData(
+                        totalFocusMinutes = totalFocusMins,
+                        completedTasksCount = uiState.tasksDone,
+                        totalTasksCount = (uiState.tasksDone + uiState.tasksToday).coerceAtLeast(1),
+                        dailyFocusList = dailyFocusList
+                    )
+
+                    val completionRate = if (weeklyReportData.totalTasksCount > 0) {
+                        uiState.tasksDone.toFloat() / weeklyReportData.totalTasksCount
+                    } else 0f
+
+                    val badgesList = com.example.apphotrohoctap.ui.analytics.GamificationEngine.evaluateBadges(
+                        completedTasksCount = uiState.tasksDone,
+                        completedPomodoroSessions = pomodoroState?.completedFocusSessions ?: 0,
+                        hasLateNightTask = uiState.hasLateNightTask,
+                        weeklyCompletionRate = completionRate,
+                        hasEarlyBirdTask = uiState.hasEarlyBirdTask,
+                        subjectCount = uiState.subjectCount,
+                        hasFullSchedule = uiState.hasFullSchedule
+                    )
+
+                    com.example.apphotrohoctap.ui.analytics.WeeklyAnalyticsCard(reportData = weeklyReportData)
+                    com.example.apphotrohoctap.ui.analytics.BadgesSectionCard(badges = badgesList)
                 }
             }
             com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
