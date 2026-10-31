@@ -2,9 +2,11 @@ package com.example.apphotrohoctap.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.apphotrohoctap.data.GradeRepository
 import com.example.apphotrohoctap.data.ScheduleRepository
 import com.example.apphotrohoctap.data.TaskRepository
 import com.example.apphotrohoctap.data.toUiModel
+import com.example.apphotrohoctap.ui.analytics.GamificationEngine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -13,13 +15,15 @@ import java.util.Calendar
 
 internal class HomeViewModel(
     private val taskRepository: TaskRepository,
-    private val scheduleRepository: ScheduleRepository
+    private val scheduleRepository: ScheduleRepository,
+    private val gradeRepository: GradeRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = combine(
         taskRepository.getTasks(),
-        scheduleRepository.getAllSchedules()
-    ) { tasksList, scheduleList ->
+        scheduleRepository.getAllSchedules(),
+        gradeRepository.getAllSubjectsWithGrades()
+    ) { tasksList, scheduleList, gradeList ->
         val now = System.currentTimeMillis()
         val cal = Calendar.getInstance().apply { timeInMillis = now }
 
@@ -32,6 +36,8 @@ internal class HomeViewModel(
         var deadlinesThisWeek = 0
         var tasksDone = 0
         var tasksTotalThisWeek = 0
+        var hasLateNightTask = false
+        var hasEarlyBirdTask = false
 
         val upcomingDeadlines = mutableListOf<DeadlineTask>()
 
@@ -49,7 +55,15 @@ internal class HomeViewModel(
                 else deadlinesThisWeek++
             }
             
-            if (!isDone) {
+            if (isDone) {
+                val hour = taskCal.get(Calendar.HOUR_OF_DAY)
+                if (GamificationEngine.isLateNightHour(hour)) {
+                    hasLateNightTask = true
+                }
+                if (GamificationEngine.isEarlyBirdHour(hour)) {
+                    hasEarlyBirdTask = true
+                }
+            } else {
                 if (uiModel.group == "Hôm nay") {
                     tasksToday++
                     if (uiModel.urgency?.contains("Gấp") == true) tasksUrgent++
@@ -83,6 +97,8 @@ internal class HomeViewModel(
             .map { it.toUiModel(now) }
             .sortedBy { it.time }
 
+        val hasFullSchedule = scheduleList.map { it.dayOfWeek }.distinct().size >= 5
+
         HomeUiState(
             tasksToday = tasksToday,
             tasksUrgent = tasksUrgent,
@@ -90,7 +106,11 @@ internal class HomeViewModel(
             tasksDone = tasksDone,
             tasksTotalThisWeek = tasksTotalThisWeek,
             todaySchedules = todaySchedules,
-            upcomingDeadlines = upcomingDeadlines.sortedBy { it.dueAtMillis }.take(10)
+            upcomingDeadlines = upcomingDeadlines.sortedBy { it.dueAtMillis }.take(10),
+            hasLateNightTask = hasLateNightTask,
+            hasEarlyBirdTask = hasEarlyBirdTask,
+            subjectCount = gradeList.size,
+            hasFullSchedule = hasFullSchedule
         )
     }.stateIn(
         scope = viewModelScope,

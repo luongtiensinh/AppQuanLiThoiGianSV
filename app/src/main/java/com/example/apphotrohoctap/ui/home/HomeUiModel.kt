@@ -23,5 +23,9 @@ internal data class HomeUiState(
     val tasksDone: Int = 0,
     val tasksTotalThisWeek: Int = 0, // NEW
     val todaySchedules: List<StudyClass> = emptyList(),
-    val upcomingDeadlines: List<DeadlineTask> = emptyList()
+    val upcomingDeadlines: List<DeadlineTask> = emptyList(),
+    val hasLateNightTask: Boolean = false,
+    val hasEarlyBirdTask: Boolean = false,
+    val subjectCount: Int = 0,
+    val hasFullSchedule: Boolean = false
 )

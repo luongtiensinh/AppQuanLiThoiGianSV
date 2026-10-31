@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.apphotrohoctap.data.AppDatabase
+import com.example.apphotrohoctap.data.GradeRepository
 import com.example.apphotrohoctap.data.ScheduleRepository
 import com.example.apphotrohoctap.data.TaskRepository
 
@@ -13,8 +14,9 @@ internal class HomeViewModelFactory(private val context: Context) : ViewModelPro
             val database = AppDatabase.getDatabase(context)
             val taskRepository = TaskRepository(database.taskDao())
             val scheduleRepository = ScheduleRepository(database.scheduleDao())
+            val gradeRepository = GradeRepository(database.gradeDao())
             @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(taskRepository, scheduleRepository) as T
+            return HomeViewModel(taskRepository, scheduleRepository, gradeRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
