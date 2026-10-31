@@ -137,7 +137,10 @@ fun StudyFlowHomeScreen(
                         completedTasksCount = uiState.tasksDone,
                         completedPomodoroSessions = pomodoroState?.completedFocusSessions ?: 0,
                         hasLateNightTask = uiState.tasksDone > 0,
-                        weeklyCompletionRate = completionRate
+                        weeklyCompletionRate = completionRate,
+                        hasEarlyBirdTask = uiState.tasksDone > 0,
+                        subjectCount = 1,
+                        hasFullSchedule = uiState.todaySchedules.isNotEmpty()
                     )
 
                     com.example.apphotrohoctap.ui.analytics.WeeklyAnalyticsCard(reportData = weeklyReportData)
