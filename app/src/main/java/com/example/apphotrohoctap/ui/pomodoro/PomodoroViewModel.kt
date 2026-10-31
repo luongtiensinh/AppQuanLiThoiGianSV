@@ -144,6 +144,9 @@ class PomodoroViewModel(
         
         // Tăng đếm nếu vừa hoàn thành phiên FOCUS
         val newCount = if (completedMode == PomodoroMode.FOCUS) {
+            appContext?.let { ctx ->
+                com.example.apphotrohoctap.ui.analytics.PomodoroStatsManager.recordFocusMinutes(ctx, 25)
+            }
             currentState.completedFocusSessions + 1
         } else {
             currentState.completedFocusSessions
