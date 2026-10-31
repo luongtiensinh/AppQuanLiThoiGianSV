@@ -44,7 +44,7 @@ fun BadgesSectionCard(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A1A2A)
                 )
-                val unlockedCount = badges.count { it.isUnlocked }
+                val unlockedCount = GamificationEngine.getUnlockedCount(badges)
                 Text(
                     text = "$unlockedCount/${badges.size} Đã đạt",
                     fontSize = 12.sp,
