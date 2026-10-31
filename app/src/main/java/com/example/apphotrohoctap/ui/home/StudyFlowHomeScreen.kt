@@ -112,15 +112,7 @@ fun StudyFlowHomeScreen(
                         pomodoroState = pomodoroState
                     )
 
-                    val dailyFocusList = listOf(
-                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T2", 25),
-                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T3", 50),
-                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T4", 75),
-                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T5", 25),
-                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T6", (pomodoroState?.completedFocusSessions ?: 0) * 25),
-                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T7", 0),
-                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("CN", 0)
-                    )
+                    val dailyFocusList = com.example.apphotrohoctap.ui.analytics.PomodoroStatsManager.getWeeklyFocusList(localContext)
                     val totalFocusMins = dailyFocusList.sumOf { it.focusMinutes }
                     val weeklyReportData = com.example.apphotrohoctap.ui.analytics.WeeklyReportData(
                         totalFocusMinutes = totalFocusMins,
@@ -136,11 +128,11 @@ fun StudyFlowHomeScreen(
                     val badgesList = com.example.apphotrohoctap.ui.analytics.GamificationEngine.evaluateBadges(
                         completedTasksCount = uiState.tasksDone,
                         completedPomodoroSessions = pomodoroState?.completedFocusSessions ?: 0,
-                        hasLateNightTask = uiState.tasksDone > 0,
+                        hasLateNightTask = uiState.hasLateNightTask,
                         weeklyCompletionRate = completionRate,
-                        hasEarlyBirdTask = uiState.tasksDone > 0,
-                        subjectCount = 1,
-                        hasFullSchedule = uiState.todaySchedules.isNotEmpty()
+                        hasEarlyBirdTask = uiState.hasEarlyBirdTask,
+                        subjectCount = uiState.subjectCount,
+                        hasFullSchedule = uiState.hasFullSchedule
                     )
 
                     com.example.apphotrohoctap.ui.analytics.WeeklyAnalyticsCard(reportData = weeklyReportData)
