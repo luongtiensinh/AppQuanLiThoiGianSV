@@ -104,6 +104,38 @@ fun StudyFlowHomeScreen(
                 ) {
                     GreetingSection()
                     GoalProgressCard(uiState.tasksDone, uiState.tasksTotalThisWeek)
+
+                    val dailyFocusList = listOf(
+                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T2", 25),
+                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T3", 50),
+                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T4", 75),
+                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T5", 25),
+                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T6", (pomodoroState?.completedFocusSessions ?: 0) * 25),
+                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("T7", 0),
+                        com.example.apphotrohoctap.ui.analytics.DailyFocusData("CN", 0)
+                    )
+                    val totalFocusMins = dailyFocusList.sumOf { it.focusMinutes }
+                    val weeklyReportData = com.example.apphotrohoctap.ui.analytics.WeeklyReportData(
+                        totalFocusMinutes = totalFocusMins,
+                        completedTasksCount = uiState.tasksDone,
+                        totalTasksCount = (uiState.tasksDone + uiState.tasksToday).coerceAtLeast(1),
+                        dailyFocusList = dailyFocusList
+                    )
+
+                    val completionRate = if (weeklyReportData.totalTasksCount > 0) {
+                        uiState.tasksDone.toFloat() / weeklyReportData.totalTasksCount
+                    } else 0f
+
+                    val badgesList = com.example.apphotrohoctap.ui.analytics.GamificationEngine.evaluateBadges(
+                        completedTasksCount = uiState.tasksDone,
+                        completedPomodoroSessions = pomodoroState?.completedFocusSessions ?: 0,
+                        hasLateNightTask = uiState.tasksDone > 0,
+                        weeklyCompletionRate = completionRate
+                    )
+
+                    com.example.apphotrohoctap.ui.analytics.WeeklyAnalyticsCard(reportData = weeklyReportData)
+                    com.example.apphotrohoctap.ui.analytics.BadgesSectionCard(badges = badgesList)
+
                     StatisticsRow(uiState.tasksToday, uiState.tasksUrgent, uiState.deadlinesThisWeek, uiState.tasksDone)
                     TodayScheduleSection(uiState.todaySchedules, handleSeeAllClasses, onCourseClick)
                     UpcomingDeadlinesSection(uiState.upcomingDeadlines, handleFilterDeadlines)
