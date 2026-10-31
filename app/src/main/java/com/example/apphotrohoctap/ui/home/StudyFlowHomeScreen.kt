@@ -104,6 +104,13 @@ fun StudyFlowHomeScreen(
                 ) {
                     GreetingSection()
                     GoalProgressCard(uiState.tasksDone, uiState.tasksTotalThisWeek)
+                    StatisticsRow(uiState.tasksToday, uiState.tasksUrgent, uiState.deadlinesThisWeek, uiState.tasksDone)
+                    TodayScheduleSection(uiState.todaySchedules, handleSeeAllClasses, onCourseClick)
+                    UpcomingDeadlinesSection(uiState.upcomingDeadlines, handleFilterDeadlines)
+                    FocusSessionCard(
+                        onStart = handleStartFocus,
+                        pomodoroState = pomodoroState
+                    )
 
                     val dailyFocusList = listOf(
                         com.example.apphotrohoctap.ui.analytics.DailyFocusData("T2", 25),
@@ -135,14 +142,6 @@ fun StudyFlowHomeScreen(
 
                     com.example.apphotrohoctap.ui.analytics.WeeklyAnalyticsCard(reportData = weeklyReportData)
                     com.example.apphotrohoctap.ui.analytics.BadgesSectionCard(badges = badgesList)
-
-                    StatisticsRow(uiState.tasksToday, uiState.tasksUrgent, uiState.deadlinesThisWeek, uiState.tasksDone)
-                    TodayScheduleSection(uiState.todaySchedules, handleSeeAllClasses, onCourseClick)
-                    UpcomingDeadlinesSection(uiState.upcomingDeadlines, handleFilterDeadlines)
-                    FocusSessionCard(
-                        onStart = handleStartFocus,
-                        pomodoroState = pomodoroState
-                    )
                 }
             }
             com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
