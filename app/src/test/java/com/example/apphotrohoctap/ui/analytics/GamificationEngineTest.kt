@@ -127,4 +127,45 @@ class GamificationEngineTest {
         val badge = badges.find { it.id == "schedule_master" }!!
         assertTrue(badge.isUnlocked)
     }
+
+    // Negative Tests (Kiểm thử phủ nhận)
+    @Test
+    fun negativeTest_locksFirstStep_whenTaskCountIs0() {
+        val badges = GamificationEngine.evaluateBadges(0, 0, false, 0f)
+        assertFalse(badges.find { it.id == "first_step" }!!.isUnlocked)
+    }
+
+    @Test
+    fun negativeTest_locksPomoMaster_whenPomodoroLessThan5() {
+        val badges = GamificationEngine.evaluateBadges(0, 4, false, 0f)
+        assertFalse(badges.find { it.id == "pomo_master" }!!.isUnlocked)
+    }
+
+    @Test
+    fun negativeTest_locksTaskMaster_whenTaskCountLessThan10() {
+        val badges = GamificationEngine.evaluateBadges(9, 0, false, 0f)
+        assertFalse(badges.find { it.id == "task_master" }!!.isUnlocked)
+    }
+
+    @Test
+    fun negativeTest_locksGpaHunter_whenSubjectCountLessThan3() {
+        val badges = GamificationEngine.evaluateBadges(0, 0, false, 0f, subjectCount = 2)
+        assertFalse(badges.find { it.id == "gpa_hunter" }!!.isUnlocked)
+    }
+
+    @Test
+    fun negativeTest_locksGoldenWeek_whenRateLessThan100Percent() {
+        val badges = GamificationEngine.evaluateBadges(5, 0, false, 0.99f)
+        assertFalse(badges.find { it.id == "golden_week" }!!.isUnlocked)
+    }
+
+    @Test
+    fun testHourUtils_identifiesHoursCorrectly() {
+        assertTrue(GamificationEngine.isLateNightHour(23))
+        assertTrue(GamificationEngine.isLateNightHour(2))
+        assertFalse(GamificationEngine.isLateNightHour(14))
+
+        assertTrue(GamificationEngine.isEarlyBirdHour(6))
+        assertFalse(GamificationEngine.isEarlyBirdHour(10))
+    }
 }
