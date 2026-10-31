@@ -86,4 +86,8 @@ object GamificationEngine {
             )
         )
     }
+
+    fun getUnlockedCount(badges: List<BadgeItem>): Int {
+        return badges.count { it.isUnlocked }
+    }
 }
