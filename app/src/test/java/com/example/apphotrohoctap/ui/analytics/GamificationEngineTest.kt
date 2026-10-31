@@ -59,4 +59,72 @@ class GamificationEngineTest {
         val goldenBadge = badges.find { it.id == "golden_week" }!!
         assertTrue(goldenBadge.isUnlocked)
     }
+
+    @Test
+    fun evaluateBadges_unlocksEarlyBird_whenHasEarlyBirdTask() {
+        val badges = GamificationEngine.evaluateBadges(
+            completedTasksCount = 1,
+            completedPomodoroSessions = 0,
+            hasLateNightTask = false,
+            weeklyCompletionRate = 0.2f,
+            hasEarlyBirdTask = true
+        )
+
+        val badge = badges.find { it.id == "early_bird" }!!
+        assertTrue(badge.isUnlocked)
+    }
+
+    @Test
+    fun evaluateBadges_unlocksTaskMaster_when10TasksCompleted() {
+        val badges = GamificationEngine.evaluateBadges(
+            completedTasksCount = 10,
+            completedPomodoroSessions = 0,
+            hasLateNightTask = false,
+            weeklyCompletionRate = 0.5f
+        )
+
+        val badge = badges.find { it.id == "task_master" }!!
+        assertTrue(badge.isUnlocked)
+    }
+
+    @Test
+    fun evaluateBadges_unlocksPomoGod_when10PomodoroSessionsCompleted() {
+        val badges = GamificationEngine.evaluateBadges(
+            completedTasksCount = 0,
+            completedPomodoroSessions = 10,
+            hasLateNightTask = false,
+            weeklyCompletionRate = 0.0f
+        )
+
+        val badge = badges.find { it.id == "pomo_god" }!!
+        assertTrue(badge.isUnlocked)
+    }
+
+    @Test
+    fun evaluateBadges_unlocksGpaHunter_whenSubjectCountAtLeast3() {
+        val badges = GamificationEngine.evaluateBadges(
+            completedTasksCount = 0,
+            completedPomodoroSessions = 0,
+            hasLateNightTask = false,
+            weeklyCompletionRate = 0.0f,
+            subjectCount = 3
+        )
+
+        val badge = badges.find { it.id == "gpa_hunter" }!!
+        assertTrue(badge.isUnlocked)
+    }
+
+    @Test
+    fun evaluateBadges_unlocksScheduleMaster_whenHasFullSchedule() {
+        val badges = GamificationEngine.evaluateBadges(
+            completedTasksCount = 0,
+            completedPomodoroSessions = 0,
+            hasLateNightTask = false,
+            weeklyCompletionRate = 0.0f,
+            hasFullSchedule = true
+        )
+
+        val badge = badges.find { it.id == "schedule_master" }!!
+        assertTrue(badge.isUnlocked)
+    }
 }
