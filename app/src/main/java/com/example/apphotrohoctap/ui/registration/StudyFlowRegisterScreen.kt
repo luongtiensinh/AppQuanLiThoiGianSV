@@ -58,6 +58,8 @@ import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 
+import kotlinx.coroutines.launch
+
 private val RegisterBackground = Color(0xFFFCF8FF)
 private val RegisterBrandBlue = Color(0xFF4143D5)
 private val RegisterInk = Color(0xFF1A1A2A)
@@ -219,10 +221,40 @@ fun StudyFlowRegisterScreen(
                 }
             }
 
+            val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+            var isSigningIn by remember { mutableStateOf(false) }
+
             Spacer(Modifier.height(16.dp))
             RegisterDivider()
             Spacer(Modifier.height(16.dp))
-            GoogleRegisterButton()
+            GoogleRegisterButton(
+                onClick = {
+                    if (isSigningIn) return@GoogleRegisterButton
+                    isSigningIn = true
+                    coroutineScope.launch {
+                        val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
+                        when (val result = authRepo.signInWithGoogle()) {
+                            is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
+                                val user = result.user
+                                if (user != null) {
+                                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                                    sessionManager.saveLoginSession(
+                                        email = user.email ?: "",
+                                        fullName = user.displayName ?: "Sinh viên"
+                                    )
+                                    android.widget.Toast.makeText(context, "Đăng ký bằng Google thành công!", android.widget.Toast.LENGTH_SHORT).show()
+                                    onSignIn()
+                                }
+                            }
+                            is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
+                                android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                            else -> {}
+                        }
+                        isSigningIn = false
+                    }
+                }
+            )
             Spacer(Modifier.height(24.dp))
             SignInPrompt(onSignIn)
         }
@@ -437,10 +469,9 @@ private fun RegisterDivider() {
 }
 
 @Composable
-private fun GoogleRegisterButton() {
-    val context = LocalContext.current
+private fun GoogleRegisterButton(onClick: () -> Unit) {
     Surface(
-        onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) },
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth().height(48.dp),
         shape = RoundedCornerShape(12.dp),
         color = Color.White,
