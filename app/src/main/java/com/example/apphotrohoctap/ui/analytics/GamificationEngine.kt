@@ -90,4 +90,12 @@ object GamificationEngine {
     fun getUnlockedCount(badges: List<BadgeItem>): Int {
         return badges.count { it.isUnlocked }
     }
+
+    fun isLateNightHour(hourOfDay: Int): Boolean {
+        return hourOfDay >= 22 || hourOfDay < 4
+    }
+
+    fun isEarlyBirdHour(hourOfDay: Int): Boolean {
+        return hourOfDay in 4..7
+    }
 }
