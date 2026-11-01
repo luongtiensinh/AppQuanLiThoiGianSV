@@ -128,15 +128,19 @@ fun StudyFlowLoginScreen(
                         isValid = false
                     }
                     if (isValid) {
-                        val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                        if (sessionManager.checkLogin(email, password)) {
-                            if (rememberLogin) {
-                                sessionManager.saveLoginSession(email)
+                        com.google.firebase.auth.FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                                    if (rememberLogin) {
+                                        val fullName = task.result?.user?.displayName ?: "Sinh viên"
+                                        sessionManager.saveLoginSession(email, fullName)
+                                    }
+                                    onLogin()
+                                } else {
+                                    passwordError = "Email hoặc mật khẩu không chính xác"
+                                }
                             }
-                            onLogin()
-                        } else {
-                            passwordError = "Email hoặc mật khẩu không chính xác"
-                        }
                     }
                 }
             )

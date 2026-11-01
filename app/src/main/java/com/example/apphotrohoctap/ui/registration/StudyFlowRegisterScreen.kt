@@ -57,6 +57,7 @@ import androidx.compose.foundation.selection.toggleable
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import kotlinx.coroutines.launch
 
 private val RegisterBackground = Color(0xFFFCF8FF)
 private val RegisterBrandBlue = Color(0xFF4143D5)
