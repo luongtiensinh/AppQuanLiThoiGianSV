@@ -74,7 +74,6 @@ fun StudyFlowHomeScreen(
     pomodoroState: com.example.apphotrohoctap.ui.pomodoro.PomodoroUiState? = null
 ) {
     val localContext = LocalContext.current
-    val handleNotificationClick = onNotificationClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
     val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
     val handleSeeAllClasses = onSeeAllClasses ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
     val handleFilterDeadlines = onFilterDeadlines ?: { com.example.apphotrohoctap.ui.common.showComingSoon(localContext) }
@@ -88,7 +87,7 @@ fun StudyFlowHomeScreen(
             .background(HomeBackground)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            HomeHeader(handleNotificationClick, handleProfileClick)
+            HomeHeader(handleProfileClick)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -164,7 +163,7 @@ fun StudyFlowHomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onNotificationClick: () -> Unit, onProfileClick: () -> Unit) {
+private fun HomeHeader(onProfileClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -205,29 +204,6 @@ private fun HomeHeader(onNotificationClick: () -> Unit, onProfileClick: () -> Un
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.size(48.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Surface(
-                        onClick = onNotificationClick,
-                        modifier = Modifier.size(48.dp),
-                        color = Color.Transparent,
-                        shape = CircleShape
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            HomeIcon("home_notifications.svg", Modifier.width(16.dp).height(20.dp), "Thông báo")
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 10.dp, end = 10.dp)
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFBA1A1A))
-                    )
-                }
                 Surface(
                     onClick = onProfileClick,
                     modifier = Modifier.size(48.dp),

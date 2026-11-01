@@ -64,7 +64,6 @@ fun StudyFlowTasksScreen(
     onTaskClick: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val handleNotificationClick = onNotificationClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
     val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(context))
     val tasks by viewModel.tasks.collectAsState()
@@ -85,7 +84,7 @@ fun StudyFlowTasksScreen(
 
     Box(Modifier.fillMaxSize().background(TasksBackground)) {
         Column(Modifier.fillMaxSize()) {
-            TasksHeader(handleNotificationClick, handleProfileClick)
+            TasksHeader(handleProfileClick)
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
                     .padding(bottom = 24.dp)

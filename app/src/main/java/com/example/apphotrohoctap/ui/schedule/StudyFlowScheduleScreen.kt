@@ -77,7 +77,6 @@ fun StudyFlowScheduleScreen(
     onEditEvent: (Long) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val handleNotificationClick = onNotificationClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
     val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
     val viewModel: ScheduleViewModel = viewModel(factory = ScheduleViewModelFactory(context))
     val schedules by viewModel.schedules.collectAsState()
@@ -129,7 +128,7 @@ fun StudyFlowScheduleScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(ScheduleBackground)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            ScheduleHeader(handleNotificationClick, handleProfileClick)
+            ScheduleHeader(handleProfileClick)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -238,7 +237,7 @@ fun StudyFlowScheduleScreen(
 }
 
 @Composable
-private fun ScheduleHeader(onNotificationClick: () -> Unit, onProfileClick: () -> Unit) {
+private fun ScheduleHeader(onProfileClick: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth().statusBarsPadding(),
         color = ScheduleBackground.copy(alpha = 0.92f),
@@ -261,17 +260,6 @@ private fun ScheduleHeader(onNotificationClick: () -> Unit, onProfileClick: () -
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                    Surface(onClick = onNotificationClick, modifier = Modifier.size(48.dp), color = Color.Transparent, shape = CircleShape) {
-                        Box(contentAlignment = Alignment.Center) {
-                            ScheduleIcon(16, Modifier.width(16.dp).height(20.dp), "Thông báo")
-                        }
-                    }
-                    Box(
-                        Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp).size(8.dp)
-                            .clip(CircleShape).background(ScheduleRed)
-                    )
-                }
                 Surface(onClick = onProfileClick, modifier = Modifier.size(48.dp), color = Color.Transparent, shape = CircleShape) {
                     Box(contentAlignment = Alignment.Center) {
                         AsyncImage(
