@@ -33,6 +33,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -137,6 +138,46 @@ fun StudyFlowSettingsScreen(
                 SettingsToggleRow("▣", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
                 SettingsDivider()
                 SettingsNavigationRow("⌛", "Báo trước thời gian", "Áp dụng cho tất cả bài học", "Trước 60 phút")
+            }
+
+            Spacer(Modifier.height(22.dp))
+            SettingsSectionHeader("ĐỒNG BỘ ĐÁM MÂY", "Firebase Realtime")
+            SettingsCard {
+                val syncState by viewModel.syncState.collectAsStateWithLifecycle()
+
+                LaunchedEffect(syncState) {
+                    when (val state = syncState) {
+                        is SettingsViewModel.SyncState.Success -> {
+                            android.widget.Toast.makeText(context, state.message, android.widget.Toast.LENGTH_LONG).show()
+                            viewModel.resetSyncState()
+                        }
+                        is SettingsViewModel.SyncState.Error -> {
+                            android.widget.Toast.makeText(context, "Lỗi: ${state.message}", android.widget.Toast.LENGTH_LONG).show()
+                            viewModel.resetSyncState()
+                        }
+                        else -> {}
+                    }
+                }
+
+                SettingsNavigationRow(
+                    icon = "☁",
+                    title = "Sao lưu dữ liệu lên Cloud",
+                    subtitle = "Lưu toàn bộ Lịch, Task, Điểm lên Firebase",
+                    trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang lưu..." else "Sao lưu",
+                    onClick = {
+                        viewModel.backupToCloud()
+                    }
+                )
+                SettingsDivider()
+                SettingsNavigationRow(
+                    icon = "⟳",
+                    title = "Phục hồi dữ liệu từ Cloud",
+                    subtitle = "Khôi phục lại dữ liệu khi đổi điện thoại",
+                    trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang tải..." else "Phục hồi",
+                    onClick = {
+                        viewModel.restoreFromCloud()
+                    }
+                )
             }
 
             Spacer(Modifier.height(22.dp))

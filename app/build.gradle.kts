@@ -70,6 +70,10 @@ dependencies {
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
+    
+    // Serialization
+    implementation(libs.gson)
     
     // Google Sign In (Credential Manager)
     implementation(libs.credentials)
