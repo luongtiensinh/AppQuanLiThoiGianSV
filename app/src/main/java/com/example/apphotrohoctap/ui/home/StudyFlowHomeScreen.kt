@@ -252,13 +252,8 @@ private fun GreetingSection() {
     val dateLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.formatTodayVi(now)
 
     val sessionManager = com.example.apphotrohoctap.data.SessionManager(androidx.compose.ui.platform.LocalContext.current)
-    val userEmail = sessionManager.getUserEmail() ?: "bạn"
-    
-    val displayName = if (userEmail.contains("@")) {
-        userEmail.substringBefore("@")
-    } else {
-        userEmail
-    }
+    val fullName = sessionManager.getRegisteredFullName() ?: "bạn"
+    val firstName = fullName.split(" ").lastOrNull() ?: "bạn"
     
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
@@ -268,7 +263,7 @@ private fun GreetingSection() {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "Chào $displayName",
+                    "Chào $firstName",
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
                     letterSpacing = (-0.6).sp,

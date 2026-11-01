@@ -56,7 +56,6 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.example.apphotrohoctap.R
 import coil.compose.AsyncImage
-import kotlinx.coroutines.launch
 
 private val PageBackground = Color(0xFFFCF8FF)
 private val BrandBlue = Color(0xFF4143D5)
@@ -98,9 +97,6 @@ fun StudyFlowLoginScreen(
         ) {
             BrandHeader()
             Spacer(Modifier.height(24.dp))
-            val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
-            var isSigningIn by remember { mutableStateOf(false) }
-
             LoginCard(
                 email = email,
                 onEmailChange = { 
@@ -123,39 +119,24 @@ fun StudyFlowLoginScreen(
                     if (email.isBlank()) {
                         emailError = "Email không được để trống"
                         isValid = false
+                    } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailError = "Email không đúng định dạng"
+                        isValid = false
                     }
                     if (password.isBlank()) {
                         passwordError = "Mật khẩu không được để trống"
                         isValid = false
                     }
                     if (isValid) {
-                        // Tạm thời hiển thị cảnh báo cho luồng Local
-                        passwordError = "Bạn hãy sử dụng nút Google để đăng nhập nhé!"
-                    }
-                },
-                onGoogleSignIn = {
-                    if (isSigningIn) return@LoginCard
-                    isSigningIn = true
-                    coroutineScope.launch {
-                        val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
-                        when (val result = authRepo.signInWithGoogle()) {
-                            is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
-                                val user = result.user
-                                if (user != null) {
-                                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                                    sessionManager.saveLoginSession(
-                                        email = user.email ?: "",
-                                        fullName = user.displayName ?: "Sinh viên"
-                                    )
-                                    onLogin()
-                                }
+                        val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                        if (sessionManager.checkLogin(email, password)) {
+                            if (rememberLogin) {
+                                sessionManager.saveLoginSession(email)
                             }
-                            is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
-                                android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                            else -> {}
+                            onLogin()
+                        } else {
+                            passwordError = "Email hoặc mật khẩu không chính xác"
                         }
-                        isSigningIn = false
                     }
                 }
             )
@@ -257,8 +238,7 @@ private fun LoginCard(
     onRememberLoginChange: () -> Unit,
     emailError: String?,
     passwordError: String?,
-    onLogin: () -> Unit,
-    onGoogleSignIn: () -> Unit
+    onLogin: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -316,7 +296,7 @@ private fun LoginCard(
                 Spacer(Modifier.width(8.dp))
                 FigmaIcon("arrow.svg", Modifier.size(13.333.dp), "")
             }
-            SocialOptions(onGoogleSignInClick = onGoogleSignIn)
+            SocialOptions()
         }
     }
 }
@@ -429,25 +409,22 @@ private fun SocialDivider() {
 }
 
 @Composable
-private fun SocialOptions(onGoogleSignInClick: () -> Unit) {
+private fun SocialOptions() {
     Column(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.height(12.dp))
         SocialDivider()
         Spacer(Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            SocialButton(
-                icon = "google.svg",
-                label = "Tiếp tục với Google",
-                onClick = onGoogleSignInClick
-            )
+            SocialButton("google.svg", "Tiếp tục với Google")
         }
     }
 }
 
 @Composable
-private fun SocialButton(icon: String, label: String, onClick: () -> Unit) {
+private fun SocialButton(icon: String, label: String) {
+    val context = LocalContext.current
     Surface(
-        onClick = onClick,
+        onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) },
         modifier = Modifier.fillMaxWidth().height(48.dp),
         shape = RoundedCornerShape(12.dp),
         color = FieldBackground

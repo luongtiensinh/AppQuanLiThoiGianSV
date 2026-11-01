@@ -58,8 +58,6 @@ import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 
-import kotlinx.coroutines.launch
-
 private val RegisterBackground = Color(0xFFFCF8FF)
 private val RegisterBrandBlue = Color(0xFF4143D5)
 private val RegisterInk = Color(0xFF1A1A2A)
@@ -73,6 +71,8 @@ fun StudyFlowRegisterScreen(
     onSignIn: () -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+    var isSigningIn by remember { mutableStateOf(false) }
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -199,10 +199,27 @@ fun StudyFlowRegisterScreen(
                         }
                         
                         if (isValid) {
-                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                            sessionManager.registerUser(email, password, fullName)
-                            android.widget.Toast.makeText(context, "Đăng ký thành công! Hãy đăng nhập.", android.widget.Toast.LENGTH_SHORT).show()
-                            onSignIn()
+                            if (isSigningIn) return@Button
+                            isSigningIn = true
+                            coroutineScope.launch {
+                                val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
+                                when (val result = authRepo.registerWithEmailAndPassword(email, password, fullName)) {
+                                    is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
+                                        val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                                        sessionManager.saveLoginSession(
+                                            email = email,
+                                            fullName = fullName
+                                        )
+                                        android.widget.Toast.makeText(context, "Đăng ký thành công! Hãy đăng nhập.", android.widget.Toast.LENGTH_SHORT).show()
+                                        onSignIn()
+                                    }
+                                    is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
+                                        android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                    else -> {}
+                                }
+                                isSigningIn = false
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp).padding(top = 4.dp),
@@ -221,40 +238,10 @@ fun StudyFlowRegisterScreen(
                 }
             }
 
-            val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
-            var isSigningIn by remember { mutableStateOf(false) }
-
             Spacer(Modifier.height(16.dp))
             RegisterDivider()
             Spacer(Modifier.height(16.dp))
-            GoogleRegisterButton(
-                onClick = {
-                    if (isSigningIn) return@GoogleRegisterButton
-                    isSigningIn = true
-                    coroutineScope.launch {
-                        val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
-                        when (val result = authRepo.signInWithGoogle()) {
-                            is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
-                                val user = result.user
-                                if (user != null) {
-                                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                                    sessionManager.saveLoginSession(
-                                        email = user.email ?: "",
-                                        fullName = user.displayName ?: "Sinh viên"
-                                    )
-                                    android.widget.Toast.makeText(context, "Đăng ký bằng Google thành công!", android.widget.Toast.LENGTH_SHORT).show()
-                                    onSignIn()
-                                }
-                            }
-                            is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
-                                android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                            else -> {}
-                        }
-                        isSigningIn = false
-                    }
-                }
-            )
+            GoogleRegisterButton()
             Spacer(Modifier.height(24.dp))
             SignInPrompt(onSignIn)
         }
@@ -469,9 +456,10 @@ private fun RegisterDivider() {
 }
 
 @Composable
-private fun GoogleRegisterButton(onClick: () -> Unit) {
+private fun GoogleRegisterButton() {
+    val context = LocalContext.current
     Surface(
-        onClick = onClick,
+        onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) },
         modifier = Modifier.fillMaxWidth().height(48.dp),
         shape = RoundedCornerShape(12.dp),
         color = Color.White,
