@@ -10,13 +10,12 @@ class SessionManager(context: Context) {
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_USER_EMAIL = "user_email"
         
-        // Mock Auth Keys for demo purposes (vì không dùng Room UserEntity)
         private const val KEY_REG_EMAIL = "reg_email"
         private const val KEY_REG_PASSWORD = "reg_password"
         private const val KEY_REG_FULLNAME = "reg_fullname"
     }
 
-    fun saveLoginSession(email: String) {
+    fun saveLoginSession(email: String, fullName: String = "") {
         prefs.edit()
             .putBoolean(KEY_IS_LOGGED_IN, true)
             .putString(KEY_USER_EMAIL, email)
