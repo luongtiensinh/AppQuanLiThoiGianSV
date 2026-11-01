@@ -141,6 +141,7 @@ fun StudyFlowSettingsScreen(
             }
 
             Spacer(Modifier.height(22.dp))
+            // Mục Đồng bộ Đám mây (Firebase Realtime Database)
             SettingsSectionHeader("ĐỒNG BỘ ĐÁM MÂY", "Firebase Realtime")
             SettingsCard {
                 val syncState by viewModel.syncState.collectAsStateWithLifecycle()
