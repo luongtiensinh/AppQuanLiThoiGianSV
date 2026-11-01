@@ -33,8 +33,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -48,7 +46,7 @@ private val SettingsCardShadow = Color(0x0F5B5FEF)
 
 @Composable
 fun StudyFlowSettingsScreen(
-    onBack: () -> Unit = {},
+    onTabSelected: (String) -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -56,7 +54,6 @@ fun StudyFlowSettingsScreen(
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(application))
 
     val deadlineReminder by viewModel.isDeadlineReminderEnabled.collectAsState()
-    val useAlarmSound by viewModel.useAlarmSound.collectAsState()
     var classReminder by remember { mutableStateOf(true) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -72,43 +69,27 @@ fun StudyFlowSettingsScreen(
     }
 
     Column(Modifier.fillMaxSize().background(SettingsBg)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(onClick = onBack, modifier = Modifier.size(44.dp), color = Color.Transparent, shape = CircleShape) {
-                Box(contentAlignment = Alignment.Center) { Text("‹", fontSize = 30.sp, color = SettingsInk) }
-            }
-            Spacer(Modifier.width(8.dp))
-            Text("Cài đặt", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = SettingsInk)
-        }
-
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 24.dp),
+                .statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SettingsSectionHeader("TÀI KHOẢN", "Đã xác minh SV")
             SettingsCard {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                    val fullName = sessionManager.getRegisteredFullName() ?: "Sinh viên"
-                    val email = sessionManager.getUserEmail() ?: "student@sis.hust.edu.vn"
-                    val initials = fullName.split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.takeLast(2).joinToString("")
-                    
                     Box {
                         Surface(color = SettingsPale, shape = CircleShape) {
-                            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) { Text(initials, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = SettingsBrand) }
+                            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) { Text("ML", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = SettingsBrand) }
                         }
                         Box(Modifier.align(Alignment.BottomEnd).padding(1.dp).size(13.dp).clip(CircleShape).background(Color(0xFF10B981)))
                     }
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(fullName, fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = SettingsInk)
+                            Text("Nguyễn Mai Linh", fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = SettingsInk)
                             Text("✦", fontSize = 12.sp, color = SettingsBrand)
                         }
                         Text("K66 - Khoa Công nghệ Thông tin", fontSize = 10.sp, lineHeight = 14.sp, color = SettingsText, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(email, fontSize = 10.sp, lineHeight = 14.sp, color = SettingsMuted)
+                        Text("linh.nm21@sis.hust.edu.vn", fontSize = 10.sp, lineHeight = 14.sp, color = SettingsMuted)
                     }
                     SettingsPill("Chỉnh sửa", SettingsPale, SettingsBrand)
                 }
@@ -131,79 +112,31 @@ fun StudyFlowSettingsScreen(
                     }
                 }
                 SettingsDivider()
-                SettingsToggleRow("⏰", "Âm thanh kiểu báo thức", "Phát chuông báo thức lớn khi có deadline", useAlarmSound) { checked ->
-                    viewModel.toggleUseAlarmSound(checked)
-                }
-                SettingsDivider()
                 SettingsToggleRow("▣", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
                 SettingsDivider()
                 SettingsNavigationRow("⌛", "Báo trước thời gian", "Áp dụng cho tất cả bài học", "Trước 60 phút")
             }
 
             Spacer(Modifier.height(22.dp))
-            SettingsSectionHeader("ĐỒNG BỘ ĐÁM MÂY", "Firebase Realtime")
-            SettingsCard {
-                val syncState by viewModel.syncState.collectAsStateWithLifecycle()
-
-                LaunchedEffect(syncState) {
-                    when (val state = syncState) {
-                        is SettingsViewModel.SyncState.Success -> {
-                            android.widget.Toast.makeText(context, state.message, android.widget.Toast.LENGTH_LONG).show()
-                            viewModel.resetSyncState()
-                        }
-                        is SettingsViewModel.SyncState.Error -> {
-                            android.widget.Toast.makeText(context, "Lỗi: ${state.message}", android.widget.Toast.LENGTH_LONG).show()
-                            viewModel.resetSyncState()
-                        }
-                        else -> {}
-                    }
-                }
-
-                SettingsNavigationRow(
-                    icon = "☁",
-                    title = "Sao lưu dữ liệu lên Cloud",
-                    subtitle = "Lưu toàn bộ Lịch, Task, Điểm lên Firebase",
-                    trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang lưu..." else "Sao lưu",
-                    onClick = {
-                        viewModel.backupToCloud()
-                    }
-                )
-                SettingsDivider()
-                SettingsNavigationRow(
-                    icon = "⟳",
-                    title = "Phục hồi dữ liệu từ Cloud",
-                    subtitle = "Khôi phục lại dữ liệu khi đổi điện thoại",
-                    trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang tải..." else "Phục hồi",
-                    onClick = {
-                        viewModel.restoreFromCloud()
-                    }
-                )
-            }
-
-            Spacer(Modifier.height(22.dp))
             SettingsSectionHeader("HỆ THỐNG")
             SettingsCard {
                 SettingsNavigationRow("ⓘ", "Thử nghiệm nhắc nhở ngay", null, "TEST", onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    if (deadlineReminder) {
+                        viewModel.triggerTestReminder()
+                        android.widget.Toast.makeText(context, "Đã gửi yêu cầu test", android.widget.Toast.LENGTH_SHORT).show()
                     } else {
-                        viewModel.triggerTestReminder(context)
-                        android.widget.Toast.makeText(context, "🔔 Đã phát chuông & thông báo thử nghiệm!", android.widget.Toast.LENGTH_SHORT).show()
+                        android.widget.Toast.makeText(context, "Vui lòng bật Nhắc nhở trước", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 })
                 SettingsDivider()
-                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = {
-                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                    sessionManager.clearSession()
-                    onLogout()
-                })
+                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = onLogout)
             }
             Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("♧  StudyFlow for Students", fontSize = 10.sp, color = SettingsMuted)
                 Text("Thiết kế tối ưu cho sinh viên đại học", fontSize = 9.sp, color = SettingsMuted)
             }
         }
+        SettingsBottomNavigation(onTabSelected)
     }
 }
 
@@ -263,9 +196,7 @@ private fun SettingsNavigationRow(
             subtitle?.let { Text(it, fontSize = 9.sp, lineHeight = 14.sp, color = SettingsMuted, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         Text(trailing, fontSize = if (trailing.length > 14) 8.sp else 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, color = if (danger) Color(0xFFBA1A1A) else trailingColor, maxLines = 1)
-        val now = System.currentTimeMillis()
-        val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterLabelShort(now)
-        if (trailing == "›" || trailing == semesterLabel || trailing == "Tiêu chuẩn (M)") Text("›", fontSize = 14.sp, color = SettingsMuted)
+        if (trailing == "›" || trailing == "HK II (2023 - 2024)" || trailing == "Tiêu chuẩn (M)") Text("›", fontSize = 14.sp, color = SettingsMuted)
     }
 }
 
@@ -309,4 +240,33 @@ private fun SettingsIcon(assetName: String, modifier: Modifier, contentDescripti
     )
 }
 
-
+@Composable
+private fun SettingsBottomNavigation(onTabSelected: (String) -> Unit) {
+    val items = listOf(
+        "Trang chủ" to "home_nav_home.svg",
+        "Lịch biểu" to "home_nav_schedule.svg",
+        "Nhiệm vụ" to "home_nav_tasks.svg",
+        "Ghi chú" to "home_nav_notes.svg",
+        "Cài đặt" to "home_nav_settings.svg"
+    )
+    Surface(color = SettingsBg.copy(alpha = .96f), shadowElevation = 4.dp) {
+        Row(Modifier.fillMaxWidth().navigationBarsPadding().height(80.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+            items.forEachIndexed { index, (title, icon) ->
+                val selected = title == "Cài đặt"
+                Column(Modifier.weight(1f).height(56.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Surface(onClick = { if (!selected) onTabSelected(title) }, modifier = Modifier.width(56.dp).height(32.dp), color = if (selected) Color(0xFFE1E0FF) else Color.Transparent, shape = CircleShape) {
+                        Box(contentAlignment = Alignment.Center) {
+                            val iconModifier = when (index) {
+                                4 -> Modifier.width(18.425.dp).height(18.333.dp)
+                                else -> Modifier.size(18.333.dp)
+                            }
+                            SettingsIcon(icon, iconModifier, "")
+                        }
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    Text(title, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold, color = if (selected) SettingsBrand else SettingsText, maxLines = 1)
+                }
+            }
+        }
+    }
+}
