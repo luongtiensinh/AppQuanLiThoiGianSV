@@ -75,6 +75,9 @@ dependencies {
     // Serialization
     implementation(libs.gson)
     
+    // Security Crypto
+    implementation(libs.androidx.security.crypto)
+
     // Google Sign In (Credential Manager)
     implementation(libs.credentials)
     implementation(libs.credentials.play.services.auth)
