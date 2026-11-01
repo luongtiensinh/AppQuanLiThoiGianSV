@@ -54,13 +54,19 @@ class AuthRepository(private val context: Context) {
             )
             
             val credential = result.credential
-            if (credential is GoogleIdTokenCredential) {
-                // 4. Lấy Token gửi về Firebase Auth để cấp phiên làm việc
-                val firebaseCredential = GoogleAuthProvider.getCredential(credential.idToken, null)
+            
+            // Xử lý CustomCredential trả về từ Credential Manager
+            if (credential is androidx.credentials.CustomCredential &&
+                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            ) {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                
+                // Lấy Token gửi về Firebase Auth
+                val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
                 val authResult = auth.signInWithCredential(firebaseCredential).await()
                 AuthResult.Success(authResult.user)
             } else {
-                AuthResult.Error("Loại chứng chỉ không hợp lệ hoặc không phải Google ID.")
+                AuthResult.Error("Loại chứng chỉ không hợp lệ: ${credential.javaClass.simpleName}")
             }
         } catch (e: GetCredentialCancellationException) {
             AuthResult.Error("Người dùng đã hủy đăng nhập.")
