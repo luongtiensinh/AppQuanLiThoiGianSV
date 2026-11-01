@@ -3,41 +3,27 @@ package com.example.apphotrohoctap.data
 import android.content.Context
 import android.content.SharedPreferences
 
-/**
- * Trình quản lý phiên cục bộ bằng SharedPreferences.
- * Do ứng dụng đã nâng cấp lên Firebase Authentication, Class này chỉ còn
- * đóng vai trò là một "Cờ đánh dấu trạng thái Cache", giúp ứng dụng
- * biết người dùng có nhấn nút "Ghi nhớ đăng nhập" hay không để tự động Bypass màn Login.
- */
 class SessionManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("studyflow_prefs", Context.MODE_PRIVATE)
 
     companion object {
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_USER_EMAIL = "user_email"
-        private const val KEY_USER_FULLNAME = "user_fullname"
+        
+        private const val KEY_REG_EMAIL = "reg_email"
+        private const val KEY_REG_PASSWORD = "reg_password"
+        private const val KEY_REG_FULLNAME = "reg_fullname"
     }
 
-    /**
-     * Lưu trạng thái Cache của Firebase vào Local.
-     */
-    fun saveLoginSession(email: String, fullName: String) {
+    fun saveLoginSession(email: String, fullName: String = "") {
         prefs.edit()
             .putBoolean(KEY_IS_LOGGED_IN, true)
             .putString(KEY_USER_EMAIL, email)
-            .putString(KEY_USER_FULLNAME, fullName)
             .apply()
     }
 
-    /**
-     * Xóa cache phiên làm việc.
-     */
     fun clearSession() {
-        prefs.edit()
-            .putBoolean(KEY_IS_LOGGED_IN, false)
-            .remove(KEY_USER_EMAIL)
-            .remove(KEY_USER_FULLNAME)
-            .apply()
+        prefs.edit().putBoolean(KEY_IS_LOGGED_IN, false).remove(KEY_USER_EMAIL).apply()
     }
 
     fun isLoggedIn(): Boolean {
@@ -48,7 +34,22 @@ class SessionManager(context: Context) {
         return prefs.getString(KEY_USER_EMAIL, null)
     }
 
+    fun registerUser(email: String, password: String, fullName: String) {
+        prefs.edit()
+            .putString(KEY_REG_EMAIL, email)
+            .putString(KEY_REG_PASSWORD, password)
+            .putString(KEY_REG_FULLNAME, fullName)
+            .apply()
+    }
+
+    fun checkLogin(email: String, password: String): Boolean {
+        val regEmail = prefs.getString(KEY_REG_EMAIL, null)
+        val regPassword = prefs.getString(KEY_REG_PASSWORD, null)
+        
+        return email == regEmail && password == regPassword
+    }
+
     fun getRegisteredFullName(): String? {
-        return prefs.getString(KEY_USER_FULLNAME, "Sinh viên")
+        return prefs.getString(KEY_REG_FULLNAME, "Sinh viên")
     }
 }
