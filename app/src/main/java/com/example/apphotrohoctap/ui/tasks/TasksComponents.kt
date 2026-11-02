@@ -54,7 +54,7 @@ import coil.request.ImageRequest
 import com.example.apphotrohoctap.R
 
 @Composable
-internal fun TasksHeader(onNotificationClick: () -> Unit, onProfileClick: () -> Unit) {
+internal fun TasksHeader(onProfileClick: () -> Unit) {
     Surface(modifier = Modifier.fillMaxWidth().statusBarsPadding(), color = TasksBackground.copy(alpha = 0.96f), shadowElevation = 1.dp) {
         Row(
             Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
@@ -69,12 +69,6 @@ internal fun TasksHeader(onNotificationClick: () -> Unit, onProfileClick: () -> 
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
-                    Surface(onClick = onNotificationClick, color = Color.Transparent, shape = CircleShape, modifier = Modifier.size(44.dp)) {
-                        Box(contentAlignment = Alignment.Center) { TasksIcon("home_notifications.svg", Modifier.width(16.dp).height(20.dp), "Thông báo") }
-                    }
-                    Box(Modifier.align(Alignment.TopEnd).padding(top = 9.dp, end = 9.dp).size(8.dp).clip(CircleShape).background(TasksRed))
-                }
                 Surface(onClick = onProfileClick, modifier = Modifier.size(44.dp), color = Color.Transparent, shape = CircleShape) {
                     Box(contentAlignment = Alignment.Center) {
                         TasksIcon("home_nav_settings.svg", Modifier.size(22.dp), "Cài đặt")
