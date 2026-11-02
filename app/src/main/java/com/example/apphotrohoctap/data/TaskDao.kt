@@ -27,6 +27,9 @@ interface TaskDao {
     suspend fun insertTask(task: TaskEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSubtask(subtask: SubtaskEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSubtasks(subtasks: List<SubtaskEntity>)
 
     @Update
@@ -37,6 +40,9 @@ interface TaskDao {
 
     @Delete
     suspend fun deleteTask(task: TaskEntity)
+
+    @Query("DELETE FROM subtasks WHERE subtaskId = :subtaskId")
+    suspend fun deleteSubtask(subtaskId: Long)
 
     @Query("DELETE FROM subtasks WHERE taskId = :taskId")
     suspend fun deleteSubtasksByTaskId(taskId: Long)
