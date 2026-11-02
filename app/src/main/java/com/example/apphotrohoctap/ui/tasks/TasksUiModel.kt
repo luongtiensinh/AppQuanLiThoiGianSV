@@ -30,7 +30,9 @@ internal data class TaskItem(
     val place: String? = null,
     val completed: Boolean = false,
     val notes: String = "",
-    val subtasks: List<Subtask> = emptyList()
+    val subtasks: List<Subtask> = emptyList(),
+    val priority: String = "Trung bình",
+    val dueAtMillis: Long = 0L
 )
 
 internal val taskFilters = listOf(
