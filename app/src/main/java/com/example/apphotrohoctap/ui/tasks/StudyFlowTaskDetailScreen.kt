@@ -55,6 +55,13 @@ fun StudyFlowTaskDetailScreen(
 
     var newSubtask by remember { mutableStateOf("") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    
+    var editTitle by remember { mutableStateOf("") }
+    var editNotes by remember { mutableStateOf("") }
+    var editPriority by remember { mutableStateOf("") }
+    var editDueAtMillis by remember { mutableStateOf(0L) }
+    
     BackHandler(onBack = onBack)
     
     // Nếu task bị xóa hoặc không tìm thấy, quay về màn trước
@@ -87,7 +94,16 @@ fun StudyFlowTaskDetailScreen(
                     .padding(horizontal = 16.dp).padding(bottom = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                TaskDetailHeader(currentTask)
+                TaskDetailHeader(
+                    task = currentTask,
+                    onEditClick = {
+                        editTitle = currentTask.title
+                        editNotes = currentTask.notes
+                        editPriority = currentTask.priority
+                        editDueAtMillis = currentTask.dueAtMillis
+                        showEditDialog = true
+                    }
+                )
                 TaskMetadataCard(currentTask)
                 TaskProgressCard(checkedCount, currentTask.subtasks.size, progress)
                 TaskSubtasksCard(
@@ -98,9 +114,15 @@ fun StudyFlowTaskDetailScreen(
                         val subtaskId = currentTask.subtasks[index].id
                         viewModel.toggleSubtask(currentTask.id.toLongOrNull() ?: 0L, subtaskId)
                     },
-                    onDelete = { /* TODO implement subtask delete */ },
+                    onDelete = { subtaskIndex ->
+                        val subtaskId = currentTask.subtasks[subtaskIndex].id
+                        viewModel.deleteSubtaskFromTask(subtaskId)
+                    },
                     onAdd = {
-                        // TODO Add Subtask logic. We only allow adding subtasks during creation for now.
+                        if (newSubtask.isNotBlank()) {
+                            viewModel.addSubtaskToExistingTask(currentTask.id.toLongOrNull() ?: 0L, newSubtask)
+                            newSubtask = ""
+                        }
                     }
                 )
                 if (currentTask.notes.isNotBlank()) {
@@ -148,23 +170,87 @@ fun StudyFlowTaskDetailScreen(
             }
         )
     }
+
+    if (showEditDialog) {
+        EditTaskDialog(
+            title = editTitle,
+            onTitleChange = { editTitle = it },
+            notes = editNotes,
+            onNotesChange = { editNotes = it },
+            priority = editPriority,
+            onPriorityChange = { editPriority = it },
+            dueAtMillis = editDueAtMillis,
+            onDueAtMillisChange = { editDueAtMillis = it },
+            onDismiss = { showEditDialog = false },
+            onSave = {
+                viewModel.updateTaskDetails(
+                    id = currentTask.id,
+                    title = editTitle,
+                    notes = editNotes,
+                    priority = editPriority,
+                    dueAtMillis = editDueAtMillis
+                )
+                showEditDialog = false
+            }
+        )
+    }
 }
 
 @Composable
-private fun TaskDetailHeader(task: TaskItem) {
+private fun EditTaskDialog(
+    title: String, onTitleChange: (String) -> Unit,
+    notes: String, onNotesChange: (String) -> Unit,
+    priority: String, onPriorityChange: (String) -> Unit,
+    dueAtMillis: Long, onDueAtMillisChange: (Long) -> Unit,
+    onDismiss: () -> Unit, onSave: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(color = Color.White, shape = RoundedCornerShape(24.dp)) {
+            Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("Sửa nhiệm vụ", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                
+                TextField(
+                    value = title, onValueChange = onTitleChange,
+                    label = { Text("Tiêu đề") }, singleLine = true,
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent)
+                )
+                
+                TextField(
+                    value = notes, onValueChange = onNotesChange,
+                    label = { Text("Ghi chú") }, maxLines = 3,
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent)
+                )
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text("Hủy", color = DetailText) }
+                    Button(onClick = onSave, colors = ButtonDefaults.buttonColors(containerColor = DetailBrand)) { Text("Lưu") }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskDetailHeader(task: TaskItem, onEditClick: () -> Unit) {
     Surface(color = DetailCard, shape = RoundedCornerShape(18.dp), shadowElevation = 2.dp) {
         Row(Modifier.fillMaxWidth()) {
             Box(Modifier.width(4.dp).height(124.dp).background(task.accent))
             Column(Modifier.weight(1f).padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Surface(color = Color(0xFFEFECFF), shape = CircleShape) {
-                    Row(Modifier.padding(horizontal = 9.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Box(Modifier.size(7.dp).clip(CircleShape).background(task.accent))
-                        Text(task.subject, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Surface(color = Color(0xFFEFECFF), shape = CircleShape) {
+                        Row(Modifier.padding(horizontal = 9.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Box(Modifier.size(7.dp).clip(CircleShape).background(task.accent))
+                            Text(task.subject, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+                        }
+                    }
+                    Surface(onClick = onEditClick, color = Color.Transparent, shape = CircleShape) {
+                        Text("Sửa", Modifier.padding(4.dp), fontSize = 12.sp, color = DetailBrand, fontWeight = FontWeight.SemiBold)
                     }
                 }
                 Text(task.title, fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold, color = DetailInk, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    task.urgency?.let { DetailBadge("⚑ $it", DetailRedPale, DetailRed) }
+                    DetailBadge("⚑ ${task.priority}", DetailRedPale, DetailRed)
+                    task.urgency?.let { DetailBadge("⚠ $it", DetailRedPale, DetailRed) }
                 }
             }
         }
