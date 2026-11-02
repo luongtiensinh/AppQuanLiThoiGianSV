@@ -58,7 +58,6 @@ import com.example.apphotrohoctap.R
 @Composable
 fun StudyFlowTasksScreen(
     onTabSelected: (String) -> Unit = {},
-    onNotificationClick: (() -> Unit)? = null,
     onProfileClick: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
     onTaskClick: (String) -> Unit = {}
@@ -84,7 +83,7 @@ fun StudyFlowTasksScreen(
 
     Box(Modifier.fillMaxSize().background(TasksBackground)) {
         Column(Modifier.fillMaxSize()) {
-            TasksHeader(handleProfileClick)
+            TasksHeader(onProfileClick = handleProfileClick)
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
                     .padding(bottom = 24.dp)
