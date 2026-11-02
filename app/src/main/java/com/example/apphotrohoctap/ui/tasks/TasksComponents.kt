@@ -53,6 +53,9 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.example.apphotrohoctap.R
 
+/**
+ * Thanh Header của màn hình Nhiệm Vụ (Chỉ chứa logo app và nút Cài đặt Settings)
+ */
 @Composable
 internal fun TasksHeader(onProfileClick: () -> Unit) {
     Surface(modifier = Modifier.fillMaxWidth().statusBarsPadding(), color = TasksBackground.copy(alpha = 0.96f), shadowElevation = 1.dp) {
