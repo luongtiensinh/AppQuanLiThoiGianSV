@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -88,8 +87,7 @@ object NotificationHelper {
         context: Context,
         title: String,
         message: String,
-        useAlarmSound: Boolean = true,
-        playDirectSound: Boolean = false
+        useAlarmSound: Boolean = true
     ): Boolean {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -133,40 +131,6 @@ object NotificationHelper {
             e.printStackTrace()
         }
 
-        if (playDirectSound) {
-            playRingtoneAndVibrate(context, soundUri)
-        }
-
-        return notificationSent || playDirectSound
-    }
-
-    private fun playRingtoneAndVibrate(context: Context, soundUri: Uri?) {
-        try {
-            val uri = soundUri ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            val ringtone = RingtoneManager.getRingtone(context, uri)
-            ringtone?.play()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        try {
-            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                vibratorManager.defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            }
-            if (vibrator.hasVibrator()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 800, 400, 800), -1))
-                } else {
-                    @Suppress("DEPRECATION")
-                    vibrator.vibrate(longArrayOf(0, 800, 400, 800), -1)
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        return notificationSent
     }
 }
