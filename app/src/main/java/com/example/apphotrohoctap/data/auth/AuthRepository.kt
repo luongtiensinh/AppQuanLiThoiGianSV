@@ -62,7 +62,7 @@ class AuthRepository(private val context: Context) {
             } else {
                 AuthResult.Error("Loại chứng chỉ không hợp lệ: ${credential.javaClass.simpleName}")
             }
-        } catch (e: GetCredentialCancellationException) {
+        } catch (cancellationException: GetCredentialCancellationException) {
             AuthResult.Error("Người dùng đã hủy đăng nhập.")
         } catch (e: GetCredentialException) {
             Log.e("AuthRepository", "Lỗi Credential", e)
