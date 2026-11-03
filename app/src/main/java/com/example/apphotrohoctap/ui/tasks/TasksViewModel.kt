@@ -79,7 +79,11 @@ internal class TasksViewModel(private val repository: TaskRepository) : ViewMode
             return false
         }
         
-        val categoryKey = "assignment"
+        val categoryKey = when (state.selectedCategory) {
+            "Deadline" -> "deadline"
+            "Bài tập" -> "assignment"
+            else -> "notes"
+        }
         
         val newEntity = TaskEntity(
             subject = state.selectedCourse,
