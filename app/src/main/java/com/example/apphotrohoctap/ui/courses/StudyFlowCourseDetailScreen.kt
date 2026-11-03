@@ -63,7 +63,16 @@ private data class CourseTask(
 )
 
 @Composable
-fun StudyFlowCourseDetailScreen(courseName: String, onBack: () -> Unit = {}) {
+fun StudyFlowCourseDetailScreen(
+    courseName: String,
+    onBack: () -> Unit = {},
+    onAddTask: () -> Unit = {},
+    onTaskClick: (Long) -> Unit = {},
+    onAddSchedule: () -> Unit = {},
+    onScheduleClick: (Long) -> Unit = {},
+    onAddNote: () -> Unit = {},
+    onNoteClick: (Long) -> Unit = {}
+) {
     val context = LocalContext.current
     val viewModel: CourseViewModel = viewModel(factory = CourseViewModelFactory(context))
     
@@ -83,15 +92,21 @@ fun StudyFlowCourseDetailScreen(courseName: String, onBack: () -> Unit = {}) {
                 CourseOverview(uiState)
                 CourseTabs(selectedTab) { selectedTab = it }
                 if (selectedTab == "Lịch học") {
-                    CourseScheduleTab(uiState.schedules)
+                    CourseScheduleTab(uiState.schedules, onScheduleClick)
                 } else if (selectedTab == "Bài tập") {
-                    CourseTasksTab(uiState.tasks) { taskId -> viewModel.toggleTaskCompletion(taskId) }
+                    CourseTasksTab(uiState.tasks, onTaskClick) { taskId -> viewModel.toggleTaskCompletion(taskId) }
                 } else if (selectedTab == "Ghi chú") {
-                    CourseNotesTab(uiState.notes)
+                    CourseNotesTab(uiState.notes, onNoteClick)
                 }
             }
             Surface(
-                onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
+                onClick = { 
+                    when(selectedTab) {
+                        "Lịch học" -> onAddSchedule()
+                        "Bài tập" -> onAddTask()
+                        "Ghi chú" -> onAddNote()
+                    }
+                }, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
                 color = CourseBright, shape = RoundedCornerShape(18.dp), shadowElevation = 8.dp
             ) {
                 Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -278,14 +293,19 @@ private fun GroupTaskCard(checked: Set<String>, onChecked: (String) -> Unit) {
 }
 
 @Composable
-private fun CourseScheduleTab(schedules: List<StudyClass>) {
+private fun CourseScheduleTab(schedules: List<StudyClass>, onScheduleClick: (Long) -> Unit) {
     Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Lịch học", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CourseInk)
         if (schedules.isEmpty()) {
             Text("Chưa có lịch học nào.", fontSize = 13.sp, color = CourseMuted)
         } else {
             schedules.forEach { sch ->
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Card(
+                    onClick = { onScheduleClick(sch.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Badge(sch.session, CourseChip, CourseBrand)
@@ -302,7 +322,7 @@ private fun CourseScheduleTab(schedules: List<StudyClass>) {
 }
 
 @Composable
-private fun CourseTasksTab(tasks: List<TaskItem>, onCheck: (String) -> Unit) {
+private fun CourseTasksTab(tasks: List<TaskItem>, onTaskClick: (Long) -> Unit, onCheck: (String) -> Unit) {
     Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Bài tập & Hạn chót", fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, color = CourseInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -313,7 +333,13 @@ private fun CourseTasksTab(tasks: List<TaskItem>, onCheck: (String) -> Unit) {
             Text("Chưa có bài tập nào.", fontSize = 13.sp, color = CourseMuted)
         } else {
             tasks.forEachIndexed { index, task ->
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(3.dp)) {
+                Card(
+                    onClick = { task.id.toLongOrNull()?.let { onTaskClick(it) } },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(3.dp)
+                ) {
                     Row(Modifier.fillMaxWidth().drawBehind { drawRect(task.accent, size = androidx.compose.ui.geometry.Size(4.dp.toPx(), size.height)) }) {
                         Surface(onClick = { onCheck(task.id) }, modifier = Modifier.padding(start = 22.dp, top = 24.dp).size(22.dp), color = if (task.completed) task.accent else Color.White, shape = RoundedCornerShape(3.dp), border = if (task.completed) null else androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF9D9DA8))) {
                             Box(contentAlignment = Alignment.Center) { if (task.completed) Text("✓", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White) }
@@ -334,14 +360,19 @@ private fun CourseTasksTab(tasks: List<TaskItem>, onCheck: (String) -> Unit) {
 }
 
 @Composable
-private fun CourseNotesTab(notes: List<NoteEntity>) {
+private fun CourseNotesTab(notes: List<NoteEntity>, onNoteClick: (Long) -> Unit) {
     Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Tài liệu & Ghi chú", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CourseInk)
         if (notes.isEmpty()) {
             Text("Chưa có tài liệu hoặc ghi chú nào.", fontSize = 13.sp, color = CourseMuted)
         } else {
             notes.forEach { note ->
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Card(
+                    onClick = { onNoteClick(note.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(note.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = CourseInk)
                         Text(note.content, fontSize = 12.sp, color = CourseText, maxLines = 2, overflow = TextOverflow.Ellipsis)

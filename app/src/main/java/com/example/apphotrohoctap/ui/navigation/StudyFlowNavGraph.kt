@@ -133,7 +133,13 @@ fun StudyFlowNavGraph(
             val courseName = backStackEntry.arguments?.getString("courseName") ?: ""
             StudyFlowCourseDetailScreen(
                 courseName = courseName,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onAddTask = { navController.navigate(Screen.AddTask.route) },
+                onTaskClick = { taskId -> navController.navigate(Screen.TaskDetail.createRoute(taskId)) },
+                onAddSchedule = { navController.navigate(Screen.AddSchedule.route) },
+                onScheduleClick = { scheduleId -> navController.navigate(Screen.EditSchedule.createRoute(scheduleId)) },
+                onAddNote = { navController.navigate(Screen.AddNote.route) },
+                onNoteClick = { noteId -> navController.navigate(Screen.EditNote.createRoute(noteId.toString())) }
             )
         }
         composable(Screen.AddTask.route) {
