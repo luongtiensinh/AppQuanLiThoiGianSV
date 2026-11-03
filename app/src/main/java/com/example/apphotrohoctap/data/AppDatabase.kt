@@ -61,6 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "studyflow_database"
                 )
                 .addMigrations(MIGRATION_5_6)
+                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance
