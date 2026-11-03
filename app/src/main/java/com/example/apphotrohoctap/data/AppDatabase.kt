@@ -14,7 +14,7 @@ import androidx.room.migration.Migration
     ScheduleEntity::class, 
     NoteEntity::class,
     SubjectGradeEntity::class,
-    GradeComponentEntity::class
+    GradeComponentEntity::class,
 ], version = 6, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 

@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Screen.Home.route) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
-                            }
+                            },
                         )
                     }
                     composable(Screen.Register.route) {
@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Screen.Login.route) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
-                            }
+                            },
                         )
                     }
                     composable(Screen.Home.route) {
@@ -220,7 +220,7 @@ class MainActivity : ComponentActivity() {
                         StudyFlowTaskDetailScreen(
                             taskId = taskId,
                             onBack = { navController.popBackStack() },
-                            onDelete = { navController.popBackStack() }
+                            onDelete = { navController.popBackStack() },
                         )
                     }
                 }

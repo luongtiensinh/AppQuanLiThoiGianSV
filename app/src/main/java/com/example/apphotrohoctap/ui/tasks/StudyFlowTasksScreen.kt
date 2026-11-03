@@ -60,7 +60,7 @@ fun StudyFlowTasksScreen(
     onTabSelected: (String) -> Unit = {},
     onProfileClick: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
-    onTaskClick: (String) -> Unit = {}
+    onTaskClick: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
