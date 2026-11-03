@@ -70,7 +70,7 @@ private val ScheduleRedPale = Color(0xFFFFEDEA)
 
 @Composable
 fun StudyFlowScheduleScreen(
-    onTabSelected: (String) -> Unit = {},
+    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {},
     onNotificationClick: (() -> Unit)? = null,
     onProfileClick: (() -> Unit)? = null,
     onAddEvent: () -> Unit = {},

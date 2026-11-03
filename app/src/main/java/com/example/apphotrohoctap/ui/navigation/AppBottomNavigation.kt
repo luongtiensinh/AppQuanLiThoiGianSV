@@ -21,7 +21,7 @@ import coil.request.ImageRequest
 @Composable
 fun AppBottomNavigation(
     currentTab: BottomNavTab,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (BottomNavTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -41,7 +41,7 @@ fun AppBottomNavigation(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Surface(
-                        onClick = { onTabSelected(tab.label) },
+                        onClick = { onTabSelected(tab) },
                         modifier = Modifier.width(56.dp).height(32.dp),
                         color = if (selected) Color(0xFFEDE9FE) else Color.Transparent,
                         shape = CircleShape

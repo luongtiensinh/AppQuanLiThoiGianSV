@@ -57,7 +57,7 @@ import com.example.apphotrohoctap.R
 // Giao diện màn hình Nhiệm Vụ (Clean UI Header)
 @Composable
 fun StudyFlowTasksScreen(
-    onTabSelected: (String) -> Unit = {},
+    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {},
     onProfileClick: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
     onTaskClick: (String) -> Unit = {},

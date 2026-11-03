@@ -57,7 +57,7 @@ private val sampleNotes = emptyList<NoteItem>()
 private data class SubjectFilter(val name: String, val count: Int, val color: Color? = null)
 
 @Composable
-fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: (Long) -> Unit = {}) {
+fun StudyFlowNotesScreen(    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: (Long) -> Unit = {}) {
     val context = LocalContext.current
     val viewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(context))
     val notesEntities by viewModel.notes.collectAsState()

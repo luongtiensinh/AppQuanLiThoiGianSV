@@ -49,15 +49,13 @@ class MainActivity : ComponentActivity() {
             AppHoTroHocTapTheme {
                 val navController = rememberNavController()
 
-                val navToTab: (String) -> Unit = { tab ->
+                val navToTab: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = { tab ->
                     val route = when (tab) {
-                        "Trang chủ" -> Screen.Home.route
-                        "Lịch biểu" -> Screen.Schedule.route
-                        "Nhiệm vụ" -> Screen.Tasks.route
-                        "Ghi chú" -> Screen.Notes.route
-                        "Điểm số" -> Screen.Grades.route
-                        "Cài đặt" -> Screen.Settings.route
-                        else -> Screen.Home.route
+                        com.example.apphotrohoctap.ui.navigation.BottomNavTab.HOME -> Screen.Home.route
+                        com.example.apphotrohoctap.ui.navigation.BottomNavTab.SCHEDULE -> Screen.Schedule.route
+                        com.example.apphotrohoctap.ui.navigation.BottomNavTab.TASKS -> Screen.Tasks.route
+                        com.example.apphotrohoctap.ui.navigation.BottomNavTab.NOTES -> Screen.Notes.route
+                        com.example.apphotrohoctap.ui.navigation.BottomNavTab.GRADES -> Screen.Grades.route
                     }
                     navController.navigate(route) {
                         popUpTo(Screen.Home.route) {

@@ -66,7 +66,7 @@ fun StudyFlowHomeScreen(
     onFilterDeadlines: (() -> Unit)? = null,
     onStartFocus: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
-    onTabSelected: (String) -> Unit = {},
+    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {},
     pomodoroState: com.example.apphotrohoctap.ui.pomodoro.PomodoroUiState? = null
 ) {
     val localContext = LocalContext.current
