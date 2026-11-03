@@ -260,20 +260,26 @@ private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean, onEditNot
 
 @Composable
 private fun NoteCard(note: NoteItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = modifier.heightIn(min = 182.dp), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+    Card(
+        onClick = onClick, 
+        modifier = modifier.heightIn(min = 182.dp), 
+        shape = RoundedCornerShape(16.dp), 
+        colors = CardDefaults.cardColors(containerColor = note.subjectBackground), // Thay đổi nền bằng màu nhạt
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
         Row(Modifier.fillMaxWidth()) {
             Box(Modifier.width(5.dp).fillMaxHeight().background(note.accent))
-            Column(Modifier.weight(1f).padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Column(Modifier.weight(1f).padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    NoteSubjectBadge(note.subject, note.subjectBackground, note.accent)
+                    NoteSubjectBadge(note.subject, Color.White.copy(alpha = 0.6f), note.accent)
                     Text("⋮", fontSize = 17.sp, color = NotesMuted)
                 }
-                Text(note.title, fontSize = 13.sp, lineHeight = 17.sp, fontWeight = FontWeight.Medium, color = NotesInk, maxLines = 3, overflow = TextOverflow.Ellipsis)
-                Text(note.preview, fontSize = 11.sp, lineHeight = 16.sp, color = NotesText, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                Text(note.title, fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.Bold, color = NotesInk, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                Text(note.preview, fontSize = 12.sp, lineHeight = 16.sp, color = NotesText, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(note.date, fontSize = 9.sp, color = NotesMuted, maxLines = 1)
-                    Text(note.tag, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = note.accent, maxLines = 1)
+                    Text(note.date, fontSize = 10.sp, color = NotesMuted, maxLines = 1)
+                    Text(note.tag, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = note.accent, maxLines = 1)
                 }
             }
         }
