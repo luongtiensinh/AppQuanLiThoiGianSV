@@ -204,6 +204,10 @@ private fun EditTaskDialog(
     dueAtMillis: Long, onDueAtMillisChange: (Long) -> Unit,
     onDismiss: () -> Unit, onSave: () -> Unit
 ) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    var tempDateMillis by remember { mutableStateOf(0L) }
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(color = Color.White, shape = RoundedCornerShape(24.dp)) {
             Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -221,12 +225,58 @@ private fun EditTaskDialog(
                     colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent)
                 )
 
+                // Tái sử dụng component chọn mức độ ưu tiên
+                PriorityCard(selectedPriority = priority, onPrioritySelected = onPriorityChange)
+
+                // Section chọn thời gian
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    val formattedTime = if (dueAtMillis > 0) {
+                        java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(dueAtMillis))
+                    } else "Chưa chọn"
+                    Text("Deadline: $formattedTime", fontSize = 12.sp, color = DetailMuted)
+                    
+                    TextButton(onClick = { showDatePicker = true }) {
+                        Text("Thay đổi")
+                    }
+                }
+
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onDismiss) { Text("Hủy", color = DetailText) }
                     Button(onClick = onSave, colors = ButtonDefaults.buttonColors(containerColor = DetailBrand)) { Text("Lưu") }
                 }
             }
         }
+    }
+
+    if (showDatePicker) {
+        com.example.apphotrohoctap.ui.common.StudyFlowDatePickerDialog(
+            initialMillis = if (dueAtMillis > 0) dueAtMillis else System.currentTimeMillis(),
+            onConfirm = { selectedMillis ->
+                tempDateMillis = selectedMillis
+                showDatePicker = false
+                showTimePicker = true
+            },
+            onDismiss = { showDatePicker = false }
+        )
+    }
+
+    if (showTimePicker) {
+        val cal = java.util.Calendar.getInstance().apply { timeInMillis = tempDateMillis }
+        com.example.apphotrohoctap.ui.common.StudyFlowTimePickerDialog(
+            initialHour = cal.get(java.util.Calendar.HOUR_OF_DAY),
+            initialMinute = cal.get(java.util.Calendar.MINUTE),
+            onConfirm = { hour, minute ->
+                val calendar = java.util.Calendar.getInstance().apply {
+                    timeInMillis = tempDateMillis
+                    set(java.util.Calendar.HOUR_OF_DAY, hour)
+                    set(java.util.Calendar.MINUTE, minute)
+                    set(java.util.Calendar.SECOND, 0)
+                }
+                onDueAtMillisChange(calendar.timeInMillis)
+                showTimePicker = false
+            },
+            onDismiss = { showTimePicker = false }
+        )
     }
 }
 
