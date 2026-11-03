@@ -65,12 +65,14 @@ fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () 
     val formatter = remember { SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault()) }
     
     val allNotes = notesEntities.map { entity ->
-        val accentColor = try { Color(android.graphics.Color.parseColor(entity.colorKey)) } catch (e: Exception) { NotesBrand }
+        val accentColor = try { 
+            if (entity.colorKey.isBlank()) NotesBrand else Color(android.graphics.Color.parseColor(entity.colorKey)) 
+        } catch (e: Exception) { NotesBrand }
         val paleColor = accentColor.copy(alpha = 0.15f)
         NoteItem(
             id = entity.id,
             subject = entity.courseName.ifBlank { "Không phân loại" },
-            title = entity.title,
+            title = entity.title.ifBlank { "Ghi chú không tên" },
             preview = entity.content.replace("\n", " ").take(100),
             date = formatter.format(Date(entity.updatedAtMillis)),
             tag = "Ghi chú",
