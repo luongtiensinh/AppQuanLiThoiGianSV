@@ -323,7 +323,7 @@ private fun NotesIcon(assetName: String, modifier: Modifier, contentDescription:
 }
 
 @Composable
-private fun NotesBottomNavigation(onTabSelected: (String) -> Unit) {
+private fun NotesBottomNavigation(onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit) {
     com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
         currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.NOTES,
         onTabSelected = onTabSelected
