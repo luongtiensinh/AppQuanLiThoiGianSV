@@ -38,7 +38,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apphotrohoctap.ui.schedule.StudyClass
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,13 +56,10 @@ private val HomeBrandBlue = Color(0xFF4143D5)
 private val HomeBrightBlue = Color(0xFF5B5FEF)
 private val HomeInk = Color(0xFF1A1A2A)
 private val HomeSecondaryInk = Color(0xFF464555)
-private val HomeMutedInk = Color(0xFF767586)
 private val HomeDivider = Color(0xFFE3E0F7)
-private val HomeCardShadow = Color(0x105B5FEF)
 
 @Composable
 fun StudyFlowHomeScreen(
-    onNotificationClick: (() -> Unit)? = null,
     onProfileClick: (() -> Unit)? = null,
     onSeeAllClasses: (() -> Unit)? = null,
     onCourseClick: (String) -> Unit = {},
@@ -429,8 +425,6 @@ private fun TodayScheduleSection(classes: List<StudyClass>, onSeeAll: () -> Unit
         }
     }
 }
-
-private val statusBackgroundRed = Color(0xFFFFDAD6)
 
 @Composable
 private fun StudyClassCard(item: StudyClass, onClick: () -> Unit) {

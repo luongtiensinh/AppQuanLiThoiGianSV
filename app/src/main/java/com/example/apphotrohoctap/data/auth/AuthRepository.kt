@@ -18,12 +18,6 @@ import java.util.UUID
 class AuthRepository(private val context: Context) {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val credentialManager = CredentialManager.create(context)
-    
-    val currentUser get() = auth.currentUser
-    
-    fun signOut() {
-        auth.signOut()
-    }
 
     suspend fun signInWithGoogle(): AuthResult {
         return try {
