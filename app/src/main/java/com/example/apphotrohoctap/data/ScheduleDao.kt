@@ -16,6 +16,9 @@ interface ScheduleDao {
     @Query("SELECT * FROM schedules WHERE subject = :subject ORDER BY startPeriod ASC")
     fun getSchedulesBySubject(subject: String): Flow<List<ScheduleEntity>>
 
+    @Query("SELECT DISTINCT subject FROM schedules ORDER BY subject ASC")
+    fun getDistinctSubjectNames(): Flow<List<String>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSchedule(schedule: ScheduleEntity)
 

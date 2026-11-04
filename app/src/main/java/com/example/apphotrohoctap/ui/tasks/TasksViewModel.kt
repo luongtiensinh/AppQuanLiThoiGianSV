@@ -3,6 +3,7 @@ package com.example.apphotrohoctap.ui.tasks
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.apphotrohoctap.data.TaskEntity
+import com.example.apphotrohoctap.data.ScheduleRepository
 import com.example.apphotrohoctap.data.TaskRepository
 import com.example.apphotrohoctap.data.toUiModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,10 +30,20 @@ data class AddTaskFormState(
     val subtasks: List<String> = emptyList()
 )
 
-internal class TasksViewModel(private val repository: TaskRepository) : ViewModel() {
+internal class TasksViewModel(
+    private val repository: TaskRepository,
+    private val scheduleRepository: ScheduleRepository
+) : ViewModel() {
 
     private val _addTaskFormState = MutableStateFlow(AddTaskFormState())
     val addTaskFormState: StateFlow<AddTaskFormState> = _addTaskFormState.asStateFlow()
+
+    val availableCourses: StateFlow<List<String>> = scheduleRepository.getDistinctSubjectNames()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val tasks: StateFlow<List<TaskItem>> = repository.getTasks()
         .map { entities ->
