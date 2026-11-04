@@ -130,7 +130,8 @@ fun StudyFlowNavGraph(
             route = Screen.CourseDetail.route,
             arguments = listOf(navArgument("courseName") { type = NavType.StringType })
         ) { backStackEntry ->
-            val courseName = backStackEntry.arguments?.getString("courseName") ?: ""
+            val encodedCourseName = backStackEntry.arguments?.getString("courseName") ?: ""
+            val courseName = android.net.Uri.decode(encodedCourseName)
             StudyFlowCourseDetailScreen(
                 courseName = courseName,
                 onBack = { navController.popBackStack() },
