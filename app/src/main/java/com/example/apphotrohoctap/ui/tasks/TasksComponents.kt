@@ -304,7 +304,7 @@ internal fun FriendlyBottomCard(onAddTask: () -> Unit) {
 }
 
 @Composable
-internal fun TasksBottomNavigation(onTabSelected: (String) -> Unit) {
+internal fun TasksBottomNavigation(onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit) {
     com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
         currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.TASKS,
         onTabSelected = onTabSelected

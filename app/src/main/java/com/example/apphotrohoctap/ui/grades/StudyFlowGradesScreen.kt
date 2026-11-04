@@ -28,7 +28,7 @@ fun StudyFlowGradesScreen(
     onBack: () -> Unit = {},
     onAddSubject: () -> Unit = {},
     onSubjectClick: (Long) -> Unit = {},
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))

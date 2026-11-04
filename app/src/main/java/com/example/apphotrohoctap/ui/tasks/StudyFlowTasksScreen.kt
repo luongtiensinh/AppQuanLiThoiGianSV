@@ -1,6 +1,5 @@
 package com.example.apphotrohoctap.ui.tasks
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -58,10 +57,10 @@ import com.example.apphotrohoctap.R
 // Giao diện màn hình Nhiệm Vụ (Clean UI Header)
 @Composable
 fun StudyFlowTasksScreen(
-    onTabSelected: (String) -> Unit = {},
+    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {},
     onProfileClick: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
-    onTaskClick: (String) -> Unit = {}
+    onTaskClick: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }

@@ -57,7 +57,7 @@ private val sampleNotes = emptyList<NoteItem>()
 private data class SubjectFilter(val name: String, val count: Int, val color: Color? = null)
 
 @Composable
-fun StudyFlowNotesScreen(onTabSelected: (String) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: (Long) -> Unit = {}) {
+fun StudyFlowNotesScreen(    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: (Long) -> Unit = {}) {
     val context = LocalContext.current
     val viewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(context))
     val notesEntities by viewModel.notes.collectAsState()
@@ -323,7 +323,7 @@ private fun NotesIcon(assetName: String, modifier: Modifier, contentDescription:
 }
 
 @Composable
-private fun NotesBottomNavigation(onTabSelected: (String) -> Unit) {
+private fun NotesBottomNavigation(onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit) {
     com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
         currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.NOTES,
         onTabSelected = onTabSelected

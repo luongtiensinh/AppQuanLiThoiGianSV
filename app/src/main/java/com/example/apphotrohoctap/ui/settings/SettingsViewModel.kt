@@ -51,8 +51,7 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
             context = context,
             title = "StudyFlow - Nhắc nhở Thử nghiệm!",
             message = "Đây là thông báo thử nghiệm! Kiểm tra âm thanh báo thức và chuông rung.",
-            useAlarmSound = useAlarm,
-            playDirectSound = true
+            useAlarmSound = useAlarm
         )
         ReminderManager.testOneTimeReminder(getApplication())
         return posted

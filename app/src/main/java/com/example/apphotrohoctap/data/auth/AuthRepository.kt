@@ -18,12 +18,6 @@ import java.util.UUID
 class AuthRepository(private val context: Context) {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val credentialManager = CredentialManager.create(context)
-    
-    val currentUser get() = auth.currentUser
-    
-    fun signOut() {
-        auth.signOut()
-    }
 
     suspend fun signInWithGoogle(): AuthResult {
         return try {
@@ -56,8 +50,8 @@ class AuthRepository(private val context: Context) {
             val credential = result.credential
             
             // Xử lý CustomCredential trả về từ Credential Manager
-            if (credential is androidx.credentials.CustomCredential &&
-                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            if ((credential is androidx.credentials.CustomCredential) &&
+                (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)
             ) {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 
@@ -68,7 +62,7 @@ class AuthRepository(private val context: Context) {
             } else {
                 AuthResult.Error("Loại chứng chỉ không hợp lệ: ${credential.javaClass.simpleName}")
             }
-        } catch (e: GetCredentialCancellationException) {
+        } catch (cancellationException: GetCredentialCancellationException) {
             AuthResult.Error("Người dùng đã hủy đăng nhập.")
         } catch (e: GetCredentialException) {
             Log.e("AuthRepository", "Lỗi Credential", e)

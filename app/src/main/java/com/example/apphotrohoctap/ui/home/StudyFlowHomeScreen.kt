@@ -38,7 +38,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apphotrohoctap.ui.schedule.StudyClass
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,20 +56,17 @@ private val HomeBrandBlue = Color(0xFF4143D5)
 private val HomeBrightBlue = Color(0xFF5B5FEF)
 private val HomeInk = Color(0xFF1A1A2A)
 private val HomeSecondaryInk = Color(0xFF464555)
-private val HomeMutedInk = Color(0xFF767586)
 private val HomeDivider = Color(0xFFE3E0F7)
-private val HomeCardShadow = Color(0x105B5FEF)
 
 @Composable
 fun StudyFlowHomeScreen(
-    onNotificationClick: (() -> Unit)? = null,
     onProfileClick: (() -> Unit)? = null,
     onSeeAllClasses: (() -> Unit)? = null,
     onCourseClick: (String) -> Unit = {},
     onFilterDeadlines: (() -> Unit)? = null,
     onStartFocus: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
-    onTabSelected: (String) -> Unit = {},
+    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {},
     pomodoroState: com.example.apphotrohoctap.ui.pomodoro.PomodoroUiState? = null
 ) {
     val localContext = LocalContext.current
@@ -227,7 +223,7 @@ private fun GreetingSection() {
     val semesterLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.semesterLabelShort(now).substringBefore(" (") // Lấy phần "HK I" hoặc "Học kỳ 1"
     val dateLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.formatTodayVi(now)
 
-    val sessionManager = com.example.apphotrohoctap.data.SessionManager(androidx.compose.ui.platform.LocalContext.current)
+    val sessionManager = com.example.apphotrohoctap.data.SessionManager(LocalContext.current)
     val fullName = sessionManager.getRegisteredFullName() ?: "bạn"
     val firstName = fullName.split(" ").lastOrNull() ?: "bạn"
     
@@ -359,22 +355,21 @@ private fun GoalProgressCard(tasksDone: Int, tasksTotal: Int) {
 @Composable
 private fun StatisticsRow(tasksToday: Int, tasksUrgent: Int, deadlinesThisWeek: Int, tasksDone: Int) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        StatisticCard("home_tasks.svg", Modifier.width(15.dp).height(11.306.dp), "Hôm nay", tasksToday.toString(), "$tasksUrgent ưu tiên", Color(0xFFE1E0FF), Color(0xFFBA1A1A), Modifier.weight(1f))
-        StatisticCard("home_alarm.svg", Modifier.width(15.975.dp).height(14.738.dp), "Hạn nộp", deadlinesThisWeek.toString(), "Tuần này", Color(0xFFFFDAD6), Color(0xFFBA1A1A), Modifier.weight(1f))
-        StatisticCard("home_done.svg", Modifier.size(15.dp), "Đã xong", tasksDone.toString(), "Tổng cộng", Color(0xFFE1E0FF), HomeSecondaryInk, Modifier.weight(1f))
+        StatisticCard(icon = "home_tasks.svg", modifier = Modifier.weight(1f).widthIn(min = 100.dp), label = "Hôm nay", value = tasksToday.toString(), caption = "$tasksUrgent ưu tiên", iconBackground = Color(0xFFE1E0FF), captionColor = Color(0xFFBA1A1A))
+        StatisticCard(icon = "home_alarm.svg", modifier = Modifier.weight(1f).widthIn(min = 100.dp), label = "Hạn nộp", value = deadlinesThisWeek.toString(), caption = "Tuần này", iconBackground = Color(0xFFFFDAD6), captionColor = Color(0xFFBA1A1A))
+        StatisticCard(icon = "home_done.svg", modifier = Modifier.weight(1f).widthIn(min = 100.dp), label = "Đã xong", value = tasksDone.toString(), caption = "Tổng cộng", iconBackground = Color(0xFFE1E0FF), captionColor = HomeSecondaryInk)
     }
 }
 
 @Composable
 private fun StatisticCard(
     icon: String,
-    iconSize: Modifier,
+    modifier: Modifier = Modifier,
     label: String,
     value: String,
     caption: String,
     iconBackground: Color,
-    captionColor: Color,
-    modifier: Modifier
+    captionColor: Color
 ) {
     Card(
         modifier = modifier.widthIn(min = 100.dp),
@@ -389,7 +384,7 @@ private fun StatisticCard(
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Surface(color = iconBackground, shape = RoundedCornerShape(8.dp)) {
                     Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
-                        HomeIcon(icon, iconSize, "")
+                        HomeIcon(icon, Modifier.size(24.dp), "")
                     }
                 }
                 Text(label, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = HomeSecondaryInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -429,8 +424,6 @@ private fun TodayScheduleSection(classes: List<StudyClass>, onSeeAll: () -> Unit
         }
     }
 }
-
-private val statusBackgroundRed = Color(0xFFFFDAD6)
 
 @Composable
 private fun StudyClassCard(item: StudyClass, onClick: () -> Unit) {
