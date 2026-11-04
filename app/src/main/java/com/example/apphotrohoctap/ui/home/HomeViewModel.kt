@@ -69,7 +69,7 @@ internal class HomeViewModel(
                     if (uiModel.urgency?.contains("Gấp") == true) tasksUrgent++
                 }
 
-                if (taskWithSub.task.category == "deadline") {
+                if (taskWithSub.task.category == "deadline" || taskWithSub.task.category == "assignment") {
                     val progressFloat = if (uiModel.subtasks.isEmpty()) 0f else uiModel.subtasks.count { it.isCompleted }.toFloat() / uiModel.subtasks.size
                     val isUrgent = uiModel.urgency?.contains("Gấp") == true || uiModel.urgency == "Quá hạn"
                     

@@ -57,6 +57,66 @@ import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun CourseSelectionCard(
+    selectedCourse: String,
+    availableCourses: List<String>,
+    onCourseSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    FormCard {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            FieldLabel("Môn học")
+            Text("Không bắt buộc", fontSize = 10.sp, lineHeight = 14.sp, color = AddTaskSecondary)
+        }
+        
+        if (availableCourses.isNotEmpty()) {
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = it }
+            ) {
+                FormTextField(
+                    value = selectedCourse,
+                    onValueChange = { 
+                        onCourseSelected(it)
+                        expanded = true
+                    },
+                    modifier = Modifier.menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
+                    placeholder = "Nhập hoặc chọn môn học",
+                    trailingText = if (expanded) "▲" else "▼",
+                    onTrailingClick = { expanded = !expanded }
+                )
+                
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(Color.White)
+                ) {
+                    availableCourses.forEach { course ->
+                        DropdownMenuItem(
+                            text = { Text(course, fontSize = 14.sp) },
+                            onClick = {
+                                onCourseSelected(course)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            FormTextField(
+                value = selectedCourse,
+                onValueChange = onCourseSelected,
+                placeholder = "Nhập môn học",
+                trailingText = "⊗",
+                onTrailingClick = { onCourseSelected("") }
+            )
+        }
+    }
+}
+
 @Composable
 internal fun TaskTitleCard(title: String, onTitleChange: (String) -> Unit) {
     FormCard {
