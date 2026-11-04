@@ -144,13 +144,14 @@ internal fun FormTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
+    modifier: Modifier = Modifier,
     trailingText: String? = null,
     onTrailingClick: (() -> Unit)? = null
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         placeholder = { Text(placeholder, fontSize = 13.sp, color = AddTaskMuted) },
         singleLine = true,
         trailingIcon = if (trailingText != null && onTrailingClick != null) {
