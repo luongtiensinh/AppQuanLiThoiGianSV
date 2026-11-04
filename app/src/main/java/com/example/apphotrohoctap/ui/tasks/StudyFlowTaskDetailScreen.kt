@@ -94,17 +94,22 @@ fun StudyFlowTaskDetailScreen(
                     .padding(horizontal = 16.dp).padding(bottom = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                val openEditDialog = {
+                    editTitle = currentTask.title
+                    editNotes = currentTask.notes
+                    editPriority = currentTask.priority
+                    editDueAtMillis = currentTask.dueAtMillis
+                    showEditDialog = true
+                }
+                
                 TaskDetailHeader(
                     task = currentTask,
-                    onEditClick = {
-                        editTitle = currentTask.title
-                        editNotes = currentTask.notes
-                        editPriority = currentTask.priority
-                        editDueAtMillis = currentTask.dueAtMillis
-                        showEditDialog = true
-                    }
+                    onEditClick = openEditDialog
                 )
-                TaskMetadataCard(currentTask)
+                TaskMetadataCard(
+                    task = currentTask,
+                    onEditClick = openEditDialog
+                )
                 TaskProgressCard(checkedCount, currentTask.subtasks.size, progress)
                 TaskSubtasksCard(
                     subtasks = currentTask.subtasks,
@@ -125,8 +130,12 @@ fun StudyFlowTaskDetailScreen(
                         }
                     }
                 )
+                TaskAttachmentCard()
                 if (currentTask.notes.isNotBlank()) {
-                    TaskNotesCard(notes = currentTask.notes)
+                    TaskNotesCard(
+                        notes = currentTask.notes,
+                        onEditClick = openEditDialog
+                    )
                 }
                 Spacer(Modifier.height(56.dp))
             }
@@ -315,18 +324,18 @@ private fun DetailBadge(text: String, background: Color, foreground: Color) {
 }
 
 @Composable
-private fun TaskMetadataCard(task: TaskItem) {
+private fun TaskMetadataCard(task: TaskItem, onEditClick: () -> Unit) {
     Surface(color = DetailPale, shape = RoundedCornerShape(18.dp), shadowElevation = 1.dp) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            MetadataRow("▤", "Thời gian", task.due, trailing = "Sửa")
+            MetadataRow("▤", "Thời gian", task.due, trailing = "Sửa", onTrailingClick = onEditClick)
             MetadataDivider()
-            MetadataRow("⬡", "Phân loại", task.category.uppercase(), trailing = "Học phần chính")
+            MetadataRow("⬡", "Phân loại", task.category.uppercase(), trailing = "Học phần chính", onTrailingClick = null)
         }
     }
 }
 
 @Composable
-private fun MetadataRow(icon: String, label: String, value: String, trailing: String) {
+private fun MetadataRow(icon: String, label: String, value: String, trailing: String, onTrailingClick: (() -> Unit)?) {
     Row(Modifier.fillMaxWidth().heightIn(min = 54.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(color = Color(0xFFE3E0F7), shape = CircleShape) {
             Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) { Text(icon, fontSize = 16.sp, color = DetailBrand) }
@@ -335,7 +344,13 @@ private fun MetadataRow(icon: String, label: String, value: String, trailing: St
             Text(label, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailMuted)
             Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = DetailInk)
         }
-        Text(trailing, fontSize = if (trailing == "Sửa") 12.sp else 9.sp, fontWeight = FontWeight.SemiBold, color = if (trailing == "Sửa") DetailBrand else DetailText)
+        if (onTrailingClick != null) {
+            Surface(onClick = onTrailingClick, color = Color.Transparent, shape = CircleShape) {
+                Text(trailing, Modifier.padding(4.dp), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+            }
+        } else {
+            Text(trailing, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = DetailText)
+        }
     }
 }
 
@@ -445,8 +460,8 @@ private fun TaskAttachmentCard() {
 }
 
 @Composable
-private fun TaskNotesCard(notes: String) {
-    DetailSectionCard(title = "☷  Ghi chú", trailing = "✎  Chỉnh sửa") {
+private fun TaskNotesCard(notes: String, onEditClick: () -> Unit) {
+    DetailSectionCard(title = "☷  Ghi chú", trailing = "✎  Chỉnh sửa", onTrailingClick = onEditClick) {
         Text(
             notes,
             Modifier.fillMaxWidth().background(DetailPale, RoundedCornerShape(12.dp)).padding(12.dp),
@@ -458,12 +473,18 @@ private fun TaskNotesCard(notes: String) {
 }
 
 @Composable
-private fun DetailSectionCard(title: String, trailing: String? = null, content: @Composable ColumnScope.() -> Unit) {
+private fun DetailSectionCard(title: String, trailing: String? = null, onTrailingClick: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     Surface(color = DetailCard, shape = RoundedCornerShape(18.dp), shadowElevation = 1.dp) {
         Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = DetailInk)
-                trailing?.let { Text(it, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand) }
+                if (trailing != null && onTrailingClick != null) {
+                    Surface(onClick = onTrailingClick, color = Color.Transparent, shape = CircleShape) {
+                        Text(trailing, Modifier.padding(4.dp), fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+                    }
+                } else if (trailing != null) {
+                    Text(trailing, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DetailBrand)
+                }
             }
             content()
         }
