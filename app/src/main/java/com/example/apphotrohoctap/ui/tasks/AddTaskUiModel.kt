@@ -13,8 +13,4 @@ internal val AddTaskMuted = Color(0xFF767586)
 internal val AddTaskUrgent = Color(0xFFBA1A1A)
 internal val AddTaskUrgentPale = Color(0xFFFFDAD6)
 
-internal val addTaskCourses = listOf(
-    "CSDL Nâng cao (IT3020)",
-    "Lập trình Di động",
-    "Điện toán đám mây"
-)
+

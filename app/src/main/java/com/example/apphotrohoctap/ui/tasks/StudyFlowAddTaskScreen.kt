@@ -69,6 +69,7 @@ fun StudyFlowAddTaskScreen(
     val context = LocalContext.current
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModelFactory(context))
     val formState by viewModel.addTaskFormState.collectAsStateWithLifecycle()
+    val availableCourses by viewModel.availableCourses.collectAsStateWithLifecycle()
     
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
@@ -86,6 +87,11 @@ fun StudyFlowAddTaskScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 GuidanceBanner()
+                CourseSelectionCard(
+                    selectedCourse = formState.selectedCourse,
+                    availableCourses = availableCourses,
+                    onCourseSelected = { viewModel.updateCourse(it) }
+                )
                 TaskTitleCard(title = formState.title, onTitleChange = { viewModel.updateTitle(it) })
                 CategoryCard(
                     selectedCategory = formState.selectedCategory,
