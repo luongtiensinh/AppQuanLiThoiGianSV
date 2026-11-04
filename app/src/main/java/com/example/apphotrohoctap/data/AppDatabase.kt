@@ -61,7 +61,10 @@ abstract class AppDatabase : RoomDatabase() {
                     "studyflow_database"
                 )
                 .addMigrations(MIGRATION_5_6)
-                .fallbackToDestructiveMigration()
+                // Chỉ áp dụng xóa DB (Destructive Migration) từ các bản cũ 1,2,3,4
+                // để tránh văng app do không có kịch bản Migration. 
+                // Không xóa dữ liệu nếu người dùng đang ở bản 5 lên 6.
+                .fallbackToDestructiveMigrationFrom(1, 2, 3, 4)
                 .build()
                 INSTANCE = instance
                 instance
