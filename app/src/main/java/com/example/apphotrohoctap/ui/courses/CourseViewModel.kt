@@ -35,29 +35,33 @@ internal class CourseViewModel(
     // chúng sẽ bị coi là 2 môn khác nhau. Để triệt để, sau này nên tạo bảng Course riêng biệt.
 
     val uiState: StateFlow<CourseUiState> = courseNameFlow.flatMapLatest { name ->
-        combine(
-            taskRepository.getTasksBySubject(name),
-            scheduleRepository.getSchedulesBySubject(name),
-            noteRepository.getNotesByCourse(name)
-        ) { tasksList, scheduleList, noteList ->
-            val now = System.currentTimeMillis()
-            
-            val mappedTasks = tasksList.map { it.toUiModel(now) }
-            val mappedSchedules = scheduleList.map { it.toUiModel(now) }
+        if (name.isBlank()) {
+            kotlinx.coroutines.flow.flowOf(CourseUiState())
+        } else {
+            combine(
+                taskRepository.getTasksBySubject(name),
+                scheduleRepository.getSchedulesBySubject(name),
+                noteRepository.getNotesByCourse(name)
+            ) { tasksList, scheduleList, noteList ->
+                val now = System.currentTimeMillis()
+                
+                val mappedTasks = tasksList.map { it.toUiModel(now) }
+                val mappedSchedules = scheduleList.map { it.toUiModel(now) }
 
-            val firstSchedule = scheduleList.firstOrNull()
+                val firstSchedule = scheduleList.firstOrNull()
 
-            CourseUiState(
-                courseName = name,
-                courseCode = firstSchedule?.courseCode?.takeIf { it.isNotBlank() } ?: "Chưa có mã",
-                lecturer = firstSchedule?.lecturer?.takeIf { it.isNotBlank() } ?: "Chưa phân công",
-                room = firstSchedule?.room?.takeIf { it.isNotBlank() } ?: "Chưa xếp phòng",
-                tasksTotal = mappedTasks.size,
-                tasksDone = mappedTasks.count { it.completed },
-                schedules = mappedSchedules,
-                tasks = mappedTasks,
-                notes = noteList
-            )
+                CourseUiState(
+                    courseName = name,
+                    courseCode = firstSchedule?.courseCode?.takeIf { it.isNotBlank() } ?: "Chưa có mã",
+                    lecturer = firstSchedule?.lecturer?.takeIf { it.isNotBlank() } ?: "Chưa phân công",
+                    room = firstSchedule?.room?.takeIf { it.isNotBlank() } ?: "Chưa xếp phòng",
+                    tasksTotal = mappedTasks.size,
+                    tasksDone = mappedTasks.count { it.completed },
+                    schedules = mappedSchedules,
+                    tasks = mappedTasks,
+                    notes = noteList
+                )
+            }
         }
     }.stateIn(
         scope = viewModelScope,

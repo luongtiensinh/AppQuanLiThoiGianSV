@@ -90,7 +90,7 @@ fun StudyFlowCourseDetailScreen(
         Box(Modifier.weight(1f)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 96.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 CourseOverview(uiState)
-                CourseTabs(selectedTab) { selectedTab = it }
+                CourseTabs(selectedTab, uiState.tasksTotal, uiState.notes.size) { selectedTab = it }
                 if (selectedTab == "Lịch học") {
                     CourseScheduleTab(uiState.schedules, onScheduleClick)
                 } else if (selectedTab == "Bài tập") {
@@ -106,7 +106,11 @@ fun StudyFlowCourseDetailScreen(
                         "Bài tập" -> onAddTask()
                         "Ghi chú" -> onAddNote()
                     }
-                }, modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp).size(width = 154.dp, height = 56.dp),
+                }, modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(end = 20.dp, bottom = 20.dp)
+                    .size(width = 154.dp, height = 56.dp),
                 color = CourseBright, shape = RoundedCornerShape(18.dp), shadowElevation = 8.dp
             ) {
                 Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -125,7 +129,7 @@ private fun CourseHeader(onBack: () -> Unit, uiState: CourseUiState) {
             Surface(onClick = onBack, modifier = Modifier.size(40.dp), color = Color.Transparent, shape = CircleShape) {
                 Box(contentAlignment = Alignment.Center) { Text("‹", fontSize = 36.sp, lineHeight = 40.sp, color = CourseInk) }
             }
-            Text(uiState.courseName, Modifier.padding(start = 12.dp), fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold, color = CourseInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(uiState.courseName, Modifier.padding(start = 12.dp, end = 24.dp).weight(1f), fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold, color = CourseInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -141,7 +145,7 @@ private fun CourseOverview(uiState: CourseUiState) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Badge(uiState.courseCode, CourseChip, CourseBrand)
                     }
-                    Text(uiState.courseName, fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = CourseInk)
+                    Text(uiState.courseName, Modifier.padding(end = 8.dp), fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold, color = CourseInk, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("Giảng viên: ${uiState.lecturer}", fontSize = 13.sp, color = CourseMuted)
                 }
             }
@@ -181,7 +185,7 @@ private fun Badge(text: String, bg: Color, fg: Color) {
 }
 
 @Composable
-private fun CourseTabs(selected: String, onTabSelected: (String) -> Unit) {
+private fun CourseTabs(selected: String, tasksCount: Int, notesCount: Int, onTabSelected: (String) -> Unit) {
     val tabs = listOf("Lịch học" to "home_calendar.svg", "Bài tập" to "home_done.svg", "Ghi chú" to "home_document.svg")
     Surface(Modifier.padding(horizontal = 24.dp), color = CourseChip, shape = RoundedCornerShape(18.dp)) {
         Row(Modifier.fillMaxWidth().padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -191,8 +195,8 @@ private fun CourseTabs(selected: String, onTabSelected: (String) -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                         CourseIcon(icon, Modifier.size(17.dp), ""); Spacer(Modifier.width(5.dp))
                         Text(title, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = if (active) CourseBrand else CourseText)
-                        if (title == "Bài tập") { Spacer(Modifier.width(5.dp)); Badge("3", CourseBrand, Color.White) }
-                        if (title == "Ghi chú") { Spacer(Modifier.width(5.dp)); Badge("4", CourseChip, CourseText) }
+                        if (title == "Bài tập" && tasksCount > 0) { Spacer(Modifier.width(5.dp)); Badge(tasksCount.toString(), CourseBrand, Color.White) }
+                        if (title == "Ghi chú" && notesCount > 0) { Spacer(Modifier.width(5.dp)); Badge(notesCount.toString(), CourseChip, CourseText) }
                     }
                 }
             }

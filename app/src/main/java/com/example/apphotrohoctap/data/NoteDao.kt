@@ -13,7 +13,7 @@ interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY updatedAtMillis DESC")
     fun getAllNotes(): Flow<List<NoteEntity>>
 
-    @Query("SELECT * FROM notes WHERE courseName = :courseName ORDER BY updatedAtMillis DESC")
+    @Query("SELECT * FROM notes WHERE courseName COLLATE NOCASE = :courseName ORDER BY updatedAtMillis DESC")
     fun getNotesByCourse(courseName: String): Flow<List<NoteEntity>>
 
     @Query("SELECT * FROM notes WHERE id = :id")
