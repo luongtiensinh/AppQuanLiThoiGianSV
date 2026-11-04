@@ -13,7 +13,7 @@ interface ScheduleDao {
     @Query("SELECT * FROM schedules ORDER BY startPeriod ASC")
     fun getAllSchedules(): Flow<List<ScheduleEntity>>
 
-    @Query("SELECT * FROM schedules WHERE subject = :subject ORDER BY startPeriod ASC")
+    @Query("SELECT * FROM schedules WHERE subject COLLATE NOCASE = :subject ORDER BY startPeriod ASC")
     fun getSchedulesBySubject(subject: String): Flow<List<ScheduleEntity>>
 
     @Query("SELECT DISTINCT subject FROM schedules ORDER BY subject ASC")
