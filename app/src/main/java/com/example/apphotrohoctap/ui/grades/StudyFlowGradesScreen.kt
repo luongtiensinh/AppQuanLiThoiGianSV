@@ -1,8 +1,6 @@
 package com.example.apphotrohoctap.ui.grades
 
-import android.app.Application
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,14 +23,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun StudyFlowGradesScreen(
+    semesterId: Long,
     onBack: () -> Unit = {},
     onAddSubject: () -> Unit = {},
-    onSubjectClick: (Long) -> Unit = {},
-    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {}
+    onSubjectClick: (Long) -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
+    val semesters by viewModel.semesters.collectAsStateWithLifecycle()
+    
+    val currentSemester = semesters.find { it.semesterId == semesterId }
 
     // Tính toán GPA tổng quát
     val subjectPairs = subjects.filter { it.isCompleted }.map { it.credits to it.currentAccumulatedScore }
@@ -63,12 +64,14 @@ fun StudyFlowGradesScreen(
                 }
             }
             Spacer(Modifier.width(8.dp))
-            Text(
-                "Điểm số & Mục tiêu",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF1A1A2A)
-            )
+            Column {
+                Text(
+                    currentSemester?.semesterName ?: "Môn học",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1A1A2A)
+                )
+            }
         }
 
         // Summary Card
@@ -136,7 +139,7 @@ fun StudyFlowGradesScreen(
             if (subjects.isEmpty()) {
                 item {
                     Text(
-                        "Bạn chưa thêm môn học nào. Hãy thêm để theo dõi điểm số nhé!",
+                        "Bạn chưa thêm môn học nào trong học kỳ này.",
                         modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         fontSize = 13.sp,
@@ -148,11 +151,6 @@ fun StudyFlowGradesScreen(
                 SubjectGradeCard(subject = subject, onClick = { onSubjectClick(subject.subjectId) })
             }
         }
-        
-        com.example.apphotrohoctap.ui.navigation.AppBottomNavigation(
-            currentTab = com.example.apphotrohoctap.ui.navigation.BottomNavTab.GRADES,
-            onTabSelected = onTabSelected
-        )
     }
 }
 
@@ -206,7 +204,14 @@ private fun SubjectGradeCard(subject: SubjectGradeUiModel, onClick: () -> Unit) 
                 if (subject.isCompleted) {
                     Text("Điểm tổng kết: ${String.format(java.util.Locale.US, "%.1f", subject.currentAccumulatedScore)} (${subject.finalLetterGrade})", fontSize = 12.sp, color = Color(0xFF16A34A), fontWeight = FontWeight.SemiBold)
                 } else if (subject.requiredScoreToTarget != null) {
-                    Text("Cần ${String.format(java.util.Locale.US, "%.1f", subject.requiredScoreToTarget)} điểm để đạt ${subject.targetGrade}", fontSize = 12.sp, color = Color(0xFFD97706), fontWeight = FontWeight.Medium)
+                    // Thêm màu sắc cảnh báo dựa trên độ khó
+                    val required = subject.requiredScoreToTarget
+                    val warningColor = when {
+                        required > 8.0 -> Color(0xFFDC2626) // Red
+                        required > 5.0 -> Color(0xFFD97706) // Yellow/Orange
+                        else -> Color(0xFF16A34A) // Green
+                    }
+                    Text("Cần ${String.format(java.util.Locale.US, "%.1f", required)} điểm để đạt ${subject.targetGrade}", fontSize = 12.sp, color = warningColor, fontWeight = FontWeight.Medium)
                 } else {
                     Text("Mục tiêu bất khả thi!", fontSize = 12.sp, color = Color(0xFFBA1A1A), fontWeight = FontWeight.SemiBold)
                 }

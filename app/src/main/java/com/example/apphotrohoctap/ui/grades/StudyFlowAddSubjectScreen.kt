@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
@@ -25,6 +26,7 @@ fun StudyFlowAddSubjectScreen(
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))
+    val selectedSemesterId by viewModel.selectedSemesterId.collectAsStateWithLifecycle()
 
     var subjectName by remember { mutableStateOf("") }
     var creditsText by remember { mutableStateOf("") }
@@ -65,6 +67,13 @@ fun StudyFlowAddSubjectScreen(
             }
             Spacer(Modifier.width(8.dp))
             Text("Thêm môn học mới", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A2A))
+        }
+
+        if (selectedSemesterId == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Vui lòng chọn học kỳ trước khi thêm môn.", color = Color(0xFFBA1A1A))
+            }
+            return
         }
 
         Column(
