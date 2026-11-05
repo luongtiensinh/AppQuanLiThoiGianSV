@@ -21,6 +21,7 @@ import com.example.apphotrohoctap.ui.courses.StudyFlowCourseDetailScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowNotesScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowAddNoteScreen
 import com.example.apphotrohoctap.ui.notes.StudyFlowEditNoteScreen
+import com.example.apphotrohoctap.ui.grades.StudyFlowSemesterScreen
 import com.example.apphotrohoctap.ui.grades.StudyFlowGradesScreen
 import com.example.apphotrohoctap.ui.grades.StudyFlowAddSubjectScreen
 import com.example.apphotrohoctap.ui.grades.StudyFlowSubjectDetailScreen
@@ -95,19 +96,31 @@ fun StudyFlowNavGraph(
                 onTabSelected = navToTab
             )
         }
-        composable(Screen.Grades.route) {
+        
+        // --- Grades Flow ---
+        composable(Screen.Semesters.route) {
+            StudyFlowSemesterScreen(
+                onNavigateToGrades = { semesterId -> navController.navigate(Screen.Grades.createRoute(semesterId)) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.Grades.route,
+            arguments = listOf(navArgument("semesterId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val semesterId = backStackEntry.arguments?.getLong("semesterId") ?: 0L
             StudyFlowGradesScreen(
+                semesterId = semesterId,
                 onBack = { navController.popBackStack() },
                 onAddSubject = { navController.navigate(Screen.AddSubject.route) },
-                onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) },
-                onTabSelected = navToTab
+                onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) }
             )
         }
         composable(Screen.AddSubject.route) {
             StudyFlowAddSubjectScreen(onBack = { navController.popBackStack() })
         }
         composable(
-            Screen.SubjectDetail.route,
+            route = Screen.SubjectDetail.route,
             arguments = listOf(navArgument("subjectId") { type = NavType.LongType })
         ) { backStackEntry ->
             val subjectId = backStackEntry.arguments?.getLong("subjectId") ?: 0L
@@ -116,6 +129,8 @@ fun StudyFlowNavGraph(
                 onBack = { navController.popBackStack() }
             )
         }
+        // -------------------
+        
         composable(Screen.Settings.route) {
             StudyFlowSettingsScreen(
                 onBack = { navController.popBackStack() },
