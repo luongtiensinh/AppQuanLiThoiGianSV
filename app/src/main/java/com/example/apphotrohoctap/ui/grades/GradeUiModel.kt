@@ -1,7 +1,26 @@
 package com.example.apphotrohoctap.ui.grades
 
 import com.example.apphotrohoctap.data.GradeComponentEntity
+import com.example.apphotrohoctap.data.SemesterEntity
 import com.example.apphotrohoctap.data.SubjectWithGrades
+
+data class SemesterUiModel(
+    val semesterId: Long,
+    val semesterName: String,
+    val isCurrent: Boolean,
+    val totalCredits: Int = 0,
+    val totalGpa4: Double = 0.0
+)
+
+internal fun SemesterEntity.toUiModel(totalCredits: Int = 0, totalGpa4: Double = 0.0): SemesterUiModel {
+    return SemesterUiModel(
+        semesterId = semesterId,
+        semesterName = semesterName,
+        isCurrent = isCurrent,
+        totalCredits = totalCredits,
+        totalGpa4 = totalGpa4
+    )
+}
 
 data class GradeComponentUiModel(
     val componentId: Long,
