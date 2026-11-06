@@ -26,4 +26,7 @@ interface ScheduleDao {
 
     @Query("UPDATE schedules SET isDeleted = 1, updatedAt = :timestamp WHERE id = :scheduleId")
     suspend fun softDeleteSchedule(scheduleId: Long, timestamp: Long)
+
+    @Query("SELECT * FROM schedules")
+    suspend fun getAllSchedulesForSync(): List<ScheduleEntity>
 }

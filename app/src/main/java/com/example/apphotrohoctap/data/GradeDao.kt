@@ -72,4 +72,13 @@ interface GradeDao {
 
     @Query("UPDATE grade_components SET isDeleted = 1, updatedAt = :timestamp WHERE componentId = :componentId")
     suspend fun softDeleteComponent(componentId: Long, timestamp: Long)
+
+    @Query("SELECT * FROM semesters")
+    suspend fun getAllSemestersForSync(): List<SemesterEntity>
+
+    @Query("SELECT * FROM subject_grades")
+    suspend fun getAllSubjectsForSync(): List<SubjectGradeEntity>
+
+    @Query("SELECT * FROM grade_components")
+    suspend fun getAllComponentsForSync(): List<GradeComponentEntity>
 }

@@ -26,4 +26,7 @@ interface NoteDao {
 
     @Query("UPDATE notes SET isDeleted = 1, updatedAtMillis = :timestamp WHERE id = :noteId")
     suspend fun softDeleteNote(noteId: Long, timestamp: Long)
+
+    @Query("SELECT * FROM notes")
+    suspend fun getAllNotesForSync(): List<NoteEntity>
 }
