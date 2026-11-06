@@ -17,10 +17,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun StudyFlowAddSubjectScreen(
+    semesterId: Long,
     onBack: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -66,6 +68,8 @@ fun StudyFlowAddSubjectScreen(
             Spacer(Modifier.width(8.dp))
             Text("Thêm môn học mới", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A2A))
         }
+
+
 
         Column(
             modifier = Modifier
@@ -186,7 +190,7 @@ fun StudyFlowAddSubjectScreen(
                     errorText = "Tổng trọng số phải bằng 100% (Hiện tại: $totalWeight%)"
                 } else {
                     val finalComponents = components.map { Pair(it.name, it.weight.toDouble()) }
-                    viewModel.addSubject(subjectName, credits, targetGrade, finalComponents)
+                    viewModel.addSubject(semesterId, subjectName, credits, targetGrade, finalComponents)
                     onBack()
                 }
             },

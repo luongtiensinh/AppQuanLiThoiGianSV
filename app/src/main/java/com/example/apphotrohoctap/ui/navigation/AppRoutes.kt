@@ -7,11 +7,19 @@ sealed class Screen(val route: String) {
     object Schedule : Screen("schedule")
     object Tasks : Screen("tasks")
     object Notes : Screen("notes")
-    object Grades : Screen("grades")
-    object AddSubject : Screen("addSubject")
+    
+    // Grades Flow
+    object Semesters : Screen("semesters") // Màn hình quản lý học kỳ
+    object Grades : Screen("grades/{semesterId}") { // Màn hình điểm số của 1 học kỳ
+        fun createRoute(semesterId: Long) = "grades/$semesterId"
+    }
+    object AddSubject : Screen("addSubject/{semesterId}") {
+        fun createRoute(semesterId: Long) = "addSubject/$semesterId"
+    }
     object SubjectDetail : Screen("subjectDetail/{subjectId}") {
         fun createRoute(subjectId: Long) = "subjectDetail/$subjectId"
     }
+    
     object Settings : Screen("settings")
     object Pomodoro : Screen("pomodoro")
     object AddTask : Screen("addTask")

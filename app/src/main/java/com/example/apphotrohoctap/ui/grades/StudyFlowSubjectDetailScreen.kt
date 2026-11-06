@@ -7,6 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,11 +33,24 @@ fun StudyFlowSubjectDetailScreen(
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))
-    val subjects by viewModel.subjects.collectAsStateWithLifecycle()
-    val subject = remember(subjects, subjectId) { subjects.find { it.subjectId == subjectId } }
+    val subject by viewModel.getSubject(subjectId).collectAsStateWithLifecycle(initialValue = null)
 
     var editingComponent by rememberSaveable { mutableStateOf<GradeComponentUiModel?>(null) }
     var tempScoreText by rememberSaveable { mutableStateOf("") }
+    
+    // States for Edit Mode
+    var isEditMode by rememberSaveable { mutableStateOf(false) }
+    var showEditSubjectDialog by rememberSaveable { mutableStateOf(false) }
+    var editSubjectName by rememberSaveable { mutableStateOf("") }
+    var editCredits by rememberSaveable { mutableStateOf("") }
+    var editTargetGrade by rememberSaveable { mutableStateOf("") }
+
+    var editingComponentDetails by remember { mutableStateOf<GradeComponentUiModel?>(null) }
+    var tempCompName by remember { mutableStateOf("") }
+    var tempCompWeight by remember { mutableStateOf("") }
+
+    var showAddComponentDialog by remember { mutableStateOf(false) }
+
     var errorText by rememberSaveable { mutableStateOf<String?>(null) }
 
     if (subject == null) return
@@ -63,7 +80,7 @@ fun StudyFlowSubjectDetailScreen(
                 }
             }
             Spacer(Modifier.width(8.dp))
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     subject.subjectName,
                     fontSize = 18.sp,
@@ -73,6 +90,69 @@ fun StudyFlowSubjectDetailScreen(
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Text("${subject.credits} tín chỉ • Mục tiêu: ${subject.targetGrade}", fontSize = 12.sp, color = Color(0xFF767586))
+            }
+            
+            // Edit Toggle
+            IconButton(onClick = { 
+                isEditMode = !isEditMode 
+                if (isEditMode) {
+                    editSubjectName = subject.subjectName
+                    editCredits = subject.credits.toString()
+                    editTargetGrade = subject.targetGrade
+                }
+            }) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = if (isEditMode) Color(0xFF4143D5) else Color(0xFF767586)
+                )
+            }
+        }
+
+        if (isEditMode) {
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                color = Color.White,
+                shape = RoundedCornerShape(12.dp),
+                shadowElevation = 1.dp
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Thông tin môn học", fontWeight = FontWeight.Bold)
+                    OutlinedTextField(
+                        value = editSubjectName,
+                        onValueChange = { editSubjectName = it },
+                        label = { Text("Tên môn") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = editCredits,
+                            onValueChange = { editCredits = it },
+                            label = { Text("Tín chỉ") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = editTargetGrade,
+                            onValueChange = { editTargetGrade = it },
+                            label = { Text("Mục tiêu") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            val cred = editCredits.toIntOrNull()
+                            if (editSubjectName.isNotBlank() && cred != null && cred > 0 && editTargetGrade.isNotBlank()) {
+                                viewModel.updateSubject(subject.subjectId, editSubjectName, cred, editTargetGrade)
+                                isEditMode = false
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.End),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4143D5))
+                    ) {
+                        Text("Lưu thông tin")
+                    }
+                }
             }
         }
 
@@ -98,11 +178,19 @@ fun StudyFlowSubjectDetailScreen(
                     }
                 } else if (subject.requiredScoreToTarget != null) {
                     Text("Để đạt được ${subject.targetGrade}, trung bình các cột điểm còn lại bạn cần đạt:", fontSize = 13.sp, color = Color(0xFF464555), lineHeight = 18.sp)
+                    
+                    val required = subject?.requiredScoreToTarget ?: 0.0
+                    val warningColor = when {
+                        required > 8.0 -> Color(0xFFDC2626) // Khó - Đỏ
+                        required > 5.0 -> Color(0xFFD97706) // Trung bình - Vàng
+                        else -> Color(0xFF16A34A) // Dễ - Xanh
+                    }
+                    
                     Text(
-                        String.format(java.util.Locale.US, "%.2f điểm", subject.requiredScoreToTarget),
+                        String.format(java.util.Locale.US, "%.2f điểm", required),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFD97706)
+                        color = warningColor
                     )
                 } else {
                     Text("Bạn không thể đạt được mục tiêu ${subject.targetGrade} nữa, hãy cố gắng hết sức nhé!", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFFBA1A1A))
@@ -110,28 +198,54 @@ fun StudyFlowSubjectDetailScreen(
             }
         }
 
-        Text(
-            "Cột điểm thành phần",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF1A1A2A)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Cột điểm thành phần", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A2A))
+            if (isEditMode) {
+                IconButton(onClick = {
+                    tempCompName = ""
+                    tempCompWeight = ""
+                    showAddComponentDialog = true
+                }) {
+                    Icon(Icons.Default.Add, "Thêm cột", tint = Color(0xFF4143D5))
+                }
+            }
+        }
+        
+        // Cảnh báo tổng trọng số
+        val totalWeight = subject.components.sumOf { it.weightPercent }
+        if (kotlin.math.abs(totalWeight - 100.0) > 0.1) {
+            Text(
+                "Lưu ý: Tổng trọng số hiện tại là $totalWeight% (Nên là 100%). Hãy chỉnh sửa lại.",
+                color = Color(0xFFDC2626),
+                fontSize = 12.sp,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+            )
+        }
 
         LazyColumn(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(subject.components) { comp ->
+            items(subject.components, key = { it.componentId }) { comp ->
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = Color.White,
                     shape = RoundedCornerShape(12.dp),
                     shadowElevation = 1.dp,
                     onClick = {
-                        editingComponent = comp
-                        tempScoreText = comp.achievedScore?.toString() ?: ""
-                        errorText = null
+                        if (isEditMode) {
+                            editingComponentDetails = comp
+                            tempCompName = comp.componentName
+                            tempCompWeight = comp.weightPercent.toString()
+                        } else {
+                            editingComponent = comp
+                            tempScoreText = comp.achievedScore?.toString() ?: ""
+                            errorText = null
+                        }
                     }
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -139,18 +253,38 @@ fun StudyFlowSubjectDetailScreen(
                             Text(comp.componentName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A2A))
                             Text("Trọng số: ${comp.weightPercent}%", fontSize = 12.sp, color = Color(0xFF767586))
                         }
-                        if (comp.achievedScore != null) {
-                            Text("${comp.achievedScore}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4143D5))
+                        if (isEditMode) {
+                            IconButton(onClick = { viewModel.deleteComponent(comp.componentId) }) {
+                                Icon(Icons.Default.Delete, "Xóa", tint = Color(0xFFDC2626))
+                            }
                         } else {
-                            Text("Chưa nhập", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFFBA1A1A))
+                            if (comp.achievedScore != null) {
+                                Text("${comp.achievedScore}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4143D5))
+                            } else {
+                                Text("Chưa nhập", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFFBA1A1A))
+                            }
                         }
+                    }
+                }
+            }
+            if (isEditMode) {
+                item {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteSubject(subjectId)
+                            onBack()
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                    ) {
+                        Text("Xóa Môn Học Này", color = Color(0xFFDC2626))
                     }
                 }
             }
         }
     }
 
-    if (editingComponent != null) {
+    // Dialog nhập điểm (Mode thường)
+    if (editingComponent != null && !isEditMode) {
         AlertDialog(
             onDismissRequest = { editingComponent = null },
             title = { Text("Nhập điểm", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
@@ -197,6 +331,62 @@ fun StudyFlowSubjectDetailScreen(
                 TextButton(onClick = { editingComponent = null }) {
                     Text("Hủy", color = Color(0xFF767586))
                 }
+            }
+        )
+    }
+
+    // Dialog thêm component
+    if (showAddComponentDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddComponentDialog = false },
+            title = { Text("Thêm cột điểm") },
+            text = {
+                Column {
+                    OutlinedTextField(value = tempCompName, onValueChange = { tempCompName = it }, label = { Text("Tên cột") })
+                    OutlinedTextField(value = tempCompWeight, onValueChange = { tempCompWeight = it }, label = { Text("Trọng số (%)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val w = tempCompWeight.toDoubleOrNull()
+                    if (tempCompName.isNotBlank() && w != null) {
+                        viewModel.addComponent(subjectId, tempCompName, w)
+                        showAddComponentDialog = false
+                    }
+                }) { Text("Lưu") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddComponentDialog = false }) { Text("Hủy") }
+            }
+        )
+    }
+
+    // Dialog sửa component
+    if (editingComponentDetails != null && isEditMode) {
+        AlertDialog(
+            onDismissRequest = { editingComponentDetails = null },
+            title = { Text("Sửa cột điểm") },
+            text = {
+                Column {
+                    OutlinedTextField(value = tempCompName, onValueChange = { tempCompName = it }, label = { Text("Tên cột") })
+                    OutlinedTextField(value = tempCompWeight, onValueChange = { tempCompWeight = it }, label = { Text("Trọng số (%)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val w = tempCompWeight.toDoubleOrNull()
+                    if (tempCompName.isNotBlank() && w != null) {
+                        val uiModel = editingComponentDetails!!.copy(
+                            componentName = tempCompName,
+                            weightPercent = w
+                        )
+                        viewModel.updateComponentFull(uiModel, subjectId)
+                        editingComponentDetails = null
+                    }
+                }) { Text("Lưu") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingComponentDetails = null }) { Text("Hủy") }
             }
         )
     }

@@ -13,9 +13,10 @@ import androidx.room.migration.Migration
     SubtaskEntity::class, 
     ScheduleEntity::class, 
     NoteEntity::class,
+    SemesterEntity::class,
     SubjectGradeEntity::class,
     GradeComponentEntity::class,
-], version = 6, exportSchema = false)
+], version = 7, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun taskDao(): TaskDao
@@ -52,6 +53,71 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_grade_components_subjectId` ON `grade_components` (`subjectId`)")
             }
         }
+        
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Tạo bảng semesters
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `semesters` (
+                        `semesterId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `semesterName` TEXT NOT NULL,
+                        `isCurrent` INTEGER NOT NULL
+                    )
+                """.trimIndent())
+
+                // 2. Tạo một học kỳ mặc định
+                db.execSQL("INSERT INTO `semesters` (`semesterId`, `semesterName`, `isCurrent`) VALUES (1, 'Học kỳ mặc định', 1)")
+
+                // 3. Đổi tên các bảng cũ để tránh trigger CASCADE delete khi Drop
+                db.execSQL("ALTER TABLE `grade_components` RENAME TO `grade_components_old`")
+                db.execSQL("ALTER TABLE `subject_grades` RENAME TO `subject_grades_old`")
+
+                // 4. Tạo bảng subject_grades mới (thêm semesterId)
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `subject_grades` (
+                        `subjectId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `semesterId` INTEGER NOT NULL,
+                        `subjectName` TEXT NOT NULL,
+                        `credits` INTEGER NOT NULL,
+                        `targetGrade` TEXT NOT NULL,
+                        FOREIGN KEY(`semesterId`) REFERENCES `semesters`(`semesterId`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+
+                // 5. Copy dữ liệu vào subject_grades, gán semesterId = 1
+                db.execSQL("""
+                    INSERT INTO `subject_grades` (`subjectId`, `semesterId`, `subjectName`, `credits`, `targetGrade`)
+                    SELECT `subjectId`, 1, `subjectName`, `credits`, `targetGrade` FROM `subject_grades_old`
+                """.trimIndent())
+
+                // 6. Tạo bảng grade_components mới
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `grade_components` (
+                        `componentId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `subjectId` INTEGER NOT NULL,
+                        `componentName` TEXT NOT NULL,
+                        `weightPercent` REAL NOT NULL,
+                        `achievedScore` REAL,
+                        FOREIGN KEY(`subjectId`) REFERENCES `subject_grades`(`subjectId`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+
+                // 7. Copy dữ liệu vào grade_components
+                db.execSQL("""
+                    INSERT INTO `grade_components` (`componentId`, `subjectId`, `componentName`, `weightPercent`, `achievedScore`)
+                    SELECT `componentId`, `subjectId`, `componentName`, `weightPercent`, `achievedScore` FROM `grade_components_old`
+                """.trimIndent())
+
+                // 8. Xóa các bảng cũ
+                db.execSQL("DROP TABLE `grade_components_old`")
+                db.execSQL("DROP TABLE `subject_grades_old`")
+                
+                // 9. Tạo lại index
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_subject_grades_semesterId` ON `subject_grades` (`semesterId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_grade_components_subjectId` ON `grade_components` (`subjectId`)")
+            }
+        }
+
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -60,7 +126,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "studyflow_database"
                 )
-                .addMigrations(MIGRATION_5_6)
+                .addMigrations(MIGRATION_5_6, MIGRATION_6_7)
                 // Chỉ áp dụng xóa DB (Destructive Migration) từ các bản cũ 1,2,3,4
                 // để tránh văng app do không có kịch bản Migration. 
                 // Không xóa dữ liệu nếu người dùng đang ở bản 5 lên 6.

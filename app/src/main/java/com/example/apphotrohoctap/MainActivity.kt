@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                         com.example.apphotrohoctap.ui.navigation.BottomNavTab.SCHEDULE -> Screen.Schedule.route
                         com.example.apphotrohoctap.ui.navigation.BottomNavTab.TASKS -> Screen.Tasks.route
                         com.example.apphotrohoctap.ui.navigation.BottomNavTab.NOTES -> Screen.Notes.route
-                        com.example.apphotrohoctap.ui.navigation.BottomNavTab.GRADES -> Screen.Grades.route
+                        com.example.apphotrohoctap.ui.navigation.BottomNavTab.GRADES -> Screen.Semesters.route
                     }
                     navController.navigate(route) {
                         popUpTo(Screen.Home.route) {
