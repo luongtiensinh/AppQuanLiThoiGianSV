@@ -37,6 +37,8 @@ class GradeRepository(private val gradeDao: GradeDao) {
     
     suspend fun getSubjectWithGradesById(id: Long): SubjectWithGrades? = gradeDao.getSubjectWithGradesById(id)
     
+    fun getSubjectWithGradesFlowById(id: Long): Flow<SubjectWithGrades?> = gradeDao.getSubjectWithGradesFlowById(id)
+    
     suspend fun addSubjectWithComponents(subject: SubjectGradeEntity, components: List<GradeComponentEntity>) {
         val subjectId = gradeDao.insertSubject(subject)
         if (components.isNotEmpty()) {

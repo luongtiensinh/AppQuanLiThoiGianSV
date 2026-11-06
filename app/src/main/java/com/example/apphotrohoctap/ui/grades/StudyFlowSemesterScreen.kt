@@ -76,7 +76,6 @@ fun StudyFlowSemesterScreen(
             items(semesters) { semester ->
                 Surface(
                     onClick = { 
-                        viewModel.selectSemester(semester.semesterId)
                         onNavigateToGrades(semester.semesterId) 
                     },
                     modifier = Modifier.fillMaxWidth(),

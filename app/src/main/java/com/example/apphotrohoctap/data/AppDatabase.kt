@@ -65,12 +65,16 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
 
-                // 2. Tạo một học kỳ mặc định (Ví dụ: "Học kỳ 1") với id = 1
+                // 2. Tạo một học kỳ mặc định
                 db.execSQL("INSERT INTO `semesters` (`semesterId`, `semesterName`, `isCurrent`) VALUES (1, 'Học kỳ mặc định', 1)")
 
-                // 3. Tạo bảng subject_grades_new với cấu trúc mới (thêm semesterId)
+                // 3. Đổi tên các bảng cũ để tránh trigger CASCADE delete khi Drop
+                db.execSQL("ALTER TABLE `grade_components` RENAME TO `grade_components_old`")
+                db.execSQL("ALTER TABLE `subject_grades` RENAME TO `subject_grades_old`")
+
+                // 4. Tạo bảng subject_grades mới (thêm semesterId)
                 db.execSQL("""
-                    CREATE TABLE IF NOT EXISTS `subject_grades_new` (
+                    CREATE TABLE IF NOT EXISTS `subject_grades` (
                         `subjectId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         `semesterId` INTEGER NOT NULL,
                         `subjectName` TEXT NOT NULL,
@@ -79,24 +83,38 @@ abstract class AppDatabase : RoomDatabase() {
                         FOREIGN KEY(`semesterId`) REFERENCES `semesters`(`semesterId`) ON UPDATE NO ACTION ON DELETE CASCADE
                     )
                 """.trimIndent())
-                
-                db.execSQL("CREATE INDEX IF NOT EXISTS `index_subject_grades_new_semesterId` ON `subject_grades_new` (`semesterId`)")
 
-                // 4. Copy dữ liệu từ bảng cũ sang bảng mới, gán semesterId = 1 cho tất cả các môn cũ
+                // 5. Copy dữ liệu vào subject_grades, gán semesterId = 1
                 db.execSQL("""
-                    INSERT INTO `subject_grades_new` (`subjectId`, `semesterId`, `subjectName`, `credits`, `targetGrade`)
-                    SELECT `subjectId`, 1, `subjectName`, `credits`, `targetGrade` FROM `subject_grades`
+                    INSERT INTO `subject_grades` (`subjectId`, `semesterId`, `subjectName`, `credits`, `targetGrade`)
+                    SELECT `subjectId`, 1, `subjectName`, `credits`, `targetGrade` FROM `subject_grades_old`
                 """.trimIndent())
 
-                // 5. Xóa bảng cũ
-                db.execSQL("DROP TABLE `subject_grades`")
+                // 6. Tạo bảng grade_components mới
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `grade_components` (
+                        `componentId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `subjectId` INTEGER NOT NULL,
+                        `componentName` TEXT NOT NULL,
+                        `weightPercent` REAL NOT NULL,
+                        `achievedScore` REAL,
+                        FOREIGN KEY(`subjectId`) REFERENCES `subject_grades`(`subjectId`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
 
-                // 6. Đổi tên bảng mới thành tên bảng cũ
-                db.execSQL("ALTER TABLE `subject_grades_new` RENAME TO `subject_grades`")
+                // 7. Copy dữ liệu vào grade_components
+                db.execSQL("""
+                    INSERT INTO `grade_components` (`componentId`, `subjectId`, `componentName`, `weightPercent`, `achievedScore`)
+                    SELECT `componentId`, `subjectId`, `componentName`, `weightPercent`, `achievedScore` FROM `grade_components_old`
+                """.trimIndent())
+
+                // 8. Xóa các bảng cũ
+                db.execSQL("DROP TABLE `grade_components_old`")
+                db.execSQL("DROP TABLE `subject_grades_old`")
                 
-                // 7. Tạo lại index cho bảng subject_grades (sau khi rename, index cũ trên bảng new có thể bị mất tuỳ version sqlite, tốt nhất là tạo lại với tên chuẩn)
-                db.execSQL("DROP INDEX IF EXISTS `index_subject_grades_new_semesterId`")
+                // 9. Tạo lại index
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_subject_grades_semesterId` ON `subject_grades` (`semesterId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_grade_components_subjectId` ON `grade_components` (`subjectId`)")
             }
         }
 

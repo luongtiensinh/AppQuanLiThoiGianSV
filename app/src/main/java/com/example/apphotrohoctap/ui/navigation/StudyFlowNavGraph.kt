@@ -112,12 +112,19 @@ fun StudyFlowNavGraph(
             StudyFlowGradesScreen(
                 semesterId = semesterId,
                 onBack = { navController.popBackStack() },
-                onAddSubject = { navController.navigate(Screen.AddSubject.route) },
+                onAddSubject = { semId -> navController.navigate(Screen.AddSubject.createRoute(semId)) },
                 onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) }
             )
         }
-        composable(Screen.AddSubject.route) {
-            StudyFlowAddSubjectScreen(onBack = { navController.popBackStack() })
+        composable(
+            route = Screen.AddSubject.route,
+            arguments = listOf(navArgument("semesterId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val semesterId = backStackEntry.arguments?.getLong("semesterId") ?: 0L
+            StudyFlowAddSubjectScreen(
+                semesterId = semesterId,
+                onBack = { navController.popBackStack() }
+            )
         }
         composable(
             route = Screen.SubjectDetail.route,

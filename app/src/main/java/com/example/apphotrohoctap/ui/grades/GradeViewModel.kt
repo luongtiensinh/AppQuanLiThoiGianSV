@@ -18,9 +18,6 @@ import kotlinx.coroutines.launch
 
 internal class GradeViewModel(private val repository: GradeRepository) : ViewModel() {
 
-    private val _selectedSemesterId = MutableStateFlow<Long?>(null)
-    val selectedSemesterId: StateFlow<Long?> = _selectedSemesterId
-
     // 1. Quản lý danh sách học kỳ
     val semesters: StateFlow<List<SemesterUiModel>> = combine(
         repository.getAllSemesters(),
@@ -52,72 +49,36 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
         initialValue = emptyList()
     )
 
-    // Tự động load học kỳ hiện tại nếu chưa chọn
-    init {
-        viewModelScope.launch {
-            val current = repository.getCurrentSemester()
-            if (current != null && _selectedSemesterId.value == null) {
-                _selectedSemesterId.value = current.semesterId
-            } else if (current == null) {
-                // Nếu chưa có học kỳ nào, Room Migration đã tạo 1 cái nhưng isCurrent = 1.
-                // Thử lấy cái đầu tiên
-                repository.getAllSemesters().collect { list ->
-                    if (list.isNotEmpty() && _selectedSemesterId.value == null) {
-                        _selectedSemesterId.value = list.first().semesterId
-                        repository.setCurrentSemester(list.first().semesterId)
-                    }
-                }
-            }
-        }
-    }
-
-    fun selectSemester(semesterId: Long) {
-        _selectedSemesterId.value = semesterId
-        viewModelScope.launch {
-            repository.setCurrentSemester(semesterId)
-        }
-    }
-    
     fun addSemester(name: String, isCurrent: Boolean = true) {
         if (name.isBlank()) return
         viewModelScope.launch {
-            val id = repository.addSemester(SemesterEntity(semesterName = name, isCurrent = isCurrent))
-            if (isCurrent) {
-                _selectedSemesterId.value = id
-            }
+            repository.addSemester(SemesterEntity(semesterName = name, isCurrent = isCurrent))
         }
     }
 
-    // 2. Quản lý môn học theo học kỳ đã chọn
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val subjects: StateFlow<List<SubjectGradeUiModel>> = _selectedSemesterId
-        .flatMapLatest { semId ->
-            if (semId == null) {
-                kotlinx.coroutines.flow.flowOf(emptyList())
-            } else {
-                repository.getSubjectsWithGradesBySemester(semId)
-                    .map { list -> list.map { it.toUiModel() } }
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    // 2. Quản lý môn học theo học kỳ
+    fun getSubjectsForSemester(semesterId: Long): kotlinx.coroutines.flow.Flow<List<SubjectGradeUiModel>> {
+        return repository.getSubjectsWithGradesBySemester(semesterId)
+            .map { list -> list.map { it.toUiModel() } }
+    }
+    
+    fun getSubject(subjectId: Long): kotlinx.coroutines.flow.Flow<SubjectGradeUiModel?> {
+        return repository.getSubjectWithGradesFlowById(subjectId).map { it?.toUiModel() }
+    }
 
     fun addSubject(
+        semesterId: Long,
         subjectName: String,
         credits: Int,
         targetGrade: String,
         components: List<Pair<String, Double>> // Name and Weight
     ) {
-        val semId = _selectedSemesterId.value ?: return
         val cleanName = subjectName.trim()
         if (cleanName.isBlank() || credits <= 0) return
         
         viewModelScope.launch {
             val entity = SubjectGradeEntity(
-                semesterId = semId,
+                semesterId = semesterId,
                 subjectName = cleanName,
                 credits = credits,
                 targetGrade = targetGrade
@@ -135,7 +96,6 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
         credits: Int,
         targetGrade: String
     ) {
-        val semId = _selectedSemesterId.value ?: return
         viewModelScope.launch {
             val existing = repository.getSubjectWithGradesById(subjectId) ?: return@launch
             val updated = existing.subject.copy(

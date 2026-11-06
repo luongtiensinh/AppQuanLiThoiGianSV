@@ -13,7 +13,9 @@ sealed class Screen(val route: String) {
     object Grades : Screen("grades/{semesterId}") { // Màn hình điểm số của 1 học kỳ
         fun createRoute(semesterId: Long) = "grades/$semesterId"
     }
-    object AddSubject : Screen("addSubject")
+    object AddSubject : Screen("addSubject/{semesterId}") {
+        fun createRoute(semesterId: Long) = "addSubject/$semesterId"
+    }
     object SubjectDetail : Screen("subjectDetail/{subjectId}") {
         fun createRoute(subjectId: Long) = "subjectDetail/$subjectId"
     }

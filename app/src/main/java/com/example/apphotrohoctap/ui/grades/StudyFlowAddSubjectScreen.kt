@@ -22,11 +22,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun StudyFlowAddSubjectScreen(
+    semesterId: Long,
     onBack: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))
-    val selectedSemesterId by viewModel.selectedSemesterId.collectAsStateWithLifecycle()
 
     var subjectName by remember { mutableStateOf("") }
     var creditsText by remember { mutableStateOf("") }
@@ -69,12 +69,7 @@ fun StudyFlowAddSubjectScreen(
             Text("Thêm môn học mới", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A2A))
         }
 
-        if (selectedSemesterId == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Vui lòng chọn học kỳ trước khi thêm môn.", color = Color(0xFFBA1A1A))
-            }
-            return
-        }
+
 
         Column(
             modifier = Modifier
@@ -195,7 +190,7 @@ fun StudyFlowAddSubjectScreen(
                     errorText = "Tổng trọng số phải bằng 100% (Hiện tại: $totalWeight%)"
                 } else {
                     val finalComponents = components.map { Pair(it.name, it.weight.toDouble()) }
-                    viewModel.addSubject(subjectName, credits, targetGrade, finalComponents)
+                    viewModel.addSubject(semesterId, subjectName, credits, targetGrade, finalComponents)
                     onBack()
                 }
             },

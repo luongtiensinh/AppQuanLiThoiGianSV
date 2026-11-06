@@ -41,7 +41,6 @@ interface GradeDao {
     @Query("SELECT * FROM subject_grades WHERE semesterId = :semesterId ORDER BY subjectName ASC")
     fun getSubjectsWithGradesBySemester(semesterId: Long): Flow<List<SubjectWithGrades>>
     
-    // Giữ lại hàm này cho tương thích ngược nếu cần, nhưng chuyển sang lấy tất cả
     @Transaction
     @Query("SELECT * FROM subject_grades ORDER BY subjectName ASC")
     fun getAllSubjectsWithGrades(): Flow<List<SubjectWithGrades>>
@@ -49,6 +48,10 @@ interface GradeDao {
     @Transaction
     @Query("SELECT * FROM subject_grades WHERE subjectId = :id")
     suspend fun getSubjectWithGradesById(id: Long): SubjectWithGrades?
+
+    @Transaction
+    @Query("SELECT * FROM subject_grades WHERE subjectId = :id")
+    fun getSubjectWithGradesFlowById(id: Long): Flow<SubjectWithGrades?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSubject(subject: SubjectGradeEntity): Long

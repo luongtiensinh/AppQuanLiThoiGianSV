@@ -30,7 +30,7 @@ fun StudyFlowGradesScreen(
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))
-    val subjects by viewModel.subjects.collectAsStateWithLifecycle()
+    val subjects by viewModel.getSubjectsForSemester(semesterId).collectAsStateWithLifecycle(initialValue = emptyList())
     val semesters by viewModel.semesters.collectAsStateWithLifecycle()
     
     val currentSemester = semesters.find { it.semesterId == semesterId }
