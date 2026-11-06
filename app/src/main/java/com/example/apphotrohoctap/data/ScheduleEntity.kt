@@ -2,6 +2,7 @@ package com.example.apphotrohoctap.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(tableName = "schedules")
 data class ScheduleEntity(
@@ -17,5 +18,8 @@ data class ScheduleEntity(
     val repeatWeekly: Boolean,
     val startDateMillis: Long,
     val endDateMillis: Long,
-    val colorKey: String // Mã màu (0-5)
+    val colorKey: String, // Mã màu (0-5)
+    val syncId: String = UUID.randomUUID().toString(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )

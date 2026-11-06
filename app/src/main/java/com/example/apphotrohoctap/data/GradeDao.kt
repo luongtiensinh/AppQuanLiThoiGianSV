@@ -1,7 +1,6 @@
 package com.example.apphotrohoctap.data
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GradeDao {
     // --- Semester ---
-    @Query("SELECT * FROM semesters ORDER BY semesterId DESC")
+    @Query("SELECT * FROM semesters WHERE isDeleted = 0 ORDER BY semesterId DESC")
     fun getAllSemesters(): Flow<List<SemesterEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -21,10 +20,10 @@ interface GradeDao {
     @Update
     suspend fun updateSemester(semester: SemesterEntity)
 
-    @Delete
-    suspend fun deleteSemester(semester: SemesterEntity)
+    @Query("UPDATE semesters SET isDeleted = 1, updatedAt = :timestamp WHERE semesterId = :semesterId")
+    suspend fun softDeleteSemester(semesterId: Long, timestamp: Long)
 
-    @Query("SELECT * FROM semesters WHERE semesterId = :id")
+    @Query("SELECT * FROM semesters WHERE isDeleted = 0 AND semesterId = :id")
     suspend fun getSemesterById(id: Long): SemesterEntity?
 
     @Query("UPDATE semesters SET isCurrent = 0")
@@ -33,24 +32,24 @@ interface GradeDao {
     @Query("UPDATE semesters SET isCurrent = 1 WHERE semesterId = :id")
     suspend fun setCurrentSemester(id: Long)
 
-    @Query("SELECT * FROM semesters WHERE isCurrent = 1 LIMIT 1")
+    @Query("SELECT * FROM semesters WHERE isDeleted = 0 AND isCurrent = 1 LIMIT 1")
     suspend fun getCurrentSemester(): SemesterEntity?
 
     // --- Subject & Components ---
     @Transaction
-    @Query("SELECT * FROM subject_grades WHERE semesterId = :semesterId ORDER BY subjectName ASC")
+    @Query("SELECT * FROM subject_grades WHERE isDeleted = 0 AND semesterId = :semesterId ORDER BY subjectName ASC")
     fun getSubjectsWithGradesBySemester(semesterId: Long): Flow<List<SubjectWithGrades>>
     
     @Transaction
-    @Query("SELECT * FROM subject_grades ORDER BY subjectName ASC")
+    @Query("SELECT * FROM subject_grades WHERE isDeleted = 0 ORDER BY subjectName ASC")
     fun getAllSubjectsWithGrades(): Flow<List<SubjectWithGrades>>
 
     @Transaction
-    @Query("SELECT * FROM subject_grades WHERE subjectId = :id")
+    @Query("SELECT * FROM subject_grades WHERE isDeleted = 0 AND subjectId = :id")
     suspend fun getSubjectWithGradesById(id: Long): SubjectWithGrades?
 
     @Transaction
-    @Query("SELECT * FROM subject_grades WHERE subjectId = :id")
+    @Query("SELECT * FROM subject_grades WHERE isDeleted = 0 AND subjectId = :id")
     fun getSubjectWithGradesFlowById(id: Long): Flow<SubjectWithGrades?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -68,9 +67,9 @@ interface GradeDao {
     @Update
     suspend fun updateComponent(component: GradeComponentEntity)
 
-    @Delete
-    suspend fun deleteSubject(subject: SubjectGradeEntity)
+    @Query("UPDATE subject_grades SET isDeleted = 1, updatedAt = :timestamp WHERE subjectId = :subjectId")
+    suspend fun softDeleteSubject(subjectId: Long, timestamp: Long)
 
-    @Query("DELETE FROM grade_components WHERE componentId = :componentId")
-    suspend fun deleteComponent(componentId: Long)
+    @Query("UPDATE grade_components SET isDeleted = 1, updatedAt = :timestamp WHERE componentId = :componentId")
+    suspend fun softDeleteComponent(componentId: Long, timestamp: Long)
 }

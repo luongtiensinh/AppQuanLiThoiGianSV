@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "grade_components",
@@ -23,5 +24,8 @@ data class GradeComponentEntity(
     val subjectId: Long,
     val componentName: String, // Ví dụ: "Chuyên cần", "Giữa kỳ", "Cuối kỳ"
     val weightPercent: Double, // Trọng số (%): ví dụ 10.0, 30.0, 60.0
-    val achievedScore: Double? // Điểm đạt được (thang 10), null nếu chưa có điểm
+    val achievedScore: Double?, // Điểm đạt được (thang 10), null nếu chưa có điểm
+    val syncId: String = UUID.randomUUID().toString(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )

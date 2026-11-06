@@ -2,6 +2,7 @@ package com.example.apphotrohoctap.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(tableName = "notes")
 data class NoteEntity(
@@ -11,5 +12,7 @@ data class NoteEntity(
     val content: String,
     val courseName: String,
     val colorKey: String, // Chuỗi lưu màu nền hiển thị
-    val updatedAtMillis: Long
+    val updatedAtMillis: Long,
+    val syncId: String = UUID.randomUUID().toString(),
+    val isDeleted: Boolean = false
 )

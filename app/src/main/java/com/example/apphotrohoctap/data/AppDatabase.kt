@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
+import java.util.UUID
 
 @Database(entities = [
     TaskEntity::class, 
@@ -16,7 +17,7 @@ import androidx.room.migration.Migration
     SemesterEntity::class,
     SubjectGradeEntity::class,
     GradeComponentEntity::class,
-], version = 7, exportSchema = false)
+], version = 8, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun taskDao(): TaskDao
@@ -118,6 +119,53 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                val currentTime = System.currentTimeMillis()
+                
+                // Bảng tasks
+                db.execSQL("ALTER TABLE `tasks` ADD COLUMN `syncId` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `tasks` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT $currentTime")
+                db.execSQL("ALTER TABLE `tasks` ADD COLUMN `isDeleted` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `tasks` SET `syncId` = lower(hex(randomblob(16))) WHERE `syncId` = ''")
+
+                // Bảng subtasks
+                db.execSQL("ALTER TABLE `subtasks` ADD COLUMN `syncId` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `subtasks` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT $currentTime")
+                db.execSQL("ALTER TABLE `subtasks` ADD COLUMN `isDeleted` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `subtasks` SET `syncId` = lower(hex(randomblob(16))) WHERE `syncId` = ''")
+
+                // Bảng schedules
+                db.execSQL("ALTER TABLE `schedules` ADD COLUMN `syncId` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `schedules` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT $currentTime")
+                db.execSQL("ALTER TABLE `schedules` ADD COLUMN `isDeleted` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `schedules` SET `syncId` = lower(hex(randomblob(16))) WHERE `syncId` = ''")
+
+                // Bảng notes
+                db.execSQL("ALTER TABLE `notes` ADD COLUMN `syncId` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `notes` ADD COLUMN `isDeleted` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `notes` SET `syncId` = lower(hex(randomblob(16))) WHERE `syncId` = ''")
+
+                // Bảng semesters
+                db.execSQL("ALTER TABLE `semesters` ADD COLUMN `syncId` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `semesters` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT $currentTime")
+                db.execSQL("ALTER TABLE `semesters` ADD COLUMN `isDeleted` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `semesters` SET `syncId` = lower(hex(randomblob(16))) WHERE `syncId` = ''")
+
+                // Bảng subject_grades
+                db.execSQL("ALTER TABLE `subject_grades` ADD COLUMN `syncId` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `subject_grades` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT $currentTime")
+                db.execSQL("ALTER TABLE `subject_grades` ADD COLUMN `isDeleted` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `subject_grades` SET `syncId` = lower(hex(randomblob(16))) WHERE `syncId` = ''")
+
+                // Bảng grade_components
+                db.execSQL("ALTER TABLE `grade_components` ADD COLUMN `syncId` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `grade_components` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT $currentTime")
+                db.execSQL("ALTER TABLE `grade_components` ADD COLUMN `isDeleted` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `grade_components` SET `syncId` = lower(hex(randomblob(16))) WHERE `syncId` = ''")
+            }
+        }
+
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -126,10 +174,9 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "studyflow_database"
                 )
-                .addMigrations(MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 // Chỉ áp dụng xóa DB (Destructive Migration) từ các bản cũ 1,2,3,4
                 // để tránh văng app do không có kịch bản Migration. 
-                // Không xóa dữ liệu nếu người dùng đang ở bản 5 lên 6.
                 .fallbackToDestructiveMigrationFrom(1, 2, 3, 4)
                 .build()
                 INSTANCE = instance

@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "subject_grades",
@@ -23,5 +24,8 @@ data class SubjectGradeEntity(
     val semesterId: Long, // ID của học kỳ chứa môn học này
     val subjectName: String,
     val credits: Int,
-    val targetGrade: String // Mục tiêu điểm chữ, ví dụ: "A", "B+"
+    val targetGrade: String, // Mục tiêu điểm chữ, ví dụ: "A", "B+"
+    val syncId: String = UUID.randomUUID().toString(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )
