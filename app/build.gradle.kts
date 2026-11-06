@@ -72,7 +72,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
-    implementation(libs.firebase.firestore)
+    implementation("com.google.firebase:firebase-firestore-ktx")
     
     // Serialization
     implementation(libs.gson)

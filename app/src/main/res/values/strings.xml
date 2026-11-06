@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AppHoTroHocTap</string>
+    <string name="app_name">StudyFlow</string>
     <string name="coming_soon">Tính năng đang được phát triển</string>
     <string name="default_web_client_id" translatable="false">86002353781-ash0kiamcoqlaa3ng9icufa6cj1fl87k.apps.googleusercontent.com</string>
 </resources>
