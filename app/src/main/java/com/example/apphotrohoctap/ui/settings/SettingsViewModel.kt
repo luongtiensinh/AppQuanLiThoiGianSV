@@ -67,33 +67,19 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
     private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
     val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
 
-    private val backupRepository by lazy {
+    private val syncRepository by lazy {
         val database = com.example.apphotrohoctap.data.AppDatabase.getDatabase(getApplication())
-        com.example.apphotrohoctap.data.backup.BackupRepository(database)
+        com.example.apphotrohoctap.data.sync.SyncRepository(database)
     }
 
-    fun backupToCloud() {
+    fun syncDataWithCloud() {
         _syncState.value = SyncState.Loading
         viewModelScope.launch {
-            when (val result = backupRepository.backupDataToCloud()) {
-                is com.example.apphotrohoctap.data.backup.BackupResult.Success -> {
-                    _syncState.value = SyncState.Success("Sao lưu dữ liệu lên Đám mây thành công!")
+            when (val result = syncRepository.syncWithCloud()) {
+                is com.example.apphotrohoctap.data.sync.SyncResult.Success -> {
+                    _syncState.value = SyncState.Success("Đồng bộ dữ liệu thành công!")
                 }
-                is com.example.apphotrohoctap.data.backup.BackupResult.Error -> {
-                    _syncState.value = SyncState.Error(result.message)
-                }
-            }
-        }
-    }
-
-    fun restoreFromCloud() {
-        _syncState.value = SyncState.Loading
-        viewModelScope.launch {
-            when (val result = backupRepository.restoreDataFromCloud()) {
-                is com.example.apphotrohoctap.data.backup.BackupResult.Success -> {
-                    _syncState.value = SyncState.Success("Khôi phục dữ liệu từ Đám mây thành công!")
-                }
-                is com.example.apphotrohoctap.data.backup.BackupResult.Error -> {
+                is com.example.apphotrohoctap.data.sync.SyncResult.Error -> {
                     _syncState.value = SyncState.Error(result.message)
                 }
             }
