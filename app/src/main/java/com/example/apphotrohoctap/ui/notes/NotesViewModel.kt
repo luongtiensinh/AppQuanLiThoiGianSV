@@ -32,7 +32,7 @@ internal class NotesViewModel(private val repository: NoteRepository) : ViewMode
 
     fun deleteNote(note: NoteEntity) {
         viewModelScope.launch {
-            repository.deleteNote(note)
+            repository.deleteNote(note.id)
         }
     }
     
