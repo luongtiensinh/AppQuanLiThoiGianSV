@@ -424,10 +424,10 @@ private fun TaskSubtasksCard(
                 TextField(
                     value = newSubtask,
                     onValueChange = onNewSubtaskChange,
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    placeholder = { Text("＋  Thêm việc con mới...", fontSize = 11.sp, color = DetailMuted, maxLines = 1) },
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    placeholder = { Text("Thêm việc con mới...", fontSize = 12.sp, color = DetailMuted, maxLines = 1) },
                     singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 11.sp, color = DetailInk),
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp, color = DetailInk),
                     shape = CircleShape,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = DetailPale, unfocusedContainerColor = DetailPale,
@@ -436,7 +436,7 @@ private fun TaskSubtasksCard(
                     )
                 )
                 Surface(onClick = onAdd, color = DetailBrand, shape = CircleShape) {
-                    Text("Thêm", Modifier.padding(horizontal = 13.dp, vertical = 9.dp), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    Text("Thêm", Modifier.padding(horizontal = 14.dp, vertical = 12.dp), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                 }
             }
         }
