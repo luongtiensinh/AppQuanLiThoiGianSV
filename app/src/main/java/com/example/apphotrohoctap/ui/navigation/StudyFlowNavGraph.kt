@@ -62,6 +62,12 @@ fun StudyFlowNavGraph(
                 onAddTask = { navController.navigate(Screen.AddTask.route) },
                 onStartFocus = { navController.navigate(Screen.Pomodoro.route) },
                 onCourseClick = { courseName -> navController.navigate(Screen.CourseDetail.createRoute(courseName)) },
+                onTaskClick = { taskId -> 
+                    val parsedId = taskId.toLongOrNull()
+                    if (parsedId != null) {
+                        navController.navigate(Screen.TaskDetail.createRoute(parsedId)) 
+                    }
+                },
                 onTabSelected = navToTab,
                 onProfileClick = { navController.navigate(Screen.Settings.route) },
                 pomodoroState = pomodoroState
@@ -84,7 +90,12 @@ fun StudyFlowNavGraph(
         composable(Screen.Tasks.route) {
             StudyFlowTasksScreen(
                 onAddTask = { navController.navigate(Screen.AddTask.route) },
-                onTaskClick = { taskId -> navController.navigate(Screen.TaskDetail.createRoute(taskId.toLongOrNull() ?: 0L)) },
+                onTaskClick = { taskId -> 
+                    val parsedId = taskId.toLongOrNull()
+                    if (parsedId != null) {
+                        navController.navigate(Screen.TaskDetail.createRoute(parsedId))
+                    }
+                },
                 onTabSelected = navToTab,
                 onProfileClick = { navController.navigate(Screen.Settings.route) }
             )
@@ -112,7 +123,7 @@ fun StudyFlowNavGraph(
             StudyFlowGradesScreen(
                 semesterId = semesterId,
                 onBack = { navController.popBackStack() },
-                onAddSubject = { semId -> navController.navigate(Screen.AddSubject.createRoute(semId)) },
+                onAddSubject = { navController.navigate(Screen.AddSubject.createRoute(semesterId)) },
                 onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) }
             )
         }

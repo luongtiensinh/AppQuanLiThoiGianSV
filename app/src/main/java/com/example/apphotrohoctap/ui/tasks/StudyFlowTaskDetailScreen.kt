@@ -130,7 +130,6 @@ fun StudyFlowTaskDetailScreen(
                         }
                     }
                 )
-                TaskAttachmentCard()
                 if (currentTask.notes.isNotBlank()) {
                     TaskNotesCard(
                         notes = currentTask.notes,
@@ -329,8 +328,17 @@ private fun TaskMetadataCard(task: TaskItem, onEditClick: () -> Unit) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             MetadataRow("▤", "Thời gian", task.due, trailing = "Sửa", onTrailingClick = onEditClick)
             MetadataDivider()
-            MetadataRow("⬡", "Phân loại", task.category.uppercase(), trailing = "Học phần chính", onTrailingClick = null)
+            MetadataRow("⬡", "Phân loại", getCategoryVietnamese(task.category), trailing = "Học phần chính", onTrailingClick = null)
         }
+    }
+}
+
+private fun getCategoryVietnamese(category: String): String {
+    return when(category.lowercase()) {
+        "deadline" -> "Hạn chót (Deadline)"
+        "assignment" -> "Bài tập (Assignment)"
+        "class" -> "Lớp học (Class)"
+        else -> category.uppercase()
     }
 }
 
@@ -424,10 +432,10 @@ private fun TaskSubtasksCard(
                 TextField(
                     value = newSubtask,
                     onValueChange = onNewSubtaskChange,
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    placeholder = { Text("＋  Thêm việc con mới...", fontSize = 11.sp, color = DetailMuted, maxLines = 1) },
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    placeholder = { Text("Thêm việc con mới...", fontSize = 12.sp, color = DetailMuted, maxLines = 1) },
                     singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 11.sp, color = DetailInk),
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp, color = DetailInk),
                     shape = CircleShape,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = DetailPale, unfocusedContainerColor = DetailPale,
@@ -436,28 +444,14 @@ private fun TaskSubtasksCard(
                     )
                 )
                 Surface(onClick = onAdd, color = DetailBrand, shape = CircleShape) {
-                    Text("Thêm", Modifier.padding(horizontal = 13.dp, vertical = 9.dp), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    Text("Thêm", Modifier.padding(horizontal = 14.dp, vertical = 12.dp), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                 }
             }
         }
     }
 }
 
-@Composable
-private fun TaskAttachmentCard() {
-    val context = LocalContext.current
-    DetailSectionCard(title = "♧  Tài liệu đính kèm") {
-        Row(Modifier.fillMaxWidth().background(DetailPale, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("De_cuong_Bai_tap_lon_v2.pdf", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = DetailInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("2.4 MB • Tải lên từ LMS", fontSize = 9.sp, color = DetailMuted)
-            }
-            Surface(onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, color = Color(0xFFE3E0F7), shape = CircleShape) {
-                Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) { Text("↓", fontSize = 17.sp, color = DetailBrand) }
-            }
-        }
-    }
-}
+
 
 @Composable
 private fun TaskNotesCard(notes: String, onEditClick: () -> Unit) {

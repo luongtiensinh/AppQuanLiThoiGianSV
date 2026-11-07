@@ -66,6 +66,7 @@ fun StudyFlowHomeScreen(
     onFilterDeadlines: (() -> Unit)? = null,
     onStartFocus: (() -> Unit)? = null,
     onAddTask: () -> Unit = {},
+    onTaskClick: (String) -> Unit = {},
     onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {},
     pomodoroState: com.example.apphotrohoctap.ui.pomodoro.PomodoroUiState? = null
 ) {
@@ -101,7 +102,7 @@ fun StudyFlowHomeScreen(
                     GoalProgressCard(uiState.tasksDone, uiState.tasksTotalThisWeek)
                     StatisticsRow(uiState.tasksToday, uiState.tasksUrgent, uiState.deadlinesThisWeek, uiState.tasksDone)
                     TodayScheduleSection(uiState.todaySchedules, handleSeeAllClasses, onCourseClick)
-                    UpcomingDeadlinesSection(uiState.upcomingDeadlines, handleFilterDeadlines)
+                    UpcomingDeadlinesSection(uiState.upcomingDeadlines, handleFilterDeadlines, onTaskClick = onTaskClick)
                     FocusSessionCard(
                         onStart = handleStartFocus,
                         pomodoroState = pomodoroState
@@ -477,7 +478,7 @@ private fun StudyClassCard(item: StudyClass, onClick: () -> Unit) {
 }
 
 @Composable
-private fun UpcomingDeadlinesSection(tasks: List<DeadlineTask>, onFilterClick: () -> Unit) {
+private fun UpcomingDeadlinesSection(tasks: List<DeadlineTask>, onFilterClick: () -> Unit, onTaskClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -504,14 +505,15 @@ private fun UpcomingDeadlinesSection(tasks: List<DeadlineTask>, onFilterClick: (
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            tasks.forEach { task -> DeadlineCard(task) }
+            tasks.forEach { task -> DeadlineCard(task, onClick = { onTaskClick(task.id) }) }
         }
     }
 }
 
 @Composable
-private fun DeadlineCard(task: DeadlineTask) {
+private fun DeadlineCard(task: DeadlineTask, onClick: () -> Unit = {}) {
     Card(
+        onClick = onClick,
         modifier = Modifier.width(288.dp).height(170.5.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
