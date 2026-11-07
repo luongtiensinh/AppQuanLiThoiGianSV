@@ -20,7 +20,10 @@ class GradeRepository(private val gradeDao: GradeDao) {
         gradeDao.updateSemester(semester.copy(updatedAt = System.currentTimeMillis()))
     }
 
-    suspend fun deleteSemester(semesterId: Long) = gradeDao.softDeleteSemester(semesterId, System.currentTimeMillis())
+    suspend fun deleteSemester(semesterId: Long) {
+        val now = System.currentTimeMillis()
+        gradeDao.softDeleteSemesterCascade(semesterId, now)
+    }
     
     suspend fun setCurrentSemester(id: Long) {
         gradeDao.clearCurrentSemester()
@@ -53,7 +56,10 @@ class GradeRepository(private val gradeDao: GradeDao) {
     
     suspend fun updateComponent(component: GradeComponentEntity) = gradeDao.updateComponent(component.copy(updatedAt = System.currentTimeMillis()))
     
-    suspend fun deleteSubject(subjectId: Long) = gradeDao.softDeleteSubject(subjectId, System.currentTimeMillis())
+    suspend fun deleteSubject(subjectId: Long) {
+        val now = System.currentTimeMillis()
+        gradeDao.softDeleteSubjectCascade(subjectId, now)
+    }
     
     suspend fun deleteComponent(componentId: Long) = gradeDao.softDeleteComponent(componentId, System.currentTimeMillis())
 }
