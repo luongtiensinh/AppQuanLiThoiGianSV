@@ -328,8 +328,17 @@ private fun TaskMetadataCard(task: TaskItem, onEditClick: () -> Unit) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             MetadataRow("▤", "Thời gian", task.due, trailing = "Sửa", onTrailingClick = onEditClick)
             MetadataDivider()
-            MetadataRow("⬡", "Phân loại", task.category.uppercase(), trailing = "Học phần chính", onTrailingClick = null)
+            MetadataRow("⬡", "Phân loại", getCategoryVietnamese(task.category), trailing = "Học phần chính", onTrailingClick = null)
         }
+    }
+}
+
+private fun getCategoryVietnamese(category: String): String {
+    return when(category.lowercase()) {
+        "deadline" -> "Hạn chót (Deadline)"
+        "assignment" -> "Bài tập (Assignment)"
+        "class" -> "Lớp học (Class)"
+        else -> category.uppercase()
     }
 }
 
