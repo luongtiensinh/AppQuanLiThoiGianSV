@@ -2,6 +2,7 @@ package com.example.apphotrohoctap.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(tableName = "tasks")
 data class TaskEntity(
@@ -14,5 +15,8 @@ data class TaskEntity(
     val priority: String, // "Cao", "Trung bình", "Thấp"
     val place: String?,
     val notes: String?,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val syncId: String = UUID.randomUUID().toString(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )

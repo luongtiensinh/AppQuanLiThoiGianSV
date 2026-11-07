@@ -31,6 +31,9 @@ class StudyFlowApplication : Application(), Application.ActivityLifecycleCallbac
         if (isReminderEnabled) {
             ReminderManager.startPeriodicReminder(this)
         }
+        
+        // Tự động khởi chạy Sync Ngầm khi mở app (Sẽ chỉ chạy nếu có mạng và tuân thủ chu kỳ)
+        ReminderManager.startBackgroundSync(this)
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}

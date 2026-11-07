@@ -36,7 +36,7 @@ internal class ScheduleViewModel(private val repository: ScheduleRepository) : V
 
     fun deleteSchedule(schedule: ScheduleEntity) {
         viewModelScope.launch {
-            repository.deleteSchedule(schedule)
+            repository.deleteSchedule(schedule.id)
         }
     }
 

@@ -10,17 +10,17 @@ class GradeRepository(private val gradeDao: GradeDao) {
         if (semester.isCurrent) {
             gradeDao.clearCurrentSemester()
         }
-        return gradeDao.insertSemester(semester)
+        return gradeDao.insertSemester(semester.copy(updatedAt = System.currentTimeMillis()))
     }
 
     suspend fun updateSemester(semester: SemesterEntity) {
         if (semester.isCurrent) {
             gradeDao.clearCurrentSemester()
         }
-        gradeDao.updateSemester(semester)
+        gradeDao.updateSemester(semester.copy(updatedAt = System.currentTimeMillis()))
     }
 
-    suspend fun deleteSemester(semester: SemesterEntity) = gradeDao.deleteSemester(semester)
+    suspend fun deleteSemester(semesterId: Long) = gradeDao.softDeleteSemester(semesterId, System.currentTimeMillis())
     
     suspend fun setCurrentSemester(id: Long) {
         gradeDao.clearCurrentSemester()
@@ -40,20 +40,20 @@ class GradeRepository(private val gradeDao: GradeDao) {
     fun getSubjectWithGradesFlowById(id: Long): Flow<SubjectWithGrades?> = gradeDao.getSubjectWithGradesFlowById(id)
     
     suspend fun addSubjectWithComponents(subject: SubjectGradeEntity, components: List<GradeComponentEntity>) {
-        val subjectId = gradeDao.insertSubject(subject)
+        val subjectId = gradeDao.insertSubject(subject.copy(updatedAt = System.currentTimeMillis()))
         if (components.isNotEmpty()) {
-            val componentEntities = components.map { it.copy(subjectId = subjectId) }
+            val componentEntities = components.map { it.copy(subjectId = subjectId, updatedAt = System.currentTimeMillis()) }
             gradeDao.insertComponents(componentEntities)
         }
     }
     
-    suspend fun updateSubject(subject: SubjectGradeEntity) = gradeDao.updateSubject(subject)
+    suspend fun updateSubject(subject: SubjectGradeEntity) = gradeDao.updateSubject(subject.copy(updatedAt = System.currentTimeMillis()))
     
-    suspend fun addComponent(component: GradeComponentEntity) = gradeDao.insertComponent(component)
+    suspend fun addComponent(component: GradeComponentEntity) = gradeDao.insertComponent(component.copy(updatedAt = System.currentTimeMillis()))
     
-    suspend fun updateComponent(component: GradeComponentEntity) = gradeDao.updateComponent(component)
+    suspend fun updateComponent(component: GradeComponentEntity) = gradeDao.updateComponent(component.copy(updatedAt = System.currentTimeMillis()))
     
-    suspend fun deleteSubject(subject: SubjectGradeEntity) = gradeDao.deleteSubject(subject)
+    suspend fun deleteSubject(subjectId: Long) = gradeDao.softDeleteSubject(subjectId, System.currentTimeMillis())
     
-    suspend fun deleteComponent(componentId: Long) = gradeDao.deleteComponent(componentId)
+    suspend fun deleteComponent(componentId: Long) = gradeDao.softDeleteComponent(componentId, System.currentTimeMillis())
 }

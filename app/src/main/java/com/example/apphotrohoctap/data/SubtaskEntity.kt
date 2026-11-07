@@ -3,6 +3,7 @@ package com.example.apphotrohoctap.data
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "subtasks",
@@ -20,5 +21,8 @@ data class SubtaskEntity(
     val subtaskId: Long = 0,
     val taskId: Long,
     val title: String,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val syncId: String = UUID.randomUUID().toString(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )

@@ -109,10 +109,7 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
 
     fun deleteSubject(subjectId: Long) {
         viewModelScope.launch {
-            val subject = repository.getSubjectWithGradesById(subjectId)
-            if (subject != null) {
-                repository.deleteSubject(subject.subject)
-            }
+            repository.deleteSubject(subjectId)
         }
     }
 

@@ -1,7 +1,6 @@
 package com.example.apphotrohoctap.data
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -12,15 +11,15 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TaskDao {
     @Transaction
-    @Query("SELECT * FROM tasks ORDER BY dueAtMillis ASC")
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 ORDER BY dueAtMillis ASC")
     fun getAllTasks(): Flow<List<TaskWithSubtasks>>
 
     @Transaction
-    @Query("SELECT * FROM tasks WHERE subject COLLATE NOCASE = :subject ORDER BY dueAtMillis ASC")
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 AND subject COLLATE NOCASE = :subject ORDER BY dueAtMillis ASC")
     fun getTasksBySubject(subject: String): Flow<List<TaskWithSubtasks>>
 
     @Transaction
-    @Query("SELECT * FROM tasks WHERE id = :id")
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 AND id = :id")
     suspend fun getTaskById(id: Long): TaskWithSubtasks?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -38,16 +37,22 @@ interface TaskDao {
     @Update
     suspend fun updateSubtask(subtask: SubtaskEntity)
 
-    @Delete
-    suspend fun deleteTask(task: TaskEntity)
+    @Query("UPDATE tasks SET isDeleted = 1, updatedAt = :timestamp WHERE id = :taskId")
+    suspend fun softDeleteTask(taskId: Long, timestamp: Long)
 
-    @Query("DELETE FROM subtasks WHERE subtaskId = :subtaskId")
-    suspend fun deleteSubtask(subtaskId: Long)
+    @Query("UPDATE subtasks SET isDeleted = 1, updatedAt = :timestamp WHERE subtaskId = :subtaskId")
+    suspend fun softDeleteSubtask(subtaskId: Long, timestamp: Long)
 
-    @Query("DELETE FROM subtasks WHERE taskId = :taskId")
-    suspend fun deleteSubtasksByTaskId(taskId: Long)
+    @Query("UPDATE subtasks SET isDeleted = 1, updatedAt = :timestamp WHERE taskId = :taskId")
+    suspend fun softDeleteSubtasksByTaskId(taskId: Long, timestamp: Long)
 
     @Transaction
     @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueAtMillis > :now AND dueAtMillis <= :next24Hours ORDER BY dueAtMillis ASC")
     suspend fun getUpcomingDeadlines(now: Long, next24Hours: Long): List<TaskWithSubtasks>
+
+    @Query("SELECT * FROM tasks")
+    suspend fun getAllTasksForSync(): List<TaskEntity>
+
+    @Query("SELECT * FROM subtasks")
+    suspend fun getAllSubtasksForSync(): List<SubtaskEntity>
 }

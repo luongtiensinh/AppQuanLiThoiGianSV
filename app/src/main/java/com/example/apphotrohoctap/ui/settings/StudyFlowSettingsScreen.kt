@@ -141,8 +141,8 @@ fun StudyFlowSettingsScreen(
             }
 
             Spacer(Modifier.height(22.dp))
-            // Mục Đồng bộ Đám mây (Firebase Realtime Database)
-            SettingsSectionHeader("ĐỒNG BỘ ĐÁM MÂY", "Firebase Realtime")
+            // Mục Đồng bộ Đám mây (Firebase Firestore Two-way Sync)
+            SettingsSectionHeader("ĐỒNG BỘ ĐÁM MÂY", "Firebase Firestore")
             SettingsCard {
                 val syncState by viewModel.syncState.collectAsStateWithLifecycle()
 
@@ -161,22 +161,12 @@ fun StudyFlowSettingsScreen(
                 }
 
                 SettingsNavigationRow(
-                    icon = "☁",
-                    title = "Sao lưu dữ liệu lên Cloud",
-                    subtitle = "Lưu toàn bộ Lịch, Task, Điểm lên Firebase",
-                    trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang lưu..." else "Sao lưu",
-                    onClick = {
-                        viewModel.backupToCloud()
-                    }
-                )
-                SettingsDivider()
-                SettingsNavigationRow(
                     icon = "⟳",
-                    title = "Phục hồi dữ liệu từ Cloud",
-                    subtitle = "Khôi phục lại dữ liệu khi đổi điện thoại",
-                    trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang tải..." else "Phục hồi",
+                    title = "Đồng bộ hóa dữ liệu (Sync)",
+                    subtitle = "Lưu và hợp nhất dữ liệu trên tất cả thiết bị",
+                    trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang đồng bộ..." else "Đồng bộ ngay",
                     onClick = {
-                        viewModel.restoreFromCloud()
+                        viewModel.syncDataWithCloud()
                     }
                 )
             }
