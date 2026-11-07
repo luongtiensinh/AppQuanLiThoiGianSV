@@ -62,6 +62,7 @@ fun StudyFlowNavGraph(
                 onAddTask = { navController.navigate(Screen.AddTask.route) },
                 onStartFocus = { navController.navigate(Screen.Pomodoro.route) },
                 onCourseClick = { courseName -> navController.navigate(Screen.CourseDetail.createRoute(courseName)) },
+                onTaskClick = { taskId -> navController.navigate(Screen.TaskDetail.createRoute(taskId.toLongOrNull() ?: 0L)) },
                 onTabSelected = navToTab,
                 onProfileClick = { navController.navigate(Screen.Settings.route) },
                 pomodoroState = pomodoroState
@@ -112,7 +113,7 @@ fun StudyFlowNavGraph(
             StudyFlowGradesScreen(
                 semesterId = semesterId,
                 onBack = { navController.popBackStack() },
-                onAddSubject = { semId -> navController.navigate(Screen.AddSubject.createRoute(semId)) },
+                onAddSubject = { navController.navigate(Screen.AddSubject.createRoute(semesterId)) },
                 onSubjectClick = { subjectId -> navController.navigate(Screen.SubjectDetail.createRoute(subjectId)) }
             )
         }
