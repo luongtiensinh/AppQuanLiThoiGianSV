@@ -1,9 +1,13 @@
 package com.example.apphotrohoctap.data.sync
 
+import android.content.Context
 import com.example.apphotrohoctap.data.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.WriteBatch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -12,7 +16,7 @@ sealed class SyncResult {
     data class Error(val message: String) : SyncResult()
 }
 
-class SyncRepository(private val database: AppDatabase) {
+class SyncRepository(private val database: AppDatabase, private val context: Context) {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
@@ -21,13 +25,28 @@ class SyncRepository(private val database: AppDatabase) {
             val user = auth.currentUser ?: return@withContext SyncResult.Error("Chưa đăng nhập tài khoản Google.")
             val userId = user.uid
 
-            syncCollection(userId, "tasks", database.taskDao()::getAllTasksForSync, database.taskDao()::insertTask, TaskEntity::class.java)
-            syncCollection(userId, "subtasks", database.taskDao()::getAllSubtasksForSync, database.taskDao()::insertSubtask, SubtaskEntity::class.java)
-            syncCollection(userId, "schedules", database.scheduleDao()::getAllSchedulesForSync, database.scheduleDao()::insertSchedule, ScheduleEntity::class.java)
-            syncCollection(userId, "notes", database.noteDao()::getAllNotesForSync, database.noteDao()::insertNote, NoteEntity::class.java)
-            syncCollection(userId, "semesters", database.gradeDao()::getAllSemestersForSync, database.gradeDao()::insertSemester, SemesterEntity::class.java)
-            syncCollection(userId, "subjects", database.gradeDao()::getAllSubjectsForSync, database.gradeDao()::insertSubject, SubjectGradeEntity::class.java)
-            syncCollection(userId, "grade_components", database.gradeDao()::getAllComponentsForSync, database.gradeDao()::insertComponent, GradeComponentEntity::class.java)
+            val prefs = context.getSharedPreferences("studyflow_sync_prefs", Context.MODE_PRIVATE)
+            val lastSyncTime = prefs.getLong("last_sync_time", 0L)
+            val currentSyncTime = System.currentTimeMillis()
+
+            val writeBatch = firestore.batch()
+
+            // Run concurrently with async/awaitAll
+            awaitAll(
+                async { processSync(userId, "tasks", database.taskDao()::getModifiedTasks, database.taskDao()::insertTaskMany, TaskEntity::class.java, lastSyncTime, writeBatch) },
+                async { processSync(userId, "subtasks", database.taskDao()::getModifiedSubtasks, database.taskDao()::insertSubtaskMany, SubtaskEntity::class.java, lastSyncTime, writeBatch) },
+                async { processSync(userId, "schedules", database.scheduleDao()::getModifiedSchedules, database.scheduleDao()::insertScheduleMany, ScheduleEntity::class.java, lastSyncTime, writeBatch) },
+                async { processSync(userId, "notes", database.noteDao()::getModifiedNotes, database.noteDao()::insertNoteMany, NoteEntity::class.java, lastSyncTime, writeBatch) },
+                async { processSync(userId, "semesters", database.gradeDao()::getModifiedSemesters, database.gradeDao()::insertSemesterMany, SemesterEntity::class.java, lastSyncTime, writeBatch) },
+                async { processSync(userId, "subjects", database.gradeDao()::getModifiedSubjects, database.gradeDao()::insertSubjectMany, SubjectGradeEntity::class.java, lastSyncTime, writeBatch) },
+                async { processSync(userId, "grade_components", database.gradeDao()::getModifiedComponents, database.gradeDao()::insertComponentMany, GradeComponentEntity::class.java, lastSyncTime, writeBatch) }
+            )
+
+            // Commit all network writes in a single batch
+            writeBatch.commit().await()
+            
+            // Save successful sync timestamp
+            prefs.edit().putLong("last_sync_time", currentSyncTime).apply()
 
             SyncResult.Success
         } catch (e: Exception) {
@@ -35,24 +54,29 @@ class SyncRepository(private val database: AppDatabase) {
         }
     }
 
-    private suspend inline fun <reified T : Any> syncCollection(
+    private suspend inline fun <reified T : Any> processSync(
         userId: String,
         collectionName: String,
-        crossinline getLocalData: suspend () -> List<T>,
-        crossinline saveLocalData: suspend (T) -> Unit,
-        clazz: Class<T>
+        crossinline getLocalData: suspend (Long) -> List<T>,
+        crossinline saveLocalData: suspend (List<T>) -> Unit,
+        clazz: Class<T>,
+        lastSyncTime: Long,
+        writeBatch: WriteBatch
     ) {
         val collectionRef = firestore.collection("users").document(userId).collection(collectionName)
 
-        val snapshot = collectionRef.get().await()
+        // Delta Fetch from Firebase
+        val snapshot = collectionRef.whereGreaterThan("updatedAt", lastSyncTime).get().await()
         val remoteList = snapshot.documents.mapNotNull { it.toObject(clazz) }
 
-        val localList = getLocalData()
+        // Delta Fetch from Local
+        val localList = getLocalData(lastSyncTime)
 
         val remoteMap = remoteList.associateBy { getSyncId(it) }
         val localMap = localList.associateBy { getSyncId(it) }
 
         val allSyncIds = remoteMap.keys + localMap.keys
+        val localUpdates = mutableListOf<T>()
 
         allSyncIds.forEach { syncId ->
             val remoteItem = remoteMap[syncId]
@@ -63,15 +87,19 @@ class SyncRepository(private val database: AppDatabase) {
                 val localTime = getUpdatedAt(localItem)
                 
                 if (remoteTime > localTime) {
-                    saveLocalData(remoteItem) 
+                    localUpdates.add(remoteItem) 
                 } else if (localTime > remoteTime) {
-                    collectionRef.document(syncId).set(localItem).await() 
+                    writeBatch.set(collectionRef.document(syncId), localItem) 
                 }
             } else if (remoteItem != null) {
-                saveLocalData(remoteItem)
+                localUpdates.add(remoteItem)
             } else if (localItem != null) {
-                collectionRef.document(syncId).set(localItem).await()
+                writeBatch.set(collectionRef.document(syncId), localItem)
             }
+        }
+        
+        if (localUpdates.isNotEmpty()) {
+            saveLocalData(localUpdates)
         }
     }
 

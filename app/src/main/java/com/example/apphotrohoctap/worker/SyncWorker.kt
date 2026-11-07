@@ -15,7 +15,7 @@ class SyncWorker(
     override suspend fun doWork(): Result {
         return try {
             val database = AppDatabase.getDatabase(applicationContext)
-            val syncRepository = SyncRepository(database)
+            val syncRepository = SyncRepository(database, applicationContext)
             
             val result = syncRepository.syncWithCloud()
             

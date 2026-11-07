@@ -69,7 +69,7 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
 
     private val syncRepository by lazy {
         val database = com.example.apphotrohoctap.data.AppDatabase.getDatabase(getApplication())
-        com.example.apphotrohoctap.data.sync.SyncRepository(database)
+        com.example.apphotrohoctap.data.sync.SyncRepository(database, getApplication())
     }
 
     fun syncDataWithCloud() {

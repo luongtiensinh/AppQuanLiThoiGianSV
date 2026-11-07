@@ -50,9 +50,15 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueAtMillis > :now AND dueAtMillis <= :next24Hours ORDER BY dueAtMillis ASC")
     suspend fun getUpcomingDeadlines(now: Long, next24Hours: Long): List<TaskWithSubtasks>
 
-    @Query("SELECT * FROM tasks")
-    suspend fun getAllTasksForSync(): List<TaskEntity>
+    @Query("SELECT * FROM tasks WHERE updatedAt > :lastSyncTime")
+    suspend fun getModifiedTasks(lastSyncTime: Long): List<TaskEntity>
 
-    @Query("SELECT * FROM subtasks")
-    suspend fun getAllSubtasksForSync(): List<SubtaskEntity>
+    @Query("SELECT * FROM subtasks WHERE updatedAt > :lastSyncTime")
+    suspend fun getModifiedSubtasks(lastSyncTime: Long): List<SubtaskEntity>
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTaskMany(tasks: List<TaskEntity>)
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSubtaskMany(subtasks: List<SubtaskEntity>)
 }
