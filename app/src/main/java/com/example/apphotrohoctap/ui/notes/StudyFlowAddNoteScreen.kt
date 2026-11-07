@@ -73,7 +73,7 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 content = body,
                 courseName = selectedCourse,
                 colorKey = hexColor,
-                updatedAtMillis = System.currentTimeMillis()
+                updatedAt = System.currentTimeMillis()
             )
             viewModel.addNote(note)
             onSave()

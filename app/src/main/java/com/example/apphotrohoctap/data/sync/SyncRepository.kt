@@ -8,6 +8,8 @@ import com.google.firebase.firestore.WriteBatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -19,6 +21,7 @@ sealed class SyncResult {
 class SyncRepository(private val database: AppDatabase, private val context: Context) {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
+    private val batchMutex = Mutex()
 
     suspend fun syncWithCloud(): SyncResult = withContext(Dispatchers.IO) {
         try {
@@ -89,12 +92,16 @@ class SyncRepository(private val database: AppDatabase, private val context: Con
                 if (remoteTime > localTime) {
                     localUpdates.add(remoteItem) 
                 } else if (localTime > remoteTime) {
-                    writeBatch.set(collectionRef.document(syncId), localItem) 
+                    batchMutex.withLock {
+                        writeBatch.set(collectionRef.document(syncId), localItem) 
+                    }
                 }
             } else if (remoteItem != null) {
                 localUpdates.add(remoteItem)
             } else if (localItem != null) {
-                writeBatch.set(collectionRef.document(syncId), localItem)
+                batchMutex.withLock {
+                    writeBatch.set(collectionRef.document(syncId), localItem)
+                }
             }
         }
         

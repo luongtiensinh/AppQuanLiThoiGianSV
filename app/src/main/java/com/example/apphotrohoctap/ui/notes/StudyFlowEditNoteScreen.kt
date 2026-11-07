@@ -73,7 +73,7 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Surface(onClick = {
-                        viewModel.updateNote(currentNote.copy(title = title, content = body, updatedAtMillis = System.currentTimeMillis()))
+                        viewModel.updateNote(currentNote.copy(title = title, content = body, updatedAt = System.currentTimeMillis()))
                         android.widget.Toast.makeText(context, "Đã lưu", android.widget.Toast.LENGTH_SHORT).show()
                     }, color = EditNoteBrand, shape = CircleShape) {
                         Text("✓  Lưu", Modifier.padding(horizontal = 16.dp, vertical = 12.dp), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
@@ -141,7 +141,7 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
 
                 Row(Modifier.fillMaxWidth().padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     val sdf = java.text.SimpleDateFormat("dd/MM/yyyy • HH:mm", java.util.Locale.getDefault())
-                    val dateStr = sdf.format(java.util.Date(currentNote.updatedAtMillis))
+                    val dateStr = sdf.format(java.util.Date(currentNote.updatedAt))
                     Text("◷  Chỉnh sửa lần cuối: $dateStr", fontSize = 9.sp, color = EditNoteMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     EditNoteChip("${body.length} ký tự", EditNotePale, EditNoteBrand)
                 }
