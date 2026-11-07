@@ -130,7 +130,6 @@ fun StudyFlowTaskDetailScreen(
                         }
                     }
                 )
-                TaskAttachmentCard()
                 if (currentTask.notes.isNotBlank()) {
                     TaskNotesCard(
                         notes = currentTask.notes,
@@ -443,21 +442,7 @@ private fun TaskSubtasksCard(
     }
 }
 
-@Composable
-private fun TaskAttachmentCard() {
-    val context = LocalContext.current
-    DetailSectionCard(title = "♧  Tài liệu đính kèm") {
-        Row(Modifier.fillMaxWidth().background(DetailPale, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("De_cuong_Bai_tap_lon_v2.pdf", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = DetailInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("2.4 MB • Tải lên từ LMS", fontSize = 9.sp, color = DetailMuted)
-            }
-            Surface(onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) }, color = Color(0xFFE3E0F7), shape = CircleShape) {
-                Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) { Text("↓", fontSize = 17.sp, color = DetailBrand) }
-            }
-        }
-    }
-}
+
 
 @Composable
 private fun TaskNotesCard(notes: String, onEditClick: () -> Unit) {
