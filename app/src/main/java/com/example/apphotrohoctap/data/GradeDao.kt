@@ -70,8 +70,17 @@ interface GradeDao {
     @Query("UPDATE subject_grades SET isDeleted = 1, updatedAt = :timestamp WHERE subjectId = :subjectId")
     suspend fun softDeleteSubject(subjectId: Long, timestamp: Long)
 
+    @Query("UPDATE subject_grades SET isDeleted = 1, updatedAt = :timestamp WHERE semesterId = :semesterId")
+    suspend fun softDeleteSubjectsBySemester(semesterId: Long, timestamp: Long)
+
     @Query("UPDATE grade_components SET isDeleted = 1, updatedAt = :timestamp WHERE componentId = :componentId")
     suspend fun softDeleteComponent(componentId: Long, timestamp: Long)
+
+    @Query("UPDATE grade_components SET isDeleted = 1, updatedAt = :timestamp WHERE subjectId = :subjectId")
+    suspend fun softDeleteComponentsBySubject(subjectId: Long, timestamp: Long)
+
+    @Query("UPDATE grade_components SET isDeleted = 1, updatedAt = :timestamp WHERE subjectId IN (SELECT subjectId FROM subject_grades WHERE semesterId = :semesterId)")
+    suspend fun softDeleteComponentsBySemester(semesterId: Long, timestamp: Long)
 
     @Query("SELECT * FROM semesters WHERE updatedAt > :lastSyncTime")
     suspend fun getModifiedSemesters(lastSyncTime: Long): List<SemesterEntity>
