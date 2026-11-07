@@ -144,7 +144,7 @@ internal class TasksViewModel(
             val taskWithSubtasks = repository.getTaskById(taskId)
             if (taskWithSubtasks != null) {
                 repository.deleteSubtasksByTaskId(taskId)
-                repository.deleteTask(taskWithSubtasks.task)
+                repository.deleteTask(taskId)
             }
         }
     }

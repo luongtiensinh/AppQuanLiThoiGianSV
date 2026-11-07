@@ -33,7 +33,8 @@ fun StudyFlowSubjectDetailScreen(
 ) {
     val context = LocalContext.current
     val viewModel: GradeViewModel = viewModel(factory = GradeViewModelFactory(context))
-    val subject by viewModel.getSubject(subjectId).collectAsStateWithLifecycle(initialValue = null)
+    val subjectState by viewModel.getSubject(subjectId).collectAsStateWithLifecycle(initialValue = null)
+    val subject = subjectState
 
     var editingComponent by rememberSaveable { mutableStateOf<GradeComponentUiModel?>(null) }
     var tempScoreText by rememberSaveable { mutableStateOf("") }
@@ -179,7 +180,7 @@ fun StudyFlowSubjectDetailScreen(
                 } else if (subject.requiredScoreToTarget != null) {
                     Text("Để đạt được ${subject.targetGrade}, trung bình các cột điểm còn lại bạn cần đạt:", fontSize = 13.sp, color = Color(0xFF464555), lineHeight = 18.sp)
                     
-                    val required = subject?.requiredScoreToTarget ?: 0.0
+                    val required = subject.requiredScoreToTarget
                     val warningColor = when {
                         required > 8.0 -> Color(0xFFDC2626) // Khó - Đỏ
                         required > 5.0 -> Color(0xFFD97706) // Trung bình - Vàng
