@@ -61,6 +61,7 @@ fun StudyFlowNavGraph(
             StudyFlowHomeScreen(
                 onAddTask = { navController.navigate(Screen.AddTask.route) },
                 onStartFocus = { navController.navigate(Screen.Pomodoro.route) },
+                onSeeAllClasses = { navToTab(BottomNavTab.SCHEDULE) },
                 onCourseClick = { courseName -> navController.navigate(Screen.CourseDetail.createRoute(courseName)) },
                 onTaskClick = { taskId -> 
                     val parsedId = taskId.toLongOrNull()
