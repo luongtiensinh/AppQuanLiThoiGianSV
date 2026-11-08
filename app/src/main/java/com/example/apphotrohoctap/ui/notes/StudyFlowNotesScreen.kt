@@ -129,7 +129,7 @@ fun StudyFlowNotesScreen(    onTabSelected: (com.example.apphotrohoctap.ui.navig
 @Composable
 private fun NotesHeader(isGrid: Boolean, noteCount: Int, onToggleGrid: () -> Unit, onSort: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -158,16 +158,15 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit) {
     TextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).height(48.dp)
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(48.dp),
         placeholder = { Text("Tìm kiếm ghi chú, nội dung, môn học...", fontSize = 12.sp, color = NotesMuted, maxLines = 1) },
         leadingIcon = { Text("⌕", fontSize = 24.sp, color = NotesText) },
         trailingIcon = { Text("☷", modifier = Modifier.padding(end = 12.dp), fontSize = 18.sp, color = NotesText) },
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
+            focusedContainerColor = NotesChip,
+            unfocusedContainerColor = NotesChip,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             cursorColor = NotesBrand
@@ -178,7 +177,7 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit) {
 @Composable
 private fun SubjectFilters(filters: List<SubjectFilter>, selected: String, onSelect: (String) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         filters.forEach { filter ->
@@ -188,8 +187,8 @@ private fun SubjectFilters(filters: List<SubjectFilter>, selected: String, onSel
                 color = if (active) NotesBright else NotesChip,
                 shape = CircleShape
             ) {
-                Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    filter.color?.let { Box(Modifier.size(8.dp).clip(CircleShape).background(it)) }
+                Row(Modifier.padding(horizontal = 14.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    filter.color?.let { Box(Modifier.size(6.dp).clip(CircleShape).background(it)) }
                     Text("${filter.name} (${filter.count})", fontSize = 11.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = if (active) Color.White else NotesText, maxLines = 1)
                 }
             }
@@ -198,47 +197,8 @@ private fun SubjectFilters(filters: List<SubjectFilter>, selected: String, onSel
 }
 
 @Composable
-private fun PinnedNotesCard() {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("▮ ĐÃ GHIM", fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.7.sp, fontWeight = FontWeight.SemiBold, color = NotesBrand)
-            Spacer(Modifier.weight(1f))
-            Text("1 ghi chú quan trọng", fontSize = 11.sp, color = NotesText)
-        }
-        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-            Row(Modifier.fillMaxWidth()) {
-                Box(Modifier.width(6.dp).fillMaxHeight().background(NotesBrand))
-                Column(Modifier.weight(1f).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        NoteSubjectBadge("CSDL Nâng cao (IT3020)", NotesChip, NotesBrand)
-                        Text("▮", fontSize = 15.sp, color = NotesBrand)
-                    }
-                    Text("Công thức phân mảnh CSDL ngang", fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold, color = NotesInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("Quy tắc completeness: Mọi tuple thuộc R phải xuất hiện ở ít nhất một mảnh. Quy tắc…", fontSize = 13.sp, lineHeight = 20.sp, color = NotesText, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        AttachmentPill("▧  2 ảnh sơ đồ")
-                        AttachmentPill("▣  Slide_Chap3.pdf")
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("◷  Đã sửa 2 giờ trước", fontSize = 10.sp, color = NotesMuted)
-                        Text("Chi tiết →", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = NotesBrand)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AttachmentPill(text: String) {
-    Surface(color = NotesChip, shape = RoundedCornerShape(8.dp)) {
-        Text(text, modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp), fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = NotesText, maxLines = 1)
-    }
-}
-
-@Composable
 private fun RecentNotesSection(notes: List<NoteItem>, isGrid: Boolean, onEditNote: (Long) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Gần đây", fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, color = NotesInk)
             Spacer(Modifier.weight(1f))
@@ -298,7 +258,7 @@ private fun NoteSubjectBadge(subject: String, background: Color, foreground: Col
 @Composable
 private fun StudyTipCard() {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 24.dp).background(Color(0xFFF5F2FF), RoundedCornerShape(16.dp)).padding(12.dp),
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp).background(Color(0xFFF5F2FF), RoundedCornerShape(16.dp)).padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
