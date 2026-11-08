@@ -119,8 +119,10 @@ internal class TasksViewModel(
     }
 
     fun toggleCompleted(id: String) {
+        val taskId = id.toLongOrNull()
+        if (taskId == null) return
+        
         viewModelScope.launch {
-            val taskId = id.toLongOrNull() ?: return@launch
             val taskWithSubtasks = repository.getTaskById(taskId)
             if (taskWithSubtasks != null) {
                 repository.updateTask(taskWithSubtasks.task.copy(isCompleted = !taskWithSubtasks.task.isCompleted))
@@ -139,8 +141,10 @@ internal class TasksViewModel(
     }
 
     fun deleteTask(id: String) {
+        val taskId = id.toLongOrNull()
+        if (taskId == null) return
+        
         viewModelScope.launch {
-            val taskId = id.toLongOrNull() ?: return@launch
             val taskWithSubtasks = repository.getTaskById(taskId)
             if (taskWithSubtasks != null) {
                 repository.deleteSubtasksByTaskId(taskId)
