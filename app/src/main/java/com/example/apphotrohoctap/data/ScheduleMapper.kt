@@ -4,6 +4,51 @@ import androidx.compose.ui.graphics.Color
 import com.example.apphotrohoctap.ui.schedule.StudyClass
 import java.util.Calendar
 
+internal fun resolveRoomAndLecturer(room: String, lecturer: String): Pair<String, String> {
+    val trimmedRoom = room.trim()
+    val trimmedLecturer = lecturer.trim()
+
+    fun isRoomCode(text: String): Boolean {
+        if (text.isBlank()) return false
+        val lower = text.lowercase()
+        val hasRoomKeyword = lower.contains("phòng") || lower.contains("lab") || lower.contains("nhà") || lower.contains("hội trường")
+        val hasDigits = text.any { it.isDigit() }
+        val hasLecturerTitle = lower.contains("ts.") || lower.contains("ths.") || lower.contains("gs.") || lower.contains("pgs.") || lower.contains("gv.") || lower.contains("thầy") || lower.contains("cô")
+        return (hasDigits || hasRoomKeyword) && !hasLecturerTitle
+    }
+
+    fun isLecturerName(text: String): Boolean {
+        if (text.isBlank()) return false
+        val lower = text.lowercase()
+        val hasLecturerTitle = lower.contains("ts") || lower.contains("ths") || lower.contains("gs") || lower.contains("pgs") || lower.contains("gv") || lower.contains("thầy") || lower.contains("cô")
+        val isPureRoomNumber = text.all { it.isDigit() || it == '-' || it == ' ' }
+        return (hasLecturerTitle || !text.any { it.isDigit() }) && !isPureRoomNumber
+    }
+
+    // Trường hợp 1: Cả hai đều có dữ liệu nhưng bị TRÁO ĐỔI VỊ TRÍ
+    if (trimmedRoom.isNotBlank() && trimmedLecturer.isNotBlank()) {
+        if (isLecturerName(trimmedRoom) && isRoomCode(trimmedLecturer)) {
+            return Pair(trimmedLecturer, trimmedRoom)
+        }
+    }
+
+    // Trường hợp 2: Phòng rỗng, nhưng Giảng viên chứa thông tin Phòng
+    if (trimmedRoom.isBlank() && trimmedLecturer.isNotBlank()) {
+        if (isRoomCode(trimmedLecturer)) {
+            return Pair(trimmedLecturer, "")
+        }
+    }
+
+    // Trường hợp 3: Giảng viên rỗng, nhưng Phòng chứa thông tin Giảng viên
+    if (trimmedRoom.isNotBlank() && trimmedLecturer.isBlank()) {
+        if (isLecturerName(trimmedRoom)) {
+            return Pair("", trimmedRoom)
+        }
+    }
+
+    return Pair(trimmedRoom, trimmedLecturer)
+}
+
 internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
     val startTimes = listOf("06:45", "07:30", "08:25", "09:20", "10:05", "10:50", "12:30", "13:15", "14:10", "15:05", "15:50", "16:35", "18:00")
     val endTimes = listOf("07:30", "08:15", "09:10", "10:05", "10:50", "11:35", "13:15", "14:00", "14:55", "15:50", "16:35", "17:20", "20:15")
@@ -67,14 +112,16 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
         }
     }
 
+    val (actualRoom, actualLecturer) = resolveRoomAndLecturer(room, lecturer)
+
     return StudyClass(
         id = this.id,
         time = timeString,
         session = session,
         status = status,
         title = subject,
-        place = room,
-        teacher = lecturer,
+        place = actualRoom,
+        teacher = actualLecturer,
         leadingColor = leadingColor,
         statusColor = statusColor,
         statusTextColor = statusTextColor
