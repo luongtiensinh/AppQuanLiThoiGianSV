@@ -123,34 +123,41 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                                 Text("▣", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor)
                                 
                                 Box(modifier = Modifier.weight(1f)) {
-                                    if (currentNote.courseName.isBlank()) {
-                                        Text("Chọn / Nhập môn học", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    } else {
-                                        androidx.compose.foundation.text.BasicTextField(
-                                            value = currentNote.courseName,
-                                            onValueChange = { viewModel.updateNote(currentNote.copy(courseName = it)) },
-                                            textStyle = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor),
-                                            singleLine = true,
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
-                                    }
+                                    androidx.compose.foundation.text.BasicTextField(
+                                        value = currentNote.courseName,
+                                        onValueChange = { viewModel.updateNote(currentNote.copy(courseName = it)) },
+                                        textStyle = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor),
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        decorationBox = { innerTextField ->
+                                            if (currentNote.courseName.isBlank()) {
+                                                Text("Chọn / Nhập môn học", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            }
+                                            innerTextField()
+                                        }
+                                    )
                                 }
                                 
                                 Text("⌄", fontSize = 9.sp, color = fgColor)
                             }
                         }
                         DropdownMenu(expanded = courseMenuExpanded, onDismissRequest = { courseMenuExpanded = false }) {
-                            val displayCourses = if (availableCourses.isEmpty()) {
-                                listOf("CSDL Nâng cao", "Lập trình Di động", "Điện toán đám mây", "Tiếng Anh CNTT")
+                            if (availableCourses.isEmpty()) {
+                                DropdownMenuItem(
+                                    text = { Text("Chưa có môn học trong lịch", fontSize = 12.sp, color = EditNoteMuted) },
+                                    onClick = { },
+                                    enabled = false
+                                )
                             } else {
-                                availableCourses
-                            }
-                            
-                            displayCourses.forEach { course ->
-                                DropdownMenuItem(text = { Text(course, fontSize = 12.sp) }, onClick = { 
-                                    viewModel.updateNote(currentNote.copy(courseName = course))
-                                    courseMenuExpanded = false 
-                                })
+                                availableCourses.forEach { course ->
+                                    DropdownMenuItem(
+                                        text = { Text(course, fontSize = 12.sp) }, 
+                                        onClick = { 
+                                            viewModel.updateNote(currentNote.copy(courseName = course))
+                                            courseMenuExpanded = false 
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

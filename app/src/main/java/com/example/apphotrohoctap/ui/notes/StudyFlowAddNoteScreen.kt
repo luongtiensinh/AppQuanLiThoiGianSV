@@ -109,31 +109,38 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                             Text("▤", fontSize = 11.sp, color = EditorBrand)
                             
                             Box(modifier = Modifier.weight(1f)) {
-                                if (selectedCourse.isBlank()) {
-                                    Text("Chọn / Nhập môn học", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                } else {
-                                    androidx.compose.foundation.text.BasicTextField(
-                                        value = selectedCourse,
-                                        onValueChange = { selectedCourse = it },
-                                        textStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand),
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
+                                androidx.compose.foundation.text.BasicTextField(
+                                    value = selectedCourse,
+                                    onValueChange = { selectedCourse = it },
+                                    textStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    decorationBox = { innerTextField ->
+                                        if (selectedCourse.isBlank()) {
+                                            Text("Chọn / Nhập môn học", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        }
+                                        innerTextField()
+                                    }
+                                )
                             }
                             
                             Text("⌄", fontSize = 10.sp, color = EditorBrand)
                         }
                     }
                     DropdownMenu(expanded = courseMenuExpanded, onDismissRequest = { courseMenuExpanded = false }) {
-                        val displayCourses = if (availableCourses.isEmpty()) {
-                            listOf("CSDL Nâng cao", "Lập trình Di động", "Điện toán đám mây", "Tiếng Anh CNTT")
+                        if (availableCourses.isEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text("Chưa có môn học trong lịch", fontSize = 12.sp, color = EditorMuted) },
+                                onClick = { },
+                                enabled = false
+                            )
                         } else {
-                            availableCourses
-                        }
-                        
-                        displayCourses.forEach { course ->
-                            DropdownMenuItem(text = { Text(course, fontSize = 12.sp) }, onClick = { selectedCourse = course; courseMenuExpanded = false })
+                            availableCourses.forEach { course ->
+                                DropdownMenuItem(
+                                    text = { Text(course, fontSize = 12.sp) }, 
+                                    onClick = { selectedCourse = course; courseMenuExpanded = false }
+                                )
+                            }
                         }
                     }
                 }
