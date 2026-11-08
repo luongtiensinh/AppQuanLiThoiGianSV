@@ -21,10 +21,10 @@ import java.util.UUID
 data class SubjectGradeEntity(
     @PrimaryKey(autoGenerate = true)
     val subjectId: Long = 0,
-    val semesterId: Long, // ID của học kỳ chứa môn học này
-    val subjectName: String,
-    val credits: Int,
-    val targetGrade: String, // Mục tiêu điểm chữ, ví dụ: "A", "B+"
+    val semesterId: Long = 0L, // ID của học kỳ chứa môn học này
+    val subjectName: String = "",
+    val credits: Int = 0,
+    val targetGrade: String = "A", // Mục tiêu điểm chữ, ví dụ: "A", "B+"
     val syncId: String = UUID.randomUUID().toString(),
     val updatedAt: Long = System.currentTimeMillis(),
     val isDeleted: Boolean = false

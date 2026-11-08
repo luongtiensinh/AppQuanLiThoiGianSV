@@ -8,7 +8,7 @@ import java.util.UUID
 data class SemesterEntity(
     @PrimaryKey(autoGenerate = true)
     val semesterId: Long = 0,
-    val semesterName: String, // Ví dụ: "Học kỳ 1, 2023-2024"
+    val semesterName: String = "", // Ví dụ: "Học kỳ 1, 2023-2024"
     val isCurrent: Boolean = false, // Đánh dấu học kỳ hiện tại
     val syncId: String = UUID.randomUUID().toString(),
     val updatedAt: Long = System.currentTimeMillis(),

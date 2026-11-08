@@ -9,12 +9,12 @@ import java.util.UUID
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val title: String,
-    val content: String,
-    val courseName: String,
-    val colorKey: String, // Chuỗi lưu màu nền hiển thị
+    val title: String = "",
+    val content: String = "",
+    val courseName: String = "",
+    val colorKey: String = "", // Chuỗi lưu màu nền hiển thị
     @ColumnInfo(name = "updatedAtMillis")
-    val updatedAt: Long,
+    val updatedAt: Long = System.currentTimeMillis(),
     val syncId: String = UUID.randomUUID().toString(),
     val isDeleted: Boolean = false
 )

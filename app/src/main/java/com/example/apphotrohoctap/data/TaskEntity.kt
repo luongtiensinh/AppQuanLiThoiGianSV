@@ -8,14 +8,14 @@ import java.util.UUID
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val subject: String,
-    val title: String,
-    val dueAtMillis: Long,
-    val category: String, // "deadline", "assignment", "class"
-    val priority: String, // "Cao", "Trung bình", "Thấp"
-    val place: String?,
-    val notes: String?,
-    val isCompleted: Boolean,
+    val subject: String = "",
+    val title: String = "",
+    val dueAtMillis: Long = 0L,
+    val category: String = "deadline", // "deadline", "assignment", "class"
+    val priority: String = "Trung bình", // "Cao", "Trung bình", "Thấp"
+    val place: String? = null,
+    val notes: String? = null,
+    val isCompleted: Boolean = false,
     val syncId: String = UUID.randomUUID().toString(),
     val updatedAt: Long = System.currentTimeMillis(),
     val isDeleted: Boolean = false

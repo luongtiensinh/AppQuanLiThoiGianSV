@@ -19,9 +19,9 @@ import java.util.UUID
 data class SubtaskEntity(
     @PrimaryKey(autoGenerate = true)
     val subtaskId: Long = 0,
-    val taskId: Long,
-    val title: String,
-    val isCompleted: Boolean,
+    val taskId: Long = 0L,
+    val title: String = "",
+    val isCompleted: Boolean = false,
     val syncId: String = UUID.randomUUID().toString(),
     val updatedAt: Long = System.currentTimeMillis(),
     val isDeleted: Boolean = false

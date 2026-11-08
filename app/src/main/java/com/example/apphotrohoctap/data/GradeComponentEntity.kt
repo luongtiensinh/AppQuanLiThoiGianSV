@@ -21,10 +21,10 @@ import java.util.UUID
 data class GradeComponentEntity(
     @PrimaryKey(autoGenerate = true)
     val componentId: Long = 0,
-    val subjectId: Long,
-    val componentName: String, // Ví dụ: "Chuyên cần", "Giữa kỳ", "Cuối kỳ"
-    val weightPercent: Double, // Trọng số (%): ví dụ 10.0, 30.0, 60.0
-    val achievedScore: Double?, // Điểm đạt được (thang 10), null nếu chưa có điểm
+    val subjectId: Long = 0L,
+    val componentName: String = "", // Ví dụ: "Chuyên cần", "Giữa kỳ", "Cuối kỳ"
+    val weightPercent: Double = 0.0, // Trọng số (%): ví dụ 10.0, 30.0, 60.0
+    val achievedScore: Double? = null, // Điểm đạt được (thang 10), null nếu chưa có điểm
     val syncId: String = UUID.randomUUID().toString(),
     val updatedAt: Long = System.currentTimeMillis(),
     val isDeleted: Boolean = false
