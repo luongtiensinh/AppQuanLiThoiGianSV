@@ -74,7 +74,7 @@ fun StudyFlowNotesScreen(    onTabSelected: (com.example.apphotrohoctap.ui.navig
             subject = entity.courseName.ifBlank { "Không phân loại" },
             title = entity.title.ifBlank { "Ghi chú không tên" },
             preview = entity.content.replace("\n", " ").take(100),
-            date = formatter.format(Date(entity.updatedAtMillis)),
+            date = formatter.format(Date(entity.updatedAt)),
             tag = "Ghi chú",
             accent = accentColor,
             subjectBackground = paleColor

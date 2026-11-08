@@ -112,7 +112,47 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                     val paleColor = try { Color(android.graphics.Color.parseColor(currentNote.colorKey)).copy(alpha = 0.15f) } catch(e: Exception) { EditNotePale }
                     val fgColor = try { Color(android.graphics.Color.parseColor(currentNote.colorKey)) } catch(e: Exception) { EditNoteBrand }
                     
-                    EditNoteChip("▣  ${currentNote.courseName.ifBlank { "Không phân loại" }}", paleColor, fgColor)
+                    val availableCourses by viewModel.availableCourses.collectAsState()
+
+                    var courseMenuExpanded by remember { mutableStateOf(false) }
+
+                    Box(modifier = Modifier.weight(1f)) {
+                        Surface(onClick = { courseMenuExpanded = true }, color = paleColor, shape = CircleShape) {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 9.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("▣", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor)
+                                
+                                Box(modifier = Modifier.weight(1f)) {
+                                    if (currentNote.courseName.isBlank()) {
+                                        Text("Chọn / Nhập môn học", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    } else {
+                                        androidx.compose.foundation.text.BasicTextField(
+                                            value = currentNote.courseName,
+                                            onValueChange = { viewModel.updateNote(currentNote.copy(courseName = it)) },
+                                            textStyle = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor),
+                                            singleLine = true,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+                                }
+                                
+                                Text("⌄", fontSize = 9.sp, color = fgColor)
+                            }
+                        }
+                        DropdownMenu(expanded = courseMenuExpanded, onDismissRequest = { courseMenuExpanded = false }) {
+                            val displayCourses = if (availableCourses.isEmpty()) {
+                                listOf("CSDL Nâng cao", "Lập trình Di động", "Điện toán đám mây", "Tiếng Anh CNTT")
+                            } else {
+                                availableCourses
+                            }
+                            
+                            displayCourses.forEach { course ->
+                                DropdownMenuItem(text = { Text(course, fontSize = 12.sp) }, onClick = { 
+                                    viewModel.updateNote(currentNote.copy(courseName = course))
+                                    courseMenuExpanded = false 
+                                })
+                            }
+                        }
+                    }
                     Spacer(Modifier.weight(1f))
                     Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         listOf(Color(0xFF4143D5), Color(0xFF0EA5E9), Color(0xFFF59E0B), Color(0xFF10B981)).forEachIndexed { index, color ->

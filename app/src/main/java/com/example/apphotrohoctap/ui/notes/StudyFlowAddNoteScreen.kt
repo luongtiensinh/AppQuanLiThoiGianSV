@@ -98,25 +98,41 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 )
             )
 
+            val availableCourses by viewModel.availableCourses.collectAsState()
+
             Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box {
+                Box(modifier = Modifier.weight(1f)) {
                     Surface(onClick = { courseMenuExpanded = true }, color = EditorPale, shape = CircleShape) {
-                        Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text("▤", fontSize = 11.sp, color = EditorBrand)
-                            Text(selectedCourse.ifBlank { "Chọn môn học" }, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1)
+                            
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (selectedCourse.isBlank()) {
+                                    Text("Chọn / Nhập môn học", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                } else {
+                                    androidx.compose.foundation.text.BasicTextField(
+                                        value = selectedCourse,
+                                        onValueChange = { selectedCourse = it },
+                                        textStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand),
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                            
                             Text("⌄", fontSize = 10.sp, color = EditorBrand)
                         }
                     }
                     DropdownMenu(expanded = courseMenuExpanded, onDismissRequest = { courseMenuExpanded = false }) {
-                        listOf("CSDL Nâng cao", "Lập trình Di động", "Điện toán đám mây", "Tiếng Anh CNTT").forEach { course ->
+                        val displayCourses = if (availableCourses.isEmpty()) {
+                            listOf("CSDL Nâng cao", "Lập trình Di động", "Điện toán đám mây", "Tiếng Anh CNTT")
+                        } else {
+                            availableCourses
+                        }
+                        
+                        displayCourses.forEach { course ->
                             DropdownMenuItem(text = { Text(course, fontSize = 12.sp) }, onClick = { selectedCourse = course; courseMenuExpanded = false })
                         }
-                    }
-                }
-                Surface(color = Color(0xFFF5F2FF), shape = CircleShape) {
-                    Row(Modifier.padding(horizontal = 10.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text("▱", fontSize = 10.sp, color = EditorMuted)
-                        Text("Học kỳ 1 • 2026", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = EditorText)
                     }
                 }
             }

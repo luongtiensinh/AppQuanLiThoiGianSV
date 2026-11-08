@@ -4,14 +4,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.apphotrohoctap.data.NoteEntity
 import com.example.apphotrohoctap.data.NoteRepository
+import com.example.apphotrohoctap.data.ScheduleRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-internal class NotesViewModel(private val repository: NoteRepository) : ViewModel() {
+internal class NotesViewModel(
+    private val repository: NoteRepository,
+    private val scheduleRepository: ScheduleRepository
+) : ViewModel() {
 
     val notes: StateFlow<List<NoteEntity>> = repository.getAllNotes()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val availableCourses: StateFlow<List<String>> = scheduleRepository.getDistinctSubjectNames()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
