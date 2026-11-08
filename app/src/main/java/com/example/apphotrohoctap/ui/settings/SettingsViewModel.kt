@@ -80,7 +80,16 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
                     _syncState.value = SyncState.Success("Đồng bộ dữ liệu thành công!")
                 }
                 is com.example.apphotrohoctap.data.sync.SyncResult.Error -> {
-                    _syncState.value = SyncState.Error(result.message)
+                    // Filter raw exception messages for a better UX
+                    val errorMsg = result.message
+                    val friendlyMessage = when {
+                        errorMsg.contains("network", ignoreCase = true) || errorMsg.contains("host", ignoreCase = true) -> 
+                            "Lỗi kết nối mạng. Vui lòng kiểm tra lại Internet."
+                        errorMsg.contains("permission", ignoreCase = true) -> 
+                            "Phiên đăng nhập hết hạn hoặc bị từ chối quyền truy cập."
+                        else -> "Đồng bộ thất bại. Vui lòng thử lại sau."
+                    }
+                    _syncState.value = SyncState.Error(friendlyMessage)
                 }
             }
         }
