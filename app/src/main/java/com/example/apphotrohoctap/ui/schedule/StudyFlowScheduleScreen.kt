@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -188,17 +189,6 @@ fun StudyFlowScheduleScreen(
                                 selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(current)
                             }
                         )
-                        WeekDateCarousel(weekDays, selectedDay, onDaySelected = { 
-                            selectedDay = it 
-                            // Convert string day back to selectedDateMillis approx (for seamless switching to month view)
-                            val dayInt = it.toIntOrNull()
-                            if (dayInt != null) {
-                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
-                                cal.set(java.util.Calendar.DAY_OF_MONTH, dayInt)
-                                selectedDateMillis = cal.timeInMillis
-                            }
-                        })
-                        DailySummary(dayClasses.size)
                         DailyTimeline(
                             classes = dayClasses,
                             onEdit = onEditEvent,
@@ -878,6 +868,232 @@ private fun AttendanceSummary(weekLabel: String) {
 }
 
 
+
+@Composable
+private fun FullWeekScheduleView(
+    selectedDateMillis: Long,
+    schedules: List<com.example.apphotrohoctap.data.ScheduleEntity>,
+    onEdit: (Long) -> Unit,
+    onDelete: (Long) -> Unit
+) {
+    val dayFormat = java.text.SimpleDateFormat("dd/MM", java.util.Locale.forLanguageTag("vi-VN"))
+    val dayLabels = listOf("Th 2", "Th 3", "Th 4", "Th 5", "Th 6", "Th 7", "CN")
+
+    val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+    while (cal.get(java.util.Calendar.DAY_OF_WEEK) != java.util.Calendar.MONDAY) {
+        cal.add(java.util.Calendar.DAY_OF_MONTH, -1)
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        var totalClassesInWeek = 0
+
+        for (i in 1..7) {
+            val dateStr = dayFormat.format(cal.time)
+            val dayHeaderLabel = "${dayLabels[i - 1]}, $dateStr"
+            val dayClasses = schedules.filter { it.dayOfWeek == i }
+                .sortedBy { if (it.startPeriod >= 10000) (it.startPeriod % 10000) / 100 else it.startPeriod }
+            totalClassesInWeek += dayClasses.size
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Surface(
+                    color = ScheduleBrightBlue,
+                    shape = CircleShape
+                ) {
+                    Text(
+                        text = dayHeaderLabel,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                if (dayClasses.isEmpty()) {
+                    Text(
+                        text = "Không có lịch học",
+                        modifier = Modifier.padding(start = 12.dp, bottom = 4.dp),
+                        fontSize = 11.sp,
+                        color = ScheduleMuted
+                    )
+                } else {
+                    dayClasses.forEach { classEntity ->
+                        WeeklyScheduleCard(
+                            item = classEntity,
+                            onEdit = onEdit,
+                            onDelete = onDelete
+                        )
+                    }
+                }
+            }
+
+            cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+        }
+
+        if (totalClassesInWeek == 0) {
+            Text(
+                text = "Tuần này bạn không có lịch học nào.",
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                color = ScheduleSecondary,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun WeeklyScheduleCard(
+    item: com.example.apphotrohoctap.data.ScheduleEntity,
+    onEdit: (Long) -> Unit,
+    onDelete: (Long) -> Unit
+) {
+    val now = System.currentTimeMillis()
+    val uiModel = item.toUiModel(now)
+
+    val isPackedStart = item.startPeriod >= 10000
+    val isPackedEnd = item.endPeriod >= 10000
+    val sPeriod = if (isPackedStart) item.startPeriod / 10000 else item.startPeriod
+    val ePeriod = if (isPackedEnd) item.endPeriod / 10000 else item.endPeriod
+    val periodStr = if (sPeriod == ePeriod) "$sPeriod" else "$sPeriod - $ePeriod"
+
+    val tagBgColor = uiModel.leadingColor.copy(alpha = 0.15f)
+    val tagTextColor = uiModel.leadingColor
+
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .combinedClickable(
+                    onClick = { onEdit(item.id) },
+                    onLongClick = { expanded = true }
+                ),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Box(Modifier.fillMaxWidth()) {
+                Box(
+                    Modifier
+                        .align(Alignment.CenterStart)
+                        .fillMaxHeight()
+                        .width(5.dp)
+                        .background(uiModel.leadingColor)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            color = tagBgColor,
+                            shape = CircleShape
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Box(Modifier.size(6.dp).clip(CircleShape).background(tagTextColor))
+                                Text(
+                                    "• Lịch học (${uiModel.session})",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = tagTextColor
+                                )
+                            }
+                        }
+
+                        androidx.compose.material3.IconButton(
+                            onClick = { expanded = true },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Text("⋮", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ScheduleMuted)
+                        }
+                    }
+
+                    Text(
+                        text = item.subject,
+                        fontSize = 15.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ScheduleInk
+                    )
+
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        val (actualRoom, actualLecturer) = com.example.apphotrohoctap.data.resolveRoomAndLecturer(item.room, item.lecturer)
+                        DetailInfoRow("Thời gian:", uiModel.time)
+                        DetailInfoRow("Tiết:", periodStr)
+                        if (actualRoom.isNotBlank()) {
+                            DetailInfoRow("Phòng:", actualRoom)
+                        }
+                        if (actualLecturer.isNotBlank()) {
+                            DetailInfoRow("Giảng viên:", actualLecturer)
+                        }
+                    }
+                }
+            }
+        }
+
+        androidx.compose.material3.DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            androidx.compose.material3.DropdownMenuItem(
+                text = { Text("Sửa lịch học") },
+                onClick = {
+                    expanded = false
+                    onEdit(item.id)
+                }
+            )
+            androidx.compose.material3.DropdownMenuItem(
+                text = { Text("Xóa lịch học", color = ScheduleRed) },
+                onClick = {
+                    expanded = false
+                    onDelete(item.id)
+                }
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun DetailInfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.width(80.dp),
+            fontSize = 11.sp,
+            color = ScheduleMuted,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = value,
+            modifier = Modifier.weight(1f),
+            fontSize = 11.sp,
+            color = ScheduleInk,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
 
 @Composable
 private fun ScheduleIcon(index: Int, modifier: Modifier, contentDescription: String) {
