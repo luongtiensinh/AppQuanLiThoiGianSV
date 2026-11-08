@@ -23,6 +23,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apphotrohoctap.data.NoteEntity
@@ -66,7 +67,8 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 return@EditorTopBar
             }
             
-            val hexColor = String.format("#%06X", (0xFFFFFF and noteLabelColors[selectedLabelColor].color.value.toInt()))
+            val argb = noteLabelColors[selectedLabelColor].color.toArgb()
+            val hexColor = String.format("#%06X", (0xFFFFFF and argb))
             
             val note = NoteEntity(
                 title = title,

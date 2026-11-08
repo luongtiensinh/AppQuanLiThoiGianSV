@@ -22,6 +22,7 @@ import com.example.apphotrohoctap.data.NoteEntity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -155,10 +156,11 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                     }
                     Spacer(Modifier.weight(1f))
                     Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                        listOf(Color(0xFF4143D5), Color(0xFF0EA5E9), Color(0xFFF59E0B), Color(0xFF10B981)).forEachIndexed { index, color ->
-                            val isSelected = currentNote.colorKey.equals(String.format("#%06X", (0xFFFFFF and color.value.toInt())), ignoreCase = true)
+                        listOf(Color(0xFF5B5FEF), Color(0xFF3B82F6), Color(0xFF10B981), Color(0xFFF59E0B), Color(0xFFF43F5E), Color(0xFF8B5CF6)).forEach { color ->
+                            val hexColor = String.format("#%06X", (0xFFFFFF and color.toArgb()))
+                            val isSelected = currentNote.colorKey.equals(hexColor, ignoreCase = true)
+                            
                             Surface(onClick = {
-                                val hexColor = String.format("#%06X", (0xFFFFFF and color.value.toInt()))
                                 viewModel.updateNote(currentNote.copy(colorKey = hexColor))
                             }, modifier = Modifier.size(if (isSelected) 26.dp else 22.dp), color = color, shape = CircleShape) {
                                 if (isSelected) Box(contentAlignment = Alignment.Center) { Text("✓", fontSize = 11.sp, color = Color.White) }
