@@ -23,6 +23,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apphotrohoctap.data.NoteEntity
@@ -66,7 +67,8 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 return@EditorTopBar
             }
             
-            val hexColor = String.format("#%06X", (0xFFFFFF and noteLabelColors[selectedLabelColor].color.value.toInt()))
+            val argb = noteLabelColors[selectedLabelColor].color.toArgb()
+            val hexColor = String.format("#%06X", (0xFFFFFF and argb))
             
             val note = NoteEntity(
                 title = title,
@@ -98,25 +100,48 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 )
             )
 
+            val availableCourses by viewModel.availableCourses.collectAsState()
+
             Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box {
+                Box(modifier = Modifier.weight(1f)) {
                     Surface(onClick = { courseMenuExpanded = true }, color = EditorPale, shape = CircleShape) {
-                        Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text("▤", fontSize = 11.sp, color = EditorBrand)
-                            Text(selectedCourse.ifBlank { "Chọn môn học" }, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1)
+                            
+                            Box(modifier = Modifier.weight(1f)) {
+                                androidx.compose.foundation.text.BasicTextField(
+                                    value = selectedCourse,
+                                    onValueChange = { selectedCourse = it },
+                                    textStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    decorationBox = { innerTextField ->
+                                        if (selectedCourse.isBlank()) {
+                                            Text("Chọn / Nhập môn học", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        }
+                                        innerTextField()
+                                    }
+                                )
+                            }
+                            
                             Text("⌄", fontSize = 10.sp, color = EditorBrand)
                         }
                     }
                     DropdownMenu(expanded = courseMenuExpanded, onDismissRequest = { courseMenuExpanded = false }) {
-                        listOf("CSDL Nâng cao", "Lập trình Di động", "Điện toán đám mây", "Tiếng Anh CNTT").forEach { course ->
-                            DropdownMenuItem(text = { Text(course, fontSize = 12.sp) }, onClick = { selectedCourse = course; courseMenuExpanded = false })
+                        if (availableCourses.isEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text("Chưa có môn học trong lịch", fontSize = 12.sp, color = EditorMuted) },
+                                onClick = { },
+                                enabled = false
+                            )
+                        } else {
+                            availableCourses.forEach { course ->
+                                DropdownMenuItem(
+                                    text = { Text(course, fontSize = 12.sp) }, 
+                                    onClick = { selectedCourse = course; courseMenuExpanded = false }
+                                )
+                            }
                         }
-                    }
-                }
-                Surface(color = Color(0xFFF5F2FF), shape = CircleShape) {
-                    Row(Modifier.padding(horizontal = 10.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text("▱", fontSize = 10.sp, color = EditorMuted)
-                        Text("Học kỳ 1 • 2026", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = EditorText)
                     }
                 }
             }

@@ -104,7 +104,8 @@ fun StudyFlowNavGraph(
             StudyFlowNotesScreen(
                 onCreateNote = { navController.navigate(Screen.AddNote.route) },
                 onEditNote = { noteId -> navController.navigate(Screen.EditNote.createRoute(noteId.toString())) },
-                onTabSelected = navToTab
+                onTabSelected = navToTab,
+                onProfileClick = { navController.navigate(Screen.Settings.route) }
             )
         }
         
