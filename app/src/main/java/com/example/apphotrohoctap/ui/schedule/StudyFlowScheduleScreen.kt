@@ -189,8 +189,9 @@ fun StudyFlowScheduleScreen(
                                 selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(current)
                             }
                         )
-                        DailyTimeline(
-                            classes = dayClasses,
+                        FullWeekScheduleView(
+                            selectedDateMillis = selectedDateMillis,
+                            schedules = schedules,
                             onEdit = onEditEvent,
                             onDelete = { classId ->
                                 scheduleToDelete = schedules.find { it.id == classId }
