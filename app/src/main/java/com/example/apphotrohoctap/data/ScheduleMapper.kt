@@ -4,6 +4,33 @@ import androidx.compose.ui.graphics.Color
 import com.example.apphotrohoctap.ui.schedule.StudyClass
 import java.util.Calendar
 
+internal fun resolveRoomAndLecturer(room: String, lecturer: String): Pair<String, String> {
+    val trimmedRoom = room.trim()
+    val trimmedLecturer = lecturer.trim()
+
+    if (trimmedRoom.isBlank() && trimmedLecturer.isNotBlank()) {
+        val isLikelyRoom = trimmedLecturer.any { it.isDigit() } || 
+                           trimmedLecturer.contains("phòng", ignoreCase = true) || 
+                           trimmedLecturer.contains("lab", ignoreCase = true)
+        if (isLikelyRoom) {
+            return Pair(trimmedLecturer, "")
+        }
+    }
+
+    if (trimmedRoom.isNotBlank() && trimmedLecturer.isBlank()) {
+        val isLikelyLecturer = trimmedRoom.contains("TS", ignoreCase = true) || 
+                               trimmedRoom.contains("GV", ignoreCase = true) || 
+                               trimmedRoom.contains("ThS", ignoreCase = true) || 
+                               trimmedRoom.contains("Thầy", ignoreCase = true) || 
+                               trimmedRoom.contains("Cô", ignoreCase = true)
+        if (isLikelyLecturer) {
+            return Pair("", trimmedRoom)
+        }
+    }
+
+    return Pair(trimmedRoom, trimmedLecturer)
+}
+
 internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
     val startTimes = listOf("06:45", "07:30", "08:25", "09:20", "10:05", "10:50", "12:30", "13:15", "14:10", "15:05", "15:50", "16:35", "18:00")
     val endTimes = listOf("07:30", "08:15", "09:10", "10:05", "10:50", "11:35", "13:15", "14:00", "14:55", "15:50", "16:35", "17:20", "20:15")
@@ -67,14 +94,16 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
         }
     }
 
+    val (actualRoom, actualLecturer) = resolveRoomAndLecturer(room, lecturer)
+
     return StudyClass(
         id = this.id,
         time = timeString,
         session = session,
         status = status,
         title = subject,
-        place = room,
-        teacher = lecturer,
+        place = actualRoom,
+        teacher = actualLecturer,
         leadingColor = leadingColor,
         statusColor = statusColor,
         statusTextColor = statusTextColor
