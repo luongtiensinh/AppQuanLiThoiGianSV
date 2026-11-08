@@ -189,6 +189,15 @@ fun StudyFlowScheduleScreen(
                                 selectedDay = com.example.apphotrohoctap.ui.common.AcademicCalendar.currentDayString(current)
                             }
                         )
+                        WeekDateCarousel(weekDays, selectedDay, onDaySelected = { 
+                            selectedDay = it 
+                            val dayInt = it.toIntOrNull()
+                            if (dayInt != null) {
+                                val cal = java.util.Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
+                                cal.set(java.util.Calendar.DAY_OF_MONTH, dayInt)
+                                selectedDateMillis = cal.timeInMillis
+                            }
+                        })
                         FullWeekScheduleView(
                             selectedDateMillis = selectedDateMillis,
                             schedules = schedules,
