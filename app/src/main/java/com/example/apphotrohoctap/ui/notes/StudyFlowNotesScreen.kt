@@ -57,8 +57,14 @@ private val sampleNotes = emptyList<NoteItem>()
 private data class SubjectFilter(val name: String, val count: Int, val color: Color? = null)
 
 @Composable
-fun StudyFlowNotesScreen(    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {}, onCreateNote: () -> Unit = {}, onEditNote: (Long) -> Unit = {}) {
+fun StudyFlowNotesScreen(
+    onTabSelected: (com.example.apphotrohoctap.ui.navigation.BottomNavTab) -> Unit = {}, 
+    onCreateNote: () -> Unit = {}, 
+    onEditNote: (Long) -> Unit = {},
+    onProfileClick: (() -> Unit)? = null
+) {
     val context = LocalContext.current
+    val handleProfileClick = onProfileClick ?: { com.example.apphotrohoctap.ui.common.showComingSoon(context) }
     val viewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(context))
     val notesEntities by viewModel.notes.collectAsState()
 
@@ -97,11 +103,22 @@ fun StudyFlowNotesScreen(    onTabSelected: (com.example.apphotrohoctap.ui.navig
         Column(Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
-                    .statusBarsPadding().padding(top = 12.dp, bottom = 16.dp),
+                    .padding(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                NotesHeader(isGrid = isGrid, noteCount = allNotes.size, onToggleGrid = { isGrid = !isGrid }, onSort = { newestFirst = !newestFirst })
+                NotesHeader(onProfileClick = handleProfileClick)
                 SearchField(value = searchQuery, onValueChange = { searchQuery = it })
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("${allNotes.size} ghi chú", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = NotesBrand)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        HeaderAction(if (isGrid) "▦" else "☰", "Đổi chế độ xem", { isGrid = !isGrid })
+                        HeaderAction("↕", "Sắp xếp ghi chú", { newestFirst = !newestFirst })
+                    }
+                }
                 SubjectFilters(filters, selectedSubject) { selectedSubject = it }
                 // PinnedNotesCard() // Tạm ẩn ghim
                 val visibleNotes = allNotes
@@ -127,21 +144,31 @@ fun StudyFlowNotesScreen(    onTabSelected: (com.example.apphotrohoctap.ui.navig
 }
 
 @Composable
-private fun NotesHeader(isGrid: Boolean, noteCount: Int, onToggleGrid: () -> Unit, onSort: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Ghi chú & Tài\nliệu", fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = (-0.6).sp, fontWeight = FontWeight.Bold, color = NotesInk)
-            Surface(color = Color(0xFFE8E6FC), shape = CircleShape) {
-                Text("$noteCount ghi\nchú", modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp), fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = NotesBrand)
+private fun NotesHeader(onProfileClick: () -> Unit) {
+    Surface(modifier = Modifier.fillMaxWidth().statusBarsPadding(), color = NotesBackground.copy(alpha = 0.96f), shadowElevation = 1.dp) {
+        Row(
+            Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(com.example.apphotrohoctap.R.drawable.studyflow_logo),
+                    contentDescription = "StudyFlow",
+                    modifier = Modifier.size(32.dp)
+                )
+                Column {
+                    Text("StudyFlow", fontSize = 18.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold, color = NotesInk)
+                    Text("Ghi chú Studyflow", fontSize = 15.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold, color = NotesBrand)
+                }
             }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            HeaderAction(if (isGrid) "▦" else "☰", "Đổi chế độ xem", onToggleGrid)
-            HeaderAction("↕", "Sắp xếp ghi chú", onSort)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(onClick = onProfileClick, modifier = Modifier.size(44.dp), color = Color.Transparent, shape = CircleShape) {
+                    Box(contentAlignment = Alignment.Center) {
+                        NotesIcon("home_nav_settings.svg", Modifier.size(22.dp), "Cài đặt")
+                    }
+                }
+            }
         }
     }
 }
