@@ -8,22 +8,40 @@ internal fun resolveRoomAndLecturer(room: String, lecturer: String): Pair<String
     val trimmedRoom = room.trim()
     val trimmedLecturer = lecturer.trim()
 
+    fun isRoomCode(text: String): Boolean {
+        if (text.isBlank()) return false
+        val lower = text.lowercase()
+        val hasRoomKeyword = lower.contains("phòng") || lower.contains("lab") || lower.contains("nhà") || lower.contains("hội trường")
+        val hasDigits = text.any { it.isDigit() }
+        val hasLecturerTitle = lower.contains("ts.") || lower.contains("ths.") || lower.contains("gs.") || lower.contains("pgs.") || lower.contains("gv.") || lower.contains("thầy") || lower.contains("cô")
+        return (hasDigits || hasRoomKeyword) && !hasLecturerTitle
+    }
+
+    fun isLecturerName(text: String): Boolean {
+        if (text.isBlank()) return false
+        val lower = text.lowercase()
+        val hasLecturerTitle = lower.contains("ts") || lower.contains("ths") || lower.contains("gs") || lower.contains("pgs") || lower.contains("gv") || lower.contains("thầy") || lower.contains("cô")
+        val isPureRoomNumber = text.all { it.isDigit() || it == '-' || it == ' ' }
+        return (hasLecturerTitle || !text.any { it.isDigit() }) && !isPureRoomNumber
+    }
+
+    // Trường hợp 1: Cả hai đều có dữ liệu nhưng bị TRÁO ĐỔI VỊ TRÍ
+    if (trimmedRoom.isNotBlank() && trimmedLecturer.isNotBlank()) {
+        if (isLecturerName(trimmedRoom) && isRoomCode(trimmedLecturer)) {
+            return Pair(trimmedLecturer, trimmedRoom)
+        }
+    }
+
+    // Trường hợp 2: Phòng rỗng, nhưng Giảng viên chứa thông tin Phòng
     if (trimmedRoom.isBlank() && trimmedLecturer.isNotBlank()) {
-        val isLikelyRoom = trimmedLecturer.any { it.isDigit() } || 
-                           trimmedLecturer.contains("phòng", ignoreCase = true) || 
-                           trimmedLecturer.contains("lab", ignoreCase = true)
-        if (isLikelyRoom) {
+        if (isRoomCode(trimmedLecturer)) {
             return Pair(trimmedLecturer, "")
         }
     }
 
+    // Trường hợp 3: Giảng viên rỗng, nhưng Phòng chứa thông tin Giảng viên
     if (trimmedRoom.isNotBlank() && trimmedLecturer.isBlank()) {
-        val isLikelyLecturer = trimmedRoom.contains("TS", ignoreCase = true) || 
-                               trimmedRoom.contains("GV", ignoreCase = true) || 
-                               trimmedRoom.contains("ThS", ignoreCase = true) || 
-                               trimmedRoom.contains("Thầy", ignoreCase = true) || 
-                               trimmedRoom.contains("Cô", ignoreCase = true)
-        if (isLikelyLecturer) {
+        if (isLecturerName(trimmedRoom)) {
             return Pair("", trimmedRoom)
         }
     }
