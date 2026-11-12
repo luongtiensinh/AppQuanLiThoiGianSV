@@ -204,23 +204,34 @@ fun StudyFlowRegisterScreen(
                             if (isSigningIn) return@Button
                             isSigningIn = true
                             coroutineScope.launch {
-                                val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
-                                when (val result = authRepo.registerWithEmailAndPassword(email, password, fullName)) {
-                                    is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
-                                        val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                                        sessionManager.saveLoginSession(
-                                            email = email,
-                                            fullName = fullName
-                                        )
-                                        android.widget.Toast.makeText(context, "Đăng ký thành công! Hãy đăng nhập.", android.widget.Toast.LENGTH_SHORT).show()
-                                        onSignIn()
+                                try {
+                                    val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
+                                    when (val result = authRepo.registerWithEmailAndPassword(email, password, fullName)) {
+                                        is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
+                                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                                            sessionManager.saveLoginSession(
+                                                email = email,
+                                                fullName = fullName
+                                            )
+                                            android.widget.Toast.makeText(context, "Đăng ký thành công! Hãy đăng nhập.", android.widget.Toast.LENGTH_SHORT).show()
+                                            onSignIn()
+                                        }
+                                        is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
+                                            val errorMsg = result.message
+                                            val friendlyMsg = when {
+                                                errorMsg.contains("email-already-in-use", true) -> "Email này đã được sử dụng."
+                                                errorMsg.contains("invalid-email", true) -> "Email không hợp lệ."
+                                                errorMsg.contains("weak-password", true) -> "Mật khẩu quá yếu."
+                                                errorMsg.contains("network", true) || errorMsg.contains("host", true) -> "Lỗi kết nối mạng."
+                                                else -> "Đăng ký thất bại. Vui lòng thử lại sau."
+                                            }
+                                            android.widget.Toast.makeText(context, friendlyMsg, android.widget.Toast.LENGTH_SHORT).show()
+                                        }
+                                        else -> {}
                                     }
-                                    is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
-                                        android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                    else -> {}
+                                } finally {
+                                    isSigningIn = false
                                 }
-                                isSigningIn = false
                             }
                         }
                     },

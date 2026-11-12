@@ -132,23 +132,33 @@ fun StudyFlowLoginScreen(
                         if (isSigningIn) return@LoginCard
                         isSigningIn = true
                         coroutineScope.launch {
-                            val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
-                            when (val result = authRepo.signInWithEmailAndPassword(email.trim(), password)) {
-                                is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
-                                    val user = result.user
-                                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                                    val displayName = user?.displayName ?: "Sinh viên"
-                                    if (rememberLogin) {
-                                        sessionManager.saveLoginSession(email, displayName)
+                            try {
+                                val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
+                                when (val result = authRepo.signInWithEmailAndPassword(email.trim(), password)) {
+                                    is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
+                                        val user = result.user
+                                        val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                                        val displayName = user?.displayName ?: "Sinh viên"
+                                        if (rememberLogin) {
+                                            sessionManager.saveLoginSession(email, displayName)
+                                        }
+                                        onLogin()
                                     }
-                                    onLogin()
+                                    is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
+                                        val errorMsg = result.message
+                                        passwordError = when {
+                                            errorMsg.contains("invalid-email", true) || errorMsg.contains("invalid_email", true) -> "Email không hợp lệ."
+                                            errorMsg.contains("wrong-password", true) || errorMsg.contains("INVALID_LOGIN_CREDENTIALS", true) -> "Email hoặc mật khẩu không chính xác."
+                                            errorMsg.contains("user-not-found", true) -> "Tài khoản không tồn tại."
+                                            errorMsg.contains("network", true) || errorMsg.contains("host", true) -> "Lỗi kết nối mạng."
+                                            else -> "Đăng nhập thất bại. Vui lòng thử lại."
+                                        }
+                                    }
+                                    else -> {}
                                 }
-                                is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
-                                    passwordError = result.message
-                                }
-                                else -> {}
+                            } finally {
+                                isSigningIn = false
                             }
-                            isSigningIn = false
                         }
                     }
                 },
@@ -156,25 +166,28 @@ fun StudyFlowLoginScreen(
                     if (isSigningIn) return@LoginCard
                     isSigningIn = true
                     coroutineScope.launch {
-                        val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
-                        when (val result = authRepo.signInWithGoogle()) {
-                            is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
-                                val user = result.user
-                                if (user != null) {
-                                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                                    sessionManager.saveLoginSession(
-                                        email = user.email ?: "",
-                                        fullName = user.displayName ?: "Sinh viên"
-                                    )
-                                    onLogin()
+                        try {
+                            val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
+                            when (val result = authRepo.signInWithGoogle()) {
+                                is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
+                                    val user = result.user
+                                    if (user != null) {
+                                        val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                                        sessionManager.saveLoginSession(
+                                            email = user.email ?: "",
+                                            fullName = user.displayName ?: "Sinh viên"
+                                        )
+                                        onLogin()
+                                    }
                                 }
+                                is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
+                                    android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                else -> {}
                             }
-                            is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
-                                android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                            else -> {}
+                        } finally {
+                            isSigningIn = false
                         }
-                        isSigningIn = false
                     }
                 }
             )
