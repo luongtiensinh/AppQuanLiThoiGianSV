@@ -34,8 +34,9 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
                 val uiModel = swg.toUiModel()
                 if (uiModel.isCompleted && uiModel.finalLetterGrade != null) {
                     val gpa4 = GradeCalculator.gradeToGpa4(uiModel.finalLetterGrade)
-                    totalCredits += uiModel.credits
-                    totalGpaPoints += gpa4 * uiModel.credits
+                    val safeCredits = if (uiModel.credits > 0) uiModel.credits else 0
+                    totalCredits += safeCredits
+                    totalGpaPoints += gpa4 * safeCredits
                 }
             }
             
@@ -74,13 +75,14 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
         components: List<Pair<String, Double>> // Name and Weight
     ) {
         val cleanName = subjectName.trim()
-        if (cleanName.isBlank() || credits <= 0) return
+        val safeCredits = if (credits > 0) credits else 1 // Ngăn chặn nhập tín chỉ = 0
+        if (cleanName.isBlank()) return
         
         viewModelScope.launch {
             val entity = SubjectGradeEntity(
                 semesterId = semesterId,
                 subjectName = cleanName,
-                credits = credits,
+                credits = safeCredits,
                 targetGrade = targetGrade
             )
             val componentEntities = components.map { 
@@ -96,11 +98,12 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
         credits: Int,
         targetGrade: String
     ) {
+        val safeCredits = if (credits > 0) credits else 1
         viewModelScope.launch {
             val existing = repository.getSubjectWithGradesById(subjectId) ?: return@launch
             val updated = existing.subject.copy(
                 subjectName = subjectName,
-                credits = credits,
+                credits = safeCredits,
                 targetGrade = targetGrade
             )
             repository.updateSubject(updated)

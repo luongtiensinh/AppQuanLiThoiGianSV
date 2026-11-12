@@ -26,15 +26,36 @@ object PomodoroReminderManager {
         val triggerTime = System.currentTimeMillis() + delayMillis
         
         try {
-            alarmManager.setExactAndAllowWhileIdle(
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerTime,
+                        pendingIntent
+                    )
+                } else {
+                    // Fallback to inexact alarm if permission is denied
+                    alarmManager.setAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerTime,
+                        pendingIntent
+                    )
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+                )
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            // Ultimate fallback
+            alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerTime,
                 pendingIntent
             )
-        } catch (e: SecurityException) {
-            e.printStackTrace()
-            // Android 14+ require SCHEDULE_EXACT_ALARM permission
-            // If denied, fallback to setWindow or WorkManager, but for now we catch it
         }
     }
 
