@@ -32,6 +32,7 @@ class SessionManager(context: Context) {
         prefs.edit()
             .putBoolean(KEY_IS_LOGGED_IN, true)
             .putString(KEY_USER_EMAIL, email)
+            .putString(KEY_REG_FULLNAME, fullName)
             .apply()
     }
 
