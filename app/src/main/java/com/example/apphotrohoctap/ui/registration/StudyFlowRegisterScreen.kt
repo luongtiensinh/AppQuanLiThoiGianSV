@@ -58,6 +58,7 @@ import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
 
 private val RegisterBackground = Color(0xFFFCF8FF)
 private val RegisterBrandBlue = Color(0xFF4143D5)
@@ -242,7 +243,12 @@ fun StudyFlowRegisterScreen(
             Spacer(Modifier.height(16.dp))
             RegisterDivider()
             Spacer(Modifier.height(16.dp))
-            GoogleRegisterButton()
+            GoogleRegisterButton(
+                coroutineScope = coroutineScope,
+                isSigningIn = isSigningIn,
+                onSigningInChange = { isSigningIn = it },
+                onSignIn = onSignIn
+            )
             Spacer(Modifier.height(24.dp))
             SignInPrompt(onSignIn)
         }
@@ -457,10 +463,40 @@ private fun RegisterDivider() {
 }
 
 @Composable
-private fun GoogleRegisterButton() {
+private fun GoogleRegisterButton(
+    coroutineScope: CoroutineScope,
+    isSigningIn: Boolean,
+    onSigningInChange: (Boolean) -> Unit,
+    onSignIn: () -> Unit
+) {
     val context = LocalContext.current
     Surface(
-        onClick = { com.example.apphotrohoctap.ui.common.showComingSoon(context) },
+        onClick = {
+            if (isSigningIn) return@Surface
+            onSigningInChange(true)
+            coroutineScope.launch {
+                val authRepo = com.example.apphotrohoctap.data.auth.AuthRepository(context)
+                when (val result = authRepo.signInWithGoogle()) {
+                    is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
+                        val user = result.user
+                        if (user != null) {
+                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                            sessionManager.saveLoginSession(
+                                email = user.email ?: "",
+                                fullName = user.displayName ?: "Sinh viên"
+                            )
+                            android.widget.Toast.makeText(context, "Đăng ký thành công!", android.widget.Toast.LENGTH_SHORT).show()
+                            onSignIn()
+                        }
+                    }
+                    is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
+                        android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {}
+                }
+                onSigningInChange(false)
+            }
+        },
         modifier = Modifier.fillMaxWidth().height(48.dp),
         shape = RoundedCornerShape(12.dp),
         color = Color.White,

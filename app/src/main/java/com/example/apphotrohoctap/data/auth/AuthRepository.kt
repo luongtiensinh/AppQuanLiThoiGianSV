@@ -73,6 +73,21 @@ class AuthRepository(private val context: Context) {
         }
     }
 
+    suspend fun signInWithEmailAndPassword(email: String, password: String): AuthResult {
+        return try {
+            val authResult = auth.signInWithEmailAndPassword(email, password).await()
+            val user = authResult.user
+            if (user != null) {
+                AuthResult.Success(user)
+            } else {
+                AuthResult.Error("Không lấy được thông tin người dùng.")
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Lỗi đăng nhập", e)
+            AuthResult.Error("Tài khoản hoặc mật khẩu không chính xác.")
+        }
+    }
+
     suspend fun registerWithEmailAndPassword(email: String, password: String, fullName: String): AuthResult {
         return try {
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
@@ -86,7 +101,7 @@ class AuthRepository(private val context: Context) {
             AuthResult.Success(user)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Lỗi tạo tài khoản", e)
-            AuthResult.Error("Lỗi tạo tài khoản: ${e.message}")
+            AuthResult.Error(e.message ?: "Lỗi tạo tài khoản")
         }
     }
 }
