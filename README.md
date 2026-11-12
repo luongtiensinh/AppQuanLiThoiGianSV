@@ -1,82 +1,75 @@
-# Readme.md
+<div align="center">
+  <img src="app/src/main/res/drawable/studyflow_logo.jpg" alt="StudyFlow Logo" width="120" height="120">
+  
+  # StudyFlow - Quản Lý Thời Gian Sinh Viên 📚⏰
 
-## Project
+  **Đồ án tốt nghiệp** ứng dụng di động hỗ trợ sinh viên lập kế hoạch học tập, quản lý thời khóa biểu, theo dõi deadline và rèn luyện sự tập trung qua phương pháp Pomodoro. Ứng dụng được thiết kế tối ưu hóa theo quy chuẩn **Google Play Vitals**.
 
-StudyFlow là ứng dụng Android quản lý thời gian sinh viên.
+  ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+  ![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)
+  ![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-4285F4?style=for-the-badge&logo=jetpack-compose&logoColor=white)
+  ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 
-## Technology
+  ---
+  
+  <h3>📥 TẢI XUỐNG ỨNG DỤNG TẠI ĐÂY</h3>
+  
+  [![Download APK](https://img.shields.io/badge/Download-Release_v1.0.0-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/luongtiensinh/AppQuanLiThoiGianSV/releases/tag/v1.0.0)
 
-- Kotlin
-- Jetpack Compose
-- Material 3
-- Gradle Kotlin DSL
-- Android SDK
+  *Hoặc dùng ứng dụng quét mã QR bên dưới để tải trực tiếp vào điện thoại Android:*
+</div>
 
-## Architecture
+---
 
-Ưu tiên:
-- MVVM
-- Repository pattern khi cần
-- StateFlow
-- ViewModel
-- Unidirectional Data Flow
+## 🌟 TÍNH NĂNG NỔI BẬT
 
-## UI
+- **📅 Lịch biểu Thông minh:** Theo dõi lịch học theo ngày/tuần. Tự động nhận diện Giảng viên và Phòng học. Phân ca (Sáng/Chiều/Tối) logic.
+- **✅ Quản lý Nhiệm vụ & Deadline:** Tạo và theo dõi tiến độ bài tập, nhắc nhở hạn nộp thông qua Local Notifications, phân chia việc con (Subtasks).
+- **⏱️ Góc Tập Trung (Pomodoro):** Hẹn giờ tập trung giải quyết bài tập, tự động chuyển trạng thái nghỉ ngơi, có hỗ trợ nhạc nền tập trung (White noise).
+- **📝 Ghi chú Học phần:** Tạo các bản tóm tắt, dán nhãn màu sắc. Tự động liên kết Ghi chú với Môn học có trong Lịch.
+- **📊 Quản lý Điểm số:** Theo dõi tín chỉ, tính toán GPA hệ 4.0 và 10.0 chuẩn xác, hỗ trợ nhiều Học kỳ.
+- **☁️ Đồng bộ đám mây (Cloud Sync):** Xây dựng kiến trúc *Offline-first* với Room Database kết hợp với *Firebase Firestore* để lưu trữ hai chiều (Delta Fetch, Concurrent Batch Write) đảm bảo không mất dữ liệu.
 
-- Sử dụng Jetpack Compose
-- Sử dụng Material 3
-- Không hard-code màu sắc nếu đã có Theme
-- Không hard-code typography nếu đã có Typography
-- UI phải responsive với nhiều kích thước màn hình
+## 🛠️ KIẾN TRÚC & CÔNG NGHỆ
 
-## Code quality
+Dự án tuân thủ nghiêm ngặt **Clean Architecture** và mô hình **MVVM**:
 
-Codex phải kiểm tra:
+- **Ngôn ngữ:** Kotlin 100%.
+- **UI Toolkit:** Jetpack Compose & Material Design 3 (Giao diện Declarative).
+- **Data Layer:** Room Database (SQLite), Datastore Preferences.
+- **Background Tasks:** WorkManager (Quản lý tiến trình ngầm cho đồng bộ và nhắc nhở).
+- **Cloud:** Firebase Firestore, Firebase Authentication, Credential Manager (Google Sign-In).
+- **Dependency/Build:** Gradle Kotlin DSL (Version Catalogs), Coroutines, Flow (StateFlow, SharedFlow).
 
-1. Logic bug
-2. Runtime crash
-3. Null safety
-4. State management
-5. Lifecycle
-6. Memory leak
-7. Coroutine misuse
-8. Compose recomposition
-9. Performance
-10. Accessibility
-11. Security
-12. Gradle/dependency issues
-13. Duplicate code
-14. Maintainability
-15. Missing tests
+## 🚀 HƯỚNG DẪN CÀI ĐẶT DÀNH CHO NHÀ PHÁT TRIỂN
 
-## Review rules
+Nếu bạn muốn clone dự án này về máy để chạy trên Android Studio:
 
-Ưu tiên phát hiện lỗi thực sự có khả năng gây:
+1. **Clone repository:**
+   ```bash
+   git clone https://github.com/luongtiensinh/AppQuanLiThoiGianSV.git
+   ```
+2. **Mở dự án:**
+   Mở thư mục vừa clone bằng Android Studio (Khuyên dùng bản Android Studio Koala trở lên).
+3. **Cấu hình Firebase:**
+   - Dự án đã có sẵn file `google-services.json`. 
+   - *Lưu ý:* Để test được tính năng Đăng nhập Google, bạn cần thay thế SHA-1 key của bạn vào Firebase Console, hoặc liên hệ chủ kho lưu trữ để cấp quyền test.
+4. **Build & Run:**
+   - Đảm bảo thiết bị / máy ảo chạy Android 7.0 (API 24) trở lên.
+   - Bấm nút **Run** (Shift + F10) hoặc chạy lệnh Gradle:
+     ```bash
+     ./gradlew assembleDebug
+     ```
 
-- Crash
-- Sai dữ liệu
-- Sai logic
-- Regression
-- Performance degradation
-- Security vulnerability
+## 🛡️ CHẤT LƯỢNG MÃ NGUỒN & HIỆU NĂNG
 
-Không báo lỗi chỉ vì khác style nếu không ảnh hưởng đến chất lượng hoặc quy ước của project.
+Ứng dụng được Audit để đạt tiêu chuẩn phát hành **Google Play Vitals**:
+- Tối ưu hóa ANR (App Not Responding) bằng cách đẩy toàn bộ I/O Query sang `Dispatchers.IO`.
+- Xử lý Soft Delete Cascade qua `@Transaction` đảm bảo tính Atomicity cho CSDL.
+- Ứng dụng thuật toán chia khối (Chunking) để vượt qua giới hạn WriteBatch của Firestore.
+- Thiết lập Proguard Rules đầy đủ ngăn chặn lỗi dịch ngược (Obfuscation issue) cho Gson và Firebase.
 
-Không tự ý sửa code khi chỉ được yêu cầu review.
-
-Mỗi finding phải có:
-
-- Mức độ nghiêm trọng
-- File
-- Dòng code
-- Giải thích vấn đề
-- Vì sao vấn đề xảy ra
-- Cách sửa đề xuất
-
-## Testing
-
-Sau khi thay đổi code, ưu tiên chạy:
-
-./gradlew assembleDebug
-
-và các test liên quan nếu có.
+---
+<div align="center">
+  <i>Đồ án được thực hiện bởi sinh viên Lương Tiến Sinh - Khoa Công nghệ Thông tin</i>
+</div>
