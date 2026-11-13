@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
+import com.example.apphotrohoctap.ui.login.StudyFlowForgotPasswordScreen
 import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
 import com.example.apphotrohoctap.ui.pomodoro.StudyFlowPomodoroScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
@@ -43,7 +44,13 @@ fun StudyFlowNavGraph(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                }
+                },
+                onForgotPasswordClick = { navController.navigate(Screen.ForgotPassword.route) }
+            )
+        }
+        composable(Screen.ForgotPassword.route) {
+            StudyFlowForgotPasswordScreen(
+                onBack = { navController.popBackStack() }
             )
         }
         composable(Screen.Register.route) {

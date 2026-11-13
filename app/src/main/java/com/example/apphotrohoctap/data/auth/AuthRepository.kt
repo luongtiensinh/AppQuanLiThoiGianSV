@@ -112,4 +112,22 @@ class AuthRepository(private val context: Context) {
             AuthResult.Error(errorMsg)
         }
     }
+    suspend fun sendPasswordResetEmail(email: String): AuthResult {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            AuthResult.Success(null)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Lỗi reset mật khẩu", e)
+            val errorMsg = e.message ?: ""
+            if (errorMsg.contains("user-not-found", ignoreCase = true) || errorMsg.contains("there is no user record", ignoreCase = true)) {
+                AuthResult.Error("Tài khoản không tồn tại trong hệ thống.")
+            } else if (errorMsg.contains("badly formatted", ignoreCase = true)) {
+                AuthResult.Error("Định dạng email không hợp lệ.")
+            } else if (errorMsg.contains("network", ignoreCase = true) || errorMsg.contains("host", ignoreCase = true)) {
+                AuthResult.Error("Lỗi kết nối mạng. Vui lòng kiểm tra Internet.")
+            } else {
+                AuthResult.Error("Đã có lỗi xảy ra. Vui lòng thử lại sau.")
+            }
+        }
+    }
 }
