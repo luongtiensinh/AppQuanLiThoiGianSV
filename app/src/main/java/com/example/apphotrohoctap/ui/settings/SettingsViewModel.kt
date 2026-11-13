@@ -98,4 +98,31 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
     fun resetSyncState() {
         _syncState.value = SyncState.Idle
     }
+
+    fun clearAllUserData(onComplete: () -> Unit) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                // 1. Xóa toàn bộ CSDL cục bộ (Room)
+                val database = com.example.apphotrohoctap.data.AppDatabase.getDatabase(getApplication())
+                database.clearAllTables()
+                
+                // 2. Xóa mốc thời gian đồng bộ (Đảm bảo Full Sync ở lần đăng nhập tới)
+                val application = getApplication<Application>()
+                application.getSharedPreferences("studyflow_sync_prefs", Context.MODE_PRIVATE).edit().clear().apply()
+                
+                // 3. Xóa các dữ liệu lịch sử cục bộ của phiên người dùng trước đó
+                application.getSharedPreferences("reminder_prefs", Context.MODE_PRIVATE).edit().clear().apply()
+                application.getSharedPreferences("pomodoro_stats", Context.MODE_PRIVATE).edit().clear().apply()
+                
+                // 4. Đăng xuất khỏi hệ thống mây của Google
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    onComplete()
+                }
+            }
+        }
+    }
 }
