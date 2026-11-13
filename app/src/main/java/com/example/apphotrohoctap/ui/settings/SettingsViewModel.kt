@@ -102,9 +102,15 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
     fun clearAllUserData() {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
+                // 1. Xóa toàn bộ CSDL cục bộ (Room)
                 val database = com.example.apphotrohoctap.data.AppDatabase.getDatabase(getApplication())
                 database.clearAllTables()
                 
+                // 2. Xóa mốc thời gian đồng bộ (Đảm bảo Full Sync ở lần đăng nhập tới)
+                val syncPrefs = getApplication<Application>().getSharedPreferences("studyflow_sync_prefs", Context.MODE_PRIVATE)
+                syncPrefs.edit().clear().apply()
+                
+                // 3. Đăng xuất khỏi hệ thống mây của Google
                 com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
             } catch (e: Exception) {
                 e.printStackTrace()
