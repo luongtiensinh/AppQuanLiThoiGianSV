@@ -98,4 +98,17 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
     fun resetSyncState() {
         _syncState.value = SyncState.Idle
     }
+
+    fun clearAllUserData() {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val database = com.example.apphotrohoctap.data.AppDatabase.getDatabase(getApplication())
+                database.clearAllTables()
+                
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

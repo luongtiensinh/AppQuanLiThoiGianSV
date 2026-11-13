@@ -187,6 +187,7 @@ fun StudyFlowSettingsScreen(
                 SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = {
                     val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
                     sessionManager.clearSession()
+                    viewModel.clearAllUserData()
                     onLogout()
                 })
             }
