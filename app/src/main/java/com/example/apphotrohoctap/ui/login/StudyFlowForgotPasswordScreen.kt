@@ -143,7 +143,7 @@ fun StudyFlowForgotPasswordScreen(
                             when (val result = repo.sendPasswordResetEmail(email.trim())) {
                                 is AuthResult.Success -> {
                                     isSuccess = true
-                                    message = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!"
+                                    message = "Nếu email hợp lệ, liên kết đặt lại mật khẩu sẽ được gửi đến hộp thư của bạn."
                                 }
                                 is AuthResult.Error -> {
                                     isSuccess = false
