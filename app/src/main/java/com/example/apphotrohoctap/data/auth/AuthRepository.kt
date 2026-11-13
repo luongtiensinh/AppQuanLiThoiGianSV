@@ -101,7 +101,16 @@ class AuthRepository(private val context: Context) {
             AuthResult.Success(user)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Lỗi tạo tài khoản", e)
-            AuthResult.Error(e.message ?: "Lỗi tạo tài khoản")
+            val errorMsg = e.message ?: ""
+            if (errorMsg.contains("email address is already in use", ignoreCase = true)) {
+                AuthResult.Error("email-already-in-use")
+            } else if (errorMsg.contains("badly formatted", ignoreCase = true)) {
+                AuthResult.Error("invalid-email")
+            } else if (errorMsg.contains("network", ignoreCase = true) || errorMsg.contains("host", ignoreCase = true)) {
+                AuthResult.Error("network")
+            } else {
+                AuthResult.Error(errorMsg)
+            }
         }
     }
 }
