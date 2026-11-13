@@ -69,7 +69,8 @@ private val DividerColor = Color(0xFFE3E0F7)
 @Composable
 fun StudyFlowLoginScreen(
     onRegister: () -> Unit = {},
-    onLogin: () -> Unit = {}
+    onLogin: () -> Unit = {},
+    onForgotPasswordClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
@@ -189,7 +190,8 @@ fun StudyFlowLoginScreen(
                             isSigningIn = false
                         }
                     }
-                }
+                },
+                onForgotPasswordClick = onForgotPasswordClick
             )
             Spacer(Modifier.height(24.dp))
             RegistrationPrompt(onRegister)
@@ -290,7 +292,8 @@ private fun LoginCard(
     emailError: String?,
     passwordError: String?,
     onLogin: () -> Unit,
-    onGoogleSignIn: () -> Unit
+    onGoogleSignIn: () -> Unit,
+    onForgotPasswordClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -335,7 +338,8 @@ private fun LoginCard(
             )
             RememberAndForgot(
                 checked = rememberLogin,
-                onCheckedChange = onRememberLoginChange
+                onCheckedChange = onRememberLoginChange,
+                onForgotPasswordClick = onForgotPasswordClick
             )
             Button(
                 onClick = onLogin,
@@ -417,7 +421,11 @@ private fun LoginInput(
 }
 
 @Composable
-private fun RememberAndForgot(checked: Boolean, onCheckedChange: () -> Unit) {
+private fun RememberAndForgot(
+    checked: Boolean, 
+    onCheckedChange: () -> Unit,
+    onForgotPasswordClick: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth().height(42.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -441,7 +449,7 @@ private fun RememberAndForgot(checked: Boolean, onCheckedChange: () -> Unit) {
         }
         Text(
             text = "Quên mật khẩu?",
-            modifier = Modifier.clickable { },
+            modifier = Modifier.clickable(onClick = onForgotPasswordClick),
             style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
             color = BrandBlue
         )

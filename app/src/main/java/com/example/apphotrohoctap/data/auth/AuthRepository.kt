@@ -112,4 +112,29 @@ class AuthRepository(private val context: Context) {
             AuthResult.Error(errorMsg)
         }
     }
+    suspend fun sendPasswordResetEmail(email: String): AuthResult {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            AuthResult.Success(null) // Reset mật khẩu thành công không trả về FirebaseUser
+        } catch (e: com.google.firebase.FirebaseNetworkException) {
+            Log.e("AuthRepository", "Lỗi mạng", e)
+            AuthResult.Error("Lỗi kết nối mạng. Vui lòng kiểm tra Internet.")
+        } catch (e: com.google.firebase.auth.FirebaseAuthException) {
+            Log.e("AuthRepository", "Lỗi reset mật khẩu", e)
+            if (e.errorCode == "ERROR_USER_NOT_FOUND") {
+                // Trả về thành công giả để chống dò quét email (Email Enumeration Protection)
+                AuthResult.Success(null)
+            } else {
+                val friendlyMsg = when (e.errorCode) {
+                    "ERROR_INVALID_EMAIL" -> "Định dạng email không hợp lệ."
+                    "ERROR_NETWORK_REQUEST_FAILED" -> "Lỗi kết nối mạng. Vui lòng kiểm tra Internet."
+                    else -> "Đã có lỗi xảy ra. Vui lòng thử lại sau."
+                }
+                AuthResult.Error(friendlyMsg)
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Lỗi reset mật khẩu không xác định", e)
+            AuthResult.Error("Đã có lỗi ngoại lệ. Vui lòng thử lại.")
+        }
+    }
 }
