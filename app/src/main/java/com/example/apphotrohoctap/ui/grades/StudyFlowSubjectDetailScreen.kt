@@ -286,54 +286,57 @@ fun StudyFlowSubjectDetailScreen(
 
     // Dialog nhập điểm (Mode thường)
     if (editingComponent != null && !isEditMode) {
-        AlertDialog(
-            onDismissRequest = { editingComponent = null },
-            title = { Text("Nhập điểm", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(editingComponent!!.componentName, fontSize = 14.sp, color = Color(0xFF464555))
-                    OutlinedTextField(
-                        value = tempScoreText,
-                        onValueChange = { 
-                            tempScoreText = it
-                            errorText = null
+        val currentEditingComp = editingComponent
+        if (currentEditingComp != null) {
+            AlertDialog(
+                onDismissRequest = { editingComponent = null },
+                title = { Text("Nhập điểm", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(currentEditingComp.componentName, fontSize = 14.sp, color = Color(0xFF464555))
+                        OutlinedTextField(
+                            value = tempScoreText,
+                            onValueChange = { 
+                                tempScoreText = it
+                                errorText = null
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            placeholder = { Text("Ví dụ: 8.5") },
+                            isError = errorText != null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        errorText?.let {
+                            Text(it, color = Color(0xFFBA1A1A), fontSize = 12.sp)
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val score = tempScoreText.toDoubleOrNull()
+                            if (tempScoreText.isBlank()) {
+                                viewModel.updateComponentScore(subject.subjectId, currentEditingComp.componentId, null)
+                                editingComponent = null
+                            } else if (score == null || score < 0.0 || score > 10.0) {
+                                errorText = "Điểm phải từ 0 đến 10"
+                            } else {
+                                viewModel.updateComponentScore(subject.subjectId, currentEditingComp.componentId, score)
+                                editingComponent = null
+                            }
                         },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        placeholder = { Text("Ví dụ: 8.5") },
-                        isError = errorText != null,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (errorText != null) {
-                        Text(errorText!!, color = Color(0xFFBA1A1A), fontSize = 12.sp)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4143D5))
+                    ) {
+                        Text("Lưu")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { editingComponent = null }) {
+                        Text("Hủy", color = Color(0xFF767586))
                     }
                 }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val score = tempScoreText.toDoubleOrNull()
-                        if (tempScoreText.isBlank()) {
-                            viewModel.updateComponentScore(subject.subjectId, editingComponent!!.componentId, null)
-                            editingComponent = null
-                        } else if (score == null || score < 0.0 || score > 10.0) {
-                            errorText = "Điểm phải từ 0 đến 10"
-                        } else {
-                            viewModel.updateComponentScore(subject.subjectId, editingComponent!!.componentId, score)
-                            editingComponent = null
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4143D5))
-                ) {
-                    Text("Lưu")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingComponent = null }) {
-                    Text("Hủy", color = Color(0xFF767586))
-                }
-            }
-        )
+            )
+        }
     }
 
     // Dialog thêm component
@@ -377,12 +380,14 @@ fun StudyFlowSubjectDetailScreen(
                 Button(onClick = {
                     val w = tempCompWeight.toDoubleOrNull()
                     if (tempCompName.isNotBlank() && w != null) {
-                        val uiModel = editingComponentDetails!!.copy(
-                            componentName = tempCompName,
-                            weightPercent = w
-                        )
-                        viewModel.updateComponentFull(uiModel, subjectId)
-                        editingComponentDetails = null
+                        editingComponentDetails?.let {
+                            val uiModel = it.copy(
+                                componentName = tempCompName,
+                                weightPercent = w
+                            )
+                            viewModel.updateComponentFull(uiModel, subjectId)
+                            editingComponentDetails = null
+                        }
                     }
                 }) { Text("Lưu") }
             },

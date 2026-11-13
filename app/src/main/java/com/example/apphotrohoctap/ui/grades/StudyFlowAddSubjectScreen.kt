@@ -168,8 +168,8 @@ fun StudyFlowAddSubjectScreen(
                 Text("＋ Thêm cột điểm")
             }
 
-            if (errorText != null) {
-                Text(errorText!!, color = Color(0xFFBA1A1A), fontSize = 14.sp, modifier = Modifier.padding(vertical = 8.dp))
+            errorText?.let {
+                Text(it, color = Color(0xFFBA1A1A), fontSize = 14.sp, modifier = Modifier.padding(vertical = 8.dp))
             }
         }
 

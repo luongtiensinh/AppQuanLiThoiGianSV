@@ -65,10 +65,7 @@ fun StudyFlowTaskDetailScreen(
     BackHandler(onBack = onBack)
     
     // Nếu task bị xóa hoặc không tìm thấy, quay về màn trước
-    if (task == null) {
-        return
-    }
-    val currentTask = task!!
+    val currentTask = task ?: return
     
     val checkedCount = currentTask.subtasks.count { it.isCompleted }
     val progress = if (currentTask.subtasks.isEmpty()) 0f else checkedCount.toFloat() / currentTask.subtasks.size
