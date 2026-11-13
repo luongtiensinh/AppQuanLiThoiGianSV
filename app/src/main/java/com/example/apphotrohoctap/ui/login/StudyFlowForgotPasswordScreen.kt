@@ -110,10 +110,10 @@ fun StudyFlowForgotPasswordScreen(
                 )
             )
             
-            if (message != null) {
+            message?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = message!!,
+                    text = it,
                     fontSize = 13.sp,
                     color = if (isSuccess) Color(0xFF10B981) else Color(0xFFBA1A1A)
                 )
@@ -138,19 +138,22 @@ fun StudyFlowForgotPasswordScreen(
                     isLoading = true
                     
                     coroutineScope.launch {
-                        val repo = AuthRepository(context)
-                        when (val result = repo.sendPasswordResetEmail(email.trim())) {
-                            is AuthResult.Success -> {
-                                isSuccess = true
-                                message = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!"
+                        try {
+                            val repo = AuthRepository(context)
+                            when (val result = repo.sendPasswordResetEmail(email.trim())) {
+                                is AuthResult.Success -> {
+                                    isSuccess = true
+                                    message = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!"
+                                }
+                                is AuthResult.Error -> {
+                                    isSuccess = false
+                                    message = result.message
+                                }
+                                else -> {}
                             }
-                            is AuthResult.Error -> {
-                                isSuccess = false
-                                message = result.message
-                            }
-                            else -> {}
+                        } finally {
+                            isLoading = false
                         }
-                        isLoading = false
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(48.dp),

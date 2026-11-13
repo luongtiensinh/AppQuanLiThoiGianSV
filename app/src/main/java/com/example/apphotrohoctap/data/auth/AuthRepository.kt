@@ -115,19 +115,19 @@ class AuthRepository(private val context: Context) {
     suspend fun sendPasswordResetEmail(email: String): AuthResult {
         return try {
             auth.sendPasswordResetEmail(email).await()
-            AuthResult.Success(null)
-        } catch (e: Exception) {
+            AuthResult.Success(null) // Reset mật khẩu thành công không trả về FirebaseUser
+        } catch (e: com.google.firebase.auth.FirebaseAuthException) {
             Log.e("AuthRepository", "Lỗi reset mật khẩu", e)
-            val errorMsg = e.message ?: ""
-            if (errorMsg.contains("user-not-found", ignoreCase = true) || errorMsg.contains("there is no user record", ignoreCase = true)) {
-                AuthResult.Error("Tài khoản không tồn tại trong hệ thống.")
-            } else if (errorMsg.contains("badly formatted", ignoreCase = true)) {
-                AuthResult.Error("Định dạng email không hợp lệ.")
-            } else if (errorMsg.contains("network", ignoreCase = true) || errorMsg.contains("host", ignoreCase = true)) {
-                AuthResult.Error("Lỗi kết nối mạng. Vui lòng kiểm tra Internet.")
-            } else {
-                AuthResult.Error("Đã có lỗi xảy ra. Vui lòng thử lại sau.")
+            val friendlyMsg = when (e.errorCode) {
+                "ERROR_USER_NOT_FOUND" -> "Tài khoản không tồn tại trong hệ thống."
+                "ERROR_INVALID_EMAIL" -> "Định dạng email không hợp lệ."
+                "ERROR_NETWORK_REQUEST_FAILED" -> "Lỗi kết nối mạng. Vui lòng kiểm tra Internet."
+                else -> "Đã có lỗi xảy ra. Vui lòng thử lại sau."
             }
+            AuthResult.Error(friendlyMsg)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Lỗi reset mật khẩu không xác định", e)
+            AuthResult.Error("Đã có lỗi ngoại lệ. Vui lòng thử lại.")
         }
     }
 }
