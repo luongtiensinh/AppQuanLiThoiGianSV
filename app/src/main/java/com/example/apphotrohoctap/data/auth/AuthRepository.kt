@@ -101,7 +101,15 @@ class AuthRepository(private val context: Context) {
             AuthResult.Success(user)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Lỗi tạo tài khoản", e)
-            AuthResult.Error(e.message ?: "Lỗi tạo tài khoản")
+            val errorMsg = e.message ?: ""
+            if (errorMsg.contains("email address is already in use", ignoreCase = true)) {
+                return AuthResult.Error("Email này đã được đăng ký. Vui lòng thử đăng nhập.")
+            } else if (errorMsg.contains("badly formatted", ignoreCase = true)) {
+                return AuthResult.Error("Định dạng email không hợp lệ.")
+            } else if (errorMsg.contains("network", ignoreCase = true) || errorMsg.contains("host", ignoreCase = true)) {
+                return AuthResult.Error("Lỗi kết nối mạng.")
+            }
+            AuthResult.Error(errorMsg)
         }
     }
 }
