@@ -58,6 +58,7 @@ fun StudyFlowSettingsScreen(
     val deadlineReminder by viewModel.isDeadlineReminderEnabled.collectAsState()
     val useAlarmSound by viewModel.useAlarmSound.collectAsState()
     var classReminder by remember { mutableStateOf(true) }
+    var isLoggingOut by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -184,12 +185,24 @@ fun StudyFlowSettingsScreen(
                     }
                 })
                 SettingsDivider()
-                SettingsNavigationRow("⇥", "Đăng xuất tài khoản", null, "›", danger = true, onClick = {
-                    val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                    sessionManager.clearSession()
-                    viewModel.clearAllUserData()
-                    onLogout()
-                })
+                SettingsNavigationRow(
+                    icon = "⇥", 
+                    title = "Đăng xuất tài khoản", 
+                    subtitle = null, 
+                    trailing = if (isLoggingOut) "Đang xử lý..." else "›", 
+                    danger = true, 
+                    onClick = {
+                        if (isLoggingOut) return@SettingsNavigationRow
+                        isLoggingOut = true
+                        
+                        viewModel.clearAllUserData {
+                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                            sessionManager.clearSession()
+                            isLoggingOut = false
+                            onLogout()
+                        }
+                    }
+                )
             }
             Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("♧  StudyFlow for Students", fontSize = 10.sp, color = SettingsMuted)
