@@ -217,15 +217,7 @@ fun StudyFlowRegisterScreen(
                                             onSignIn()
                                         }
                                         is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
-                                            val errorMsg = result.message
-                                            val friendlyMsg = when {
-                                                errorMsg.contains("email-already-in-use", true) -> "Email này đã được sử dụng."
-                                                errorMsg.contains("invalid-email", true) -> "Email không hợp lệ."
-                                                errorMsg.contains("weak-password", true) -> "Mật khẩu quá yếu."
-                                                errorMsg.contains("network", true) || errorMsg.contains("host", true) -> "Lỗi kết nối mạng."
-                                                else -> "Đăng ký thất bại. Vui lòng thử lại sau."
-                                            }
-                                            android.widget.Toast.makeText(context, friendlyMsg, android.widget.Toast.LENGTH_SHORT).show()
+                                            android.widget.Toast.makeText(context, result.message, android.widget.Toast.LENGTH_LONG).show()
                                         }
                                         else -> {}
                                     }
