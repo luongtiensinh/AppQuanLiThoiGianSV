@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import androidx.room.withTransaction
 
 sealed class SyncResult {
     object Success : SyncResult()
@@ -34,24 +35,28 @@ class SyncRepository(private val database: AppDatabase, private val context: Con
 
             val writeBatch = firestore.batch()
 
-            // Phase 1: Đồng bộ các bảng Gốc (Không có khóa ngoại)
-            awaitAll(
-                async { processSync(userId, "tasks", database.taskDao()::getModifiedTasks, database.taskDao()::insertTaskMany, TaskEntity::class.java, lastSyncTime, writeBatch) },
-                async { processSync(userId, "schedules", database.scheduleDao()::getModifiedSchedules, database.scheduleDao()::insertScheduleMany, ScheduleEntity::class.java, lastSyncTime, writeBatch) },
-                async { processSync(userId, "notes", database.noteDao()::getModifiedNotes, database.noteDao()::insertNoteMany, NoteEntity::class.java, lastSyncTime, writeBatch) },
-                async { processSync(userId, "semesters", database.gradeDao()::getModifiedSemesters, database.gradeDao()::insertSemesterMany, SemesterEntity::class.java, lastSyncTime, writeBatch) }
-            )
+            database.withTransaction {
+                kotlinx.coroutines.coroutineScope {
+                    // Phase 1: Đồng bộ các bảng Gốc (Không có khóa ngoại)
+                    awaitAll(
+                        async { processSync(userId, "tasks", database.taskDao()::getModifiedTasks, database.taskDao()::insertTaskMany, TaskEntity::class.java, lastSyncTime, writeBatch) },
+                        async { processSync(userId, "schedules", database.scheduleDao()::getModifiedSchedules, database.scheduleDao()::insertScheduleMany, ScheduleEntity::class.java, lastSyncTime, writeBatch) },
+                        async { processSync(userId, "notes", database.noteDao()::getModifiedNotes, database.noteDao()::insertNoteMany, NoteEntity::class.java, lastSyncTime, writeBatch) },
+                        async { processSync(userId, "semesters", database.gradeDao()::getModifiedSemesters, database.gradeDao()::insertSemesterMany, SemesterEntity::class.java, lastSyncTime, writeBatch) }
+                    )
 
-            // Phase 2: Đồng bộ các bảng Con (Phụ thuộc vào Phase 1)
-            awaitAll(
-                async { processSync(userId, "subtasks", database.taskDao()::getModifiedSubtasks, database.taskDao()::insertSubtaskMany, SubtaskEntity::class.java, lastSyncTime, writeBatch) },
-                async { processSync(userId, "subjects", database.gradeDao()::getModifiedSubjects, database.gradeDao()::insertSubjectMany, SubjectGradeEntity::class.java, lastSyncTime, writeBatch) }
-            )
+                    // Phase 2: Đồng bộ các bảng Con (Phụ thuộc vào Phase 1)
+                    awaitAll(
+                        async { processSync(userId, "subtasks", database.taskDao()::getModifiedSubtasks, database.taskDao()::insertSubtaskMany, SubtaskEntity::class.java, lastSyncTime, writeBatch) },
+                        async { processSync(userId, "subjects", database.gradeDao()::getModifiedSubjects, database.gradeDao()::insertSubjectMany, SubjectGradeEntity::class.java, lastSyncTime, writeBatch) }
+                    )
 
-            // Phase 3: Đồng bộ các bảng Cháu (Phụ thuộc vào Phase 2)
-            awaitAll(
-                async { processSync(userId, "grade_components", database.gradeDao()::getModifiedComponents, database.gradeDao()::insertComponentMany, GradeComponentEntity::class.java, lastSyncTime, writeBatch) }
-            )
+                    // Phase 3: Đồng bộ các bảng Cháu (Phụ thuộc vào Phase 2)
+                    awaitAll(
+                        async { processSync(userId, "grade_components", database.gradeDao()::getModifiedComponents, database.gradeDao()::insertComponentMany, GradeComponentEntity::class.java, lastSyncTime, writeBatch) }
+                    )
+                }
+            }
 
             // Commit all network writes in a single batch
             writeBatch.commit().await()
