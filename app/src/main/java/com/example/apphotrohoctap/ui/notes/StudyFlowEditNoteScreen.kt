@@ -57,6 +57,8 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
         return
     }
 
+    var isSaving by remember { mutableStateOf(false) }
+
     Box(Modifier.fillMaxSize().background(EditNoteBackground)) {
         Column(Modifier.fillMaxSize()) {
             EditNoteAppHeader(onBack)
@@ -74,8 +76,11 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Surface(onClick = {
+                        if (isSaving) return@Surface
+                        isSaving = true
                         viewModel.updateNote(currentNote.copy(title = title, content = body, updatedAt = System.currentTimeMillis()))
                         android.widget.Toast.makeText(context, "Đã lưu", android.widget.Toast.LENGTH_SHORT).show()
+                        isSaving = false
                     }, color = EditNoteBrand, shape = CircleShape) {
                         Text("✓  Lưu", Modifier.padding(horizontal = 16.dp, vertical = 12.dp), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                     }

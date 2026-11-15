@@ -60,10 +60,16 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
     var courseMenuExpanded by remember { mutableStateOf(false) }
     BackHandler(onBack = onBack)
 
+    var isSaving by remember { mutableStateOf(false) }
+
     Column(Modifier.fillMaxSize().background(EditorBackground)) {
         EditorTopBar(onBack = onBack, onSave = {
+            if (isSaving) return@EditorTopBar
+            isSaving = true
+            
             if (title.isBlank()) {
                 android.widget.Toast.makeText(context, "Vui lòng nhập tiêu đề ghi chú", android.widget.Toast.LENGTH_SHORT).show()
+                isSaving = false
                 return@EditorTopBar
             }
             

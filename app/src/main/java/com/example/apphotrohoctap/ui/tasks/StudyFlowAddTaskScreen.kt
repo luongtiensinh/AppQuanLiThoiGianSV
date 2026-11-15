@@ -122,9 +122,15 @@ fun StudyFlowAddTaskScreen(
                     onAddSubtask = { showSubtaskDialog = true }
                 )
             }
-            SaveFooter(enabled = formState.title.isNotBlank(), onSave = {
+            
+            var isSaving by rememberSaveable { mutableStateOf(false) }
+            
+            SaveFooter(enabled = formState.title.isNotBlank() && !isSaving, onSave = {
+                if (isSaving) return@SaveFooter
+                isSaving = true
                 val success = viewModel.saveTask(forceSave = false)
                 if (!success) {
+                    isSaving = false
                     showPastDeadlineDialog = true
                 } else {
                     onSave()
