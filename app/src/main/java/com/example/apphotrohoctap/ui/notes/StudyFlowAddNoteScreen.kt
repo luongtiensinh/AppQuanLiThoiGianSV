@@ -126,12 +126,15 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                                     onValueChange = { selectedCourse = it },
                                     textStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand),
                                     singleLine = true,
+                                    cursorBrush = androidx.compose.ui.graphics.SolidColor(EditorBrand),
                                     modifier = Modifier.fillMaxWidth(),
                                     decorationBox = { innerTextField ->
-                                        if (selectedCourse.isBlank()) {
-                                            Text("Chọn / Nhập môn học", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Box {
+                                            if (selectedCourse.isBlank()) {
+                                                Text("Chọn / Nhập môn học", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = EditorBrand, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            }
+                                            innerTextField()
                                         }
-                                        innerTextField()
                                     }
                                 )
                             }
