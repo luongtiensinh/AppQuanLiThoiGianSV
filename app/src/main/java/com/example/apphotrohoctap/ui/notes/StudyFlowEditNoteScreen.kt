@@ -138,12 +138,15 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                                         onValueChange = { viewModel.updateNote(currentNote.copy(courseName = it)) },
                                         textStyle = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor),
                                         singleLine = true,
+                                        cursorBrush = androidx.compose.ui.graphics.SolidColor(fgColor),
                                         modifier = Modifier.fillMaxWidth(),
                                         decorationBox = { innerTextField ->
-                                            if (currentNote.courseName.isBlank()) {
-                                                Text("Chọn / Nhập môn học", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            Box {
+                                                if (currentNote.courseName.isBlank()) {
+                                                    Text("Chọn / Nhập môn học", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = fgColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                }
+                                                innerTextField()
                                             }
-                                            innerTextField()
                                         }
                                     )
                                 }
