@@ -70,9 +70,10 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
 
     val timeString = String.format(java.util.Locale.getDefault(), "%02d:%02d - %02d:%02d", sHour, sMin, eHour, eMin)
 
+    val startTotalMin = sHour * 60 + sMin
     val session = when {
-        sHour < 12 -> "Ca sáng"
-        sHour < 18 -> "Ca chiều"
+        startTotalMin < 12 * 60 -> "Ca sáng"
+        startTotalMin < 17 * 60 + 30 -> "Ca chiều" // Từ 17:30 trở đi tính là Ca tối
         else -> "Ca tối"
     }
 
@@ -93,7 +94,6 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
     val currentMin = cal.get(Calendar.MINUTE)
     val currentTotalMin = currentHour * 60 + currentMin
 
-    val startTotalMin = sHour * 60 + sMin
     val endTotalMin = eHour * 60 + eMin
 
     var status = "Sắp tới"

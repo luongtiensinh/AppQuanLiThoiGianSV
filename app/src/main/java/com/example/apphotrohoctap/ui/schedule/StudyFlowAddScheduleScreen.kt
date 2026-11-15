@@ -65,7 +65,7 @@ fun StudyFlowAddScheduleScreen(
     var courseCode by remember { mutableStateOf("") }
     var selectedDay by remember { mutableStateOf("T4") }
     var startPeriod by remember { mutableStateOf("Tiết 1") }
-    var endPeriod by remember { mutableStateOf("Tiết 3") }
+    var endPeriod by remember { mutableStateOf("Tiết 5") }
     var startHour by remember { mutableIntStateOf(6) }
     var startMinute by remember { mutableIntStateOf(45) }
     var endHour by remember { mutableIntStateOf(9) }
