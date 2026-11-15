@@ -209,11 +209,10 @@ fun StudyFlowRegisterScreen(
                                     when (val result = authRepo.registerWithEmailAndPassword(email, password, fullName)) {
                                         is com.example.apphotrohoctap.data.auth.AuthResult.Success -> {
                                             val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                                            sessionManager.saveLoginSession(
-                                                email = email,
-                                                fullName = fullName
-                                            )
-                                            android.widget.Toast.makeText(context, "Đăng ký thành công! Hãy đăng nhập.", android.widget.Toast.LENGTH_SHORT).show()
+                                            // Xóa DB cũ và lưu Session mới
+                                            sessionManager.initializeNewSession(context, email, fullName, rememberLogin = true)
+                                            
+                                            android.widget.Toast.makeText(context, "Đăng ký thành công!", android.widget.Toast.LENGTH_SHORT).show()
                                             onSignIn()
                                         }
                                         is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
@@ -484,10 +483,12 @@ private fun GoogleRegisterButton(
                         val user = result.user
                         if (user != null) {
                             val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                            sessionManager.saveLoginSession(
-                                email = user.email ?: "",
-                                fullName = user.displayName ?: "Sinh viên"
-                            )
+                            val displayName = user.displayName ?: "Sinh viên"
+                            val userEmail = user.email ?: ""
+                            
+                            // Xóa DB cũ và lưu Session mới
+                            sessionManager.initializeNewSession(context, userEmail, displayName, rememberLogin = true)
+                            
                             android.widget.Toast.makeText(context, "Đăng ký thành công!", android.widget.Toast.LENGTH_SHORT).show()
                             onSignIn()
                         }

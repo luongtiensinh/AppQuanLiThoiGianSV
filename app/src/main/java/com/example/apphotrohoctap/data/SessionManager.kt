@@ -40,6 +40,24 @@ class SessionManager(context: Context) {
             .apply()
     }
 
+    suspend fun initializeNewSession(context: Context, email: String, fullName: String, rememberLogin: Boolean = true) {
+        if (rememberLogin) {
+            saveLoginSession(email, fullName)
+        }
+        
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val database = AppDatabase.getDatabase(context)
+                database.clearAllTables()
+                context.getSharedPreferences("studyflow_sync_prefs", Context.MODE_PRIVATE).edit().clear().apply()
+                context.getSharedPreferences("reminder_prefs", Context.MODE_PRIVATE).edit().clear().apply()
+                context.getSharedPreferences("pomodoro_stats", Context.MODE_PRIVATE).edit().clear().apply()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun clearSession() {
         prefs.edit().putBoolean(KEY_IS_LOGGED_IN, false).remove(KEY_USER_EMAIL).apply()
     }
