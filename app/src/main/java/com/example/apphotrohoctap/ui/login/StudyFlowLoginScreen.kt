@@ -140,9 +140,10 @@ fun StudyFlowLoginScreen(
                                         val user = result.user
                                         val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
                                         val displayName = user?.displayName ?: "Sinh viên"
-                                        if (rememberLogin) {
-                                            sessionManager.saveLoginSession(email, displayName)
-                                        }
+                                        
+                                        // Dọn dẹp Database của Session cũ (nếu có) trước khi vào Home
+                                        sessionManager.initializeNewSession(context, email, displayName, rememberLogin)
+                                        
                                         onLogin()
                                     }
                                     is com.example.apphotrohoctap.data.auth.AuthResult.Error -> {
@@ -174,10 +175,12 @@ fun StudyFlowLoginScreen(
                                     val user = result.user
                                     if (user != null) {
                                         val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                                        sessionManager.saveLoginSession(
-                                            email = user.email ?: "",
-                                            fullName = user.displayName ?: "Sinh viên"
-                                        )
+                                        val displayName = user.displayName ?: "Sinh viên"
+                                        val userEmail = user.email ?: ""
+                                        
+                                        // Dọn dẹp Database của Session cũ trước khi vào Home
+                                        sessionManager.initializeNewSession(context, userEmail, displayName, rememberLogin = true)
+                                        
                                         onLogin()
                                     }
                                 }
