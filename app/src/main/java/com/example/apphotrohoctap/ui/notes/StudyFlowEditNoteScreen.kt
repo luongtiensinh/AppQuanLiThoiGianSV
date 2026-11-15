@@ -78,9 +78,14 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                     Surface(onClick = {
                         if (isSaving) return@Surface
                         isSaving = true
-                        viewModel.updateNote(currentNote.copy(title = title, content = body, updatedAt = System.currentTimeMillis()))
-                        android.widget.Toast.makeText(context, "Đã lưu", android.widget.Toast.LENGTH_SHORT).show()
-                        isSaving = false
+                        viewModel.updateNote(currentNote.copy(title = title, content = body, updatedAt = System.currentTimeMillis())) { success ->
+                            isSaving = false
+                            if (success) {
+                                android.widget.Toast.makeText(context, "Đã lưu", android.widget.Toast.LENGTH_SHORT).show()
+                            } else {
+                                android.widget.Toast.makeText(context, "Lỗi lưu dữ liệu. Vui lòng thử lại.", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }, color = EditNoteBrand, shape = CircleShape) {
                         Text("✓  Lưu", Modifier.padding(horizontal = 16.dp, vertical = 12.dp), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                     }

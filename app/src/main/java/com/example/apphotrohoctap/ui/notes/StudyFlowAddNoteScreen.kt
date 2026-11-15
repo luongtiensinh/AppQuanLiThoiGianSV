@@ -83,8 +83,14 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 colorKey = hexColor,
                 updatedAt = System.currentTimeMillis()
             )
-            viewModel.addNote(note)
-            onSave()
+            viewModel.addNote(note) { success ->
+                isSaving = false
+                if (success) {
+                    onSave()
+                } else {
+                    android.widget.Toast.makeText(context, "Lỗi lưu dữ liệu. Vui lòng thử lại.", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
         })
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())

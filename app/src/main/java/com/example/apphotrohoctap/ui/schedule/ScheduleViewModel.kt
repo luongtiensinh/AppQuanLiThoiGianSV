@@ -29,8 +29,13 @@ internal class ScheduleViewModel(private val repository: ScheduleRepository) : V
         }
 
         viewModelScope.launch {
-            repository.addSchedule(schedule)
-            onSuccess()
+            try {
+                repository.addSchedule(schedule)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onSuccess() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onError("Lỗi lưu cơ sở dữ liệu.") }
+            }
         }
     }
 
@@ -51,8 +56,13 @@ internal class ScheduleViewModel(private val repository: ScheduleRepository) : V
         }
 
         viewModelScope.launch {
-            repository.updateSchedule(schedule)
-            onSuccess()
+            try {
+                repository.updateSchedule(schedule)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onSuccess() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onError("Lỗi lưu cơ sở dữ liệu.") }
+            }
         }
     }
 }
