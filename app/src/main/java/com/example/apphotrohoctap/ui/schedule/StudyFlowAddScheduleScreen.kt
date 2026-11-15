@@ -115,7 +115,7 @@ fun StudyFlowAddScheduleScreen(
     }
 
     BackHandler(onBack = onBack)
-    Column(Modifier.fillMaxSize().background(AddScheduleBg)) {
+    Column(Modifier.fillMaxSize().background(AddScheduleBg).imePadding()) {
         AddScheduleHeader(isEdit = scheduleId != null, onBack = onBack)
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())

@@ -62,7 +62,7 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
 
     var isSaving by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().background(EditorBackground)) {
+    Column(Modifier.fillMaxSize().background(EditorBackground).imePadding()) {
         EditorTopBar(onBack = onBack, onSave = {
             if (isSaving) return@EditorTopBar
             isSaving = true

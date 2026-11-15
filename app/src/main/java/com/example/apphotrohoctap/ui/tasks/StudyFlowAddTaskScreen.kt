@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -79,7 +80,7 @@ fun StudyFlowAddTaskScreen(
 
     BackHandler(onBack = onBack)
 
-    Box(Modifier.fillMaxSize().background(AddTaskBackground)) {
+    Box(Modifier.fillMaxSize().background(AddTaskBackground).imePadding()) {
         Column(Modifier.fillMaxSize()) {
             AddTaskHeader(onBack)
             Column(
