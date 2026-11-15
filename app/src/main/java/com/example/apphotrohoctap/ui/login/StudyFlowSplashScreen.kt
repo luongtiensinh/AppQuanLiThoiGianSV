@@ -31,19 +31,20 @@ fun StudyFlowSplashScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
+        // Tạo khoảng trễ nhỏ (500ms) để người dùng kịp ngắm logo ứng dụng (Branding effect)
+        kotlinx.coroutines.delay(500)
+        
         // Chuyển việc giải mã SharedPreferences (isLoggedIn) sang luồng I/O
         val isLoggedIn = withContext(Dispatchers.IO) {
             val sessionManager = SessionManager(context)
             sessionManager.isLoggedIn()
         }
         
-        // Điều hướng trở lại Main Thread sau khi check xong
-        withContext(Dispatchers.Main) {
-            if (isLoggedIn) {
-                onNavigateToHome()
-            } else {
-                onNavigateToLogin()
-            }
+        // Điều hướng (LaunchedEffect mặc định chạy trên Main Dispatcher nên không cần switch về Main)
+        if (isLoggedIn) {
+            onNavigateToHome()
+        } else {
+            onNavigateToLogin()
         }
     }
 
