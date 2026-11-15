@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.apphotrohoctap.ui.login.StudyFlowLoginScreen
 import com.example.apphotrohoctap.ui.login.StudyFlowForgotPasswordScreen
+import com.example.apphotrohoctap.ui.login.StudyFlowSplashScreen
 import com.example.apphotrohoctap.ui.home.StudyFlowHomeScreen
 import com.example.apphotrohoctap.ui.pomodoro.StudyFlowPomodoroScreen
 import com.example.apphotrohoctap.ui.registration.StudyFlowRegisterScreen
@@ -37,6 +38,20 @@ fun StudyFlowNavGraph(
     navToTab: (BottomNavTab) -> Unit
 ) {
     NavHost(navController = navController, startDestination = startDestination) {
+        composable(Screen.Splash.route) {
+            StudyFlowSplashScreen(
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(Screen.Login.route) {
             StudyFlowLoginScreen(
                 onRegister = { navController.navigate(Screen.Register.route) },

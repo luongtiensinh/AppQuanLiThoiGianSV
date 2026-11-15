@@ -22,9 +22,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
-        val sessionManager = com.example.apphotrohoctap.data.SessionManager(this)
-        val startDest = if (sessionManager.isLoggedIn()) Screen.Home.route else Screen.Login.route
-        
         setContent {
             AppHoTroHocTapTheme {
                 val navController = rememberNavController()
@@ -50,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
                 StudyFlowNavGraph(
                     navController = navController,
-                    startDestination = startDest,
+                    startDestination = Screen.Splash.route,
                     pomodoroViewModel = pomodoroViewModel,
                     navToTab = navToTab
                 )
