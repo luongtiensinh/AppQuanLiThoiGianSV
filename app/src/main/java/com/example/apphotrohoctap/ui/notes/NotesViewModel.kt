@@ -29,15 +29,27 @@ internal class NotesViewModel(
             initialValue = emptyList()
         )
 
-    fun addNote(note: NoteEntity) {
+    fun addNote(note: NoteEntity, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            repository.addNote(note)
+            try {
+                repository.addNote(note)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onComplete(true) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onComplete(false) }
+            }
         }
     }
 
-    fun updateNote(note: NoteEntity) {
+    fun updateNote(note: NoteEntity, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            repository.updateNote(note)
+            try {
+                repository.updateNote(note)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onComplete(true) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { onComplete(false) }
+            }
         }
     }
 

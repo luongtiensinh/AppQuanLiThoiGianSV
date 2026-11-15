@@ -35,11 +35,6 @@ fun PomodoroTimerArc(
     val progressRatio = if (totalMillis > 0) remainingMillis.toFloat() / totalMillis else 0f
     val sweepAngle = progressRatio * 360f
 
-    val totalSeconds = remainingMillis / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    val timeString = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier.aspectRatio(1f)
@@ -70,13 +65,23 @@ fun PomodoroTimerArc(
             )
         }
         
-        Text(
-            text = timeString,
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1A1A2A) // Ink color
-        )
+        PomodoroTimerText(remainingMillis = remainingMillis)
     }
+}
+
+@Composable
+private fun PomodoroTimerText(remainingMillis: Long) {
+    val totalSeconds = remainingMillis / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    val timeString = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+    
+    Text(
+        text = timeString,
+        fontSize = 48.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF1A1A2A) // Ink color
+    )
 }
 
 @Composable

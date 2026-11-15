@@ -82,7 +82,7 @@ internal class TasksViewModel(
      * @return true nếu hạn chót hợp lệ và đã được lưu thành công.
      *         false nếu hạn chót nằm trong quá khứ (cần xác nhận).
      */
-    fun saveTask(forceSave: Boolean = false): Boolean {
+    fun saveTask(forceSave: Boolean = false, onComplete: (Boolean) -> Unit = {}): Boolean {
         val state = _addTaskFormState.value
         val dueAtMillis = DateTimeUtils.toDueAtMillis(state.selectedDateUtcMillis, state.selectedHour, state.selectedMinute)
         
@@ -107,14 +107,24 @@ internal class TasksViewModel(
             isCompleted = false
         )
         
-        addTaskWithSubtasks(newEntity, state.subtasks)
-        clearAddTaskForm()
+        addTaskWithSubtasks(newEntity, state.subtasks, onComplete)
         return true
     }
 
-    fun addTaskWithSubtasks(task: TaskEntity, subtasks: List<String>) {
+    fun addTaskWithSubtasks(task: TaskEntity, subtasks: List<String>, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            repository.addTaskWithSubtasks(task, subtasks)
+            try {
+                repository.addTaskWithSubtasks(task, subtasks)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { 
+                    clearAddTaskForm()
+                    onComplete(true) 
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { 
+                    onComplete(false) 
+                }
+            }
         }
     }
 

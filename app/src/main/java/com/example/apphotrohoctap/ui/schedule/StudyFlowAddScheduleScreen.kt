@@ -217,8 +217,12 @@ fun StudyFlowAddScheduleScreen(
             }
         }
         Surface(color = AddScheduleBg.copy(alpha = .96f), shadowElevation = 4.dp) {
+            var isSaving by remember { mutableStateOf(false) }
             Button(
                 onClick = {
+                    if (isSaving) return@Button
+                    isSaving = true
+                    
                     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                     val startMillis = try { sdf.parse(startDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
                     val endMillis = try { sdf.parse(endDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
@@ -255,9 +259,15 @@ fun StudyFlowAddScheduleScreen(
                     )
 
                     if (scheduleId != null) {
-                        viewModel.updateSchedule(schedule, onError = { android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show() }, onSuccess = onSave)
+                        viewModel.updateSchedule(schedule, onError = { 
+                            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show()
+                            isSaving = false 
+                        }, onSuccess = onSave)
                     } else {
-                        viewModel.addSchedule(schedule, onError = { android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show() }, onSuccess = onSave)
+                        viewModel.addSchedule(schedule, onError = { 
+                            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show()
+                            isSaving = false 
+                        }, onSuccess = onSave)
                     }
                 },
                 modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp).height(48.dp),

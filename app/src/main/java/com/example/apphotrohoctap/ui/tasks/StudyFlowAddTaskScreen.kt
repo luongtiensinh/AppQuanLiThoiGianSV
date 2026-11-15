@@ -75,6 +75,7 @@ fun StudyFlowAddTaskScreen(
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var showSubtaskDialog by rememberSaveable { mutableStateOf(false) }
     var showPastDeadlineDialog by rememberSaveable { mutableStateOf(false) }
+    var isSaving by rememberSaveable { mutableStateOf(false) }
 
     BackHandler(onBack = onBack)
 
@@ -122,12 +123,21 @@ fun StudyFlowAddTaskScreen(
                     onAddSubtask = { showSubtaskDialog = true }
                 )
             }
-            SaveFooter(enabled = formState.title.isNotBlank(), onSave = {
-                val success = viewModel.saveTask(forceSave = false)
+            
+            SaveFooter(enabled = formState.title.isNotBlank() && !isSaving, onSave = {
+                if (isSaving) return@SaveFooter
+                isSaving = true
+                val success = viewModel.saveTask(forceSave = false) { dbSuccess ->
+                    isSaving = false
+                    if (dbSuccess) {
+                        onSave()
+                    } else {
+                        android.widget.Toast.makeText(context, "Lỗi lưu dữ liệu. Vui lòng thử lại.", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
                 if (!success) {
+                    isSaving = false
                     showPastDeadlineDialog = true
-                } else {
-                    onSave()
                 }
             })
         }
@@ -183,9 +193,17 @@ fun StudyFlowAddTaskScreen(
             text = { Text("Hạn chót đã qua, bạn vẫn muốn lưu?") },
             confirmButton = {
                 TextButton(onClick = {
-                    showPastDeadlineDialog = false
-                    viewModel.saveTask(forceSave = true)
-                    onSave()
+                    if (isSaving) return@TextButton
+                    isSaving = true
+                    viewModel.saveTask(forceSave = true) { dbSuccess ->
+                        isSaving = false
+                        if (dbSuccess) {
+                            showPastDeadlineDialog = false
+                            onSave()
+                        } else {
+                            android.widget.Toast.makeText(context, "Lỗi lưu dữ liệu. Vui lòng thử lại.", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }) { Text("Lưu") }
             },
             dismissButton = { TextButton(onClick = { showPastDeadlineDialog = false }) { Text("Hủy") } }

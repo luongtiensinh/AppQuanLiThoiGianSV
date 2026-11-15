@@ -60,10 +60,16 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
     var courseMenuExpanded by remember { mutableStateOf(false) }
     BackHandler(onBack = onBack)
 
+    var isSaving by remember { mutableStateOf(false) }
+
     Column(Modifier.fillMaxSize().background(EditorBackground)) {
         EditorTopBar(onBack = onBack, onSave = {
+            if (isSaving) return@EditorTopBar
+            isSaving = true
+            
             if (title.isBlank()) {
                 android.widget.Toast.makeText(context, "Vui lòng nhập tiêu đề ghi chú", android.widget.Toast.LENGTH_SHORT).show()
+                isSaving = false
                 return@EditorTopBar
             }
             
@@ -77,8 +83,14 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 colorKey = hexColor,
                 updatedAt = System.currentTimeMillis()
             )
-            viewModel.addNote(note)
-            onSave()
+            viewModel.addNote(note) { success ->
+                isSaving = false
+                if (success) {
+                    onSave()
+                } else {
+                    android.widget.Toast.makeText(context, "Lỗi lưu dữ liệu. Vui lòng thử lại.", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
         })
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
