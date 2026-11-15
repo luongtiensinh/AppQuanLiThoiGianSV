@@ -24,8 +24,24 @@ class SyncRepository(private val database: AppDatabase, private val context: Con
     private val firestore = FirebaseFirestore.getInstance()
     private val batchMutex = Mutex()
 
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return when {
+            activeNetwork.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) -> true
+            activeNetwork.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            activeNetwork.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
+        }
+    }
+
     suspend fun syncWithCloud(): SyncResult = withContext(Dispatchers.IO) {
         try {
+            if (!isNetworkAvailable()) {
+                return@withContext SyncResult.Error("Lỗi kết nối mạng. Vui lòng kiểm tra Internet.")
+            }
+            
             val user = auth.currentUser ?: return@withContext SyncResult.Error("Chưa đăng nhập tài khoản Google.")
             val userId = user.uid
 
