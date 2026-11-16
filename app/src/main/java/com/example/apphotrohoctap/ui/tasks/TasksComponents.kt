@@ -96,20 +96,21 @@ internal fun SearchAndFilters(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("⌕", modifier = Modifier.padding(start = 14.dp), fontSize = 24.sp, color = TasksSecondary)
-            OutlinedTextField(
+            androidx.compose.foundation.text.BasicTextField(
                 value = searchText,
                 onValueChange = onSearchChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Tìm kiếm bài tập, môn học...", fontSize = 12.sp, color = TasksSecondary) },
+                modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp, color = TasksSecondary),
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp, color = TasksSecondary),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    cursorColor = TasksBrand
-                )
+                cursorBrush = androidx.compose.ui.graphics.SolidColor(TasksBrand),
+                decorationBox = { innerTextField ->
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        if (searchText.isEmpty()) {
+                            Text("Tìm kiếm bài tập, môn học...", fontSize = 12.sp, color = TasksSecondary)
+                        }
+                        innerTextField()
+                    }
+                }
             )
             Text("☷", modifier = Modifier.padding(horizontal = 14.dp), fontSize = 18.sp, color = TasksSecondary)
         }
