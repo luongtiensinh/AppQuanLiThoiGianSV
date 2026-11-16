@@ -157,7 +157,8 @@ internal class TasksViewModel(
         viewModelScope.launch {
             val taskWithSubtasks = repository.getTaskById(taskId)
             if (taskWithSubtasks != null) {
-                repository.deleteSubtasksByTaskId(taskId)
+                // repository.deleteTask(taskId) bây giờ đã tự động xóa dây chuyền cả task và các việc con (subtasks)
+                // bằng @Transaction trong TaskDao, nên không cần gọi deleteSubtasksByTaskId nữa.
                 repository.deleteTask(taskId)
             }
         }
