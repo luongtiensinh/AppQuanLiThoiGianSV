@@ -142,7 +142,11 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                             Text("⌄", fontSize = 10.sp, color = EditorBrand)
                         }
                     }
-                    DropdownMenu(expanded = courseMenuExpanded, onDismissRequest = { courseMenuExpanded = false }) {
+                    DropdownMenu(
+                        expanded = courseMenuExpanded, 
+                        onDismissRequest = { courseMenuExpanded = false },
+                        modifier = Modifier.background(Color.White)
+                    ) {
                         if (availableCourses.isEmpty()) {
                             DropdownMenuItem(
                                 text = { Text("Chưa có môn học trong lịch", fontSize = 12.sp, color = EditorMuted) },

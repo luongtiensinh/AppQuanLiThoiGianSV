@@ -154,7 +154,11 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                                 Text("⌄", fontSize = 9.sp, color = fgColor)
                             }
                         }
-                        DropdownMenu(expanded = courseMenuExpanded, onDismissRequest = { courseMenuExpanded = false }) {
+                        DropdownMenu(
+                            expanded = courseMenuExpanded, 
+                            onDismissRequest = { courseMenuExpanded = false },
+                            modifier = Modifier.background(Color.White)
+                        ) {
                             if (availableCourses.isEmpty()) {
                                 DropdownMenuItem(
                                     text = { Text("Chưa có môn học trong lịch", fontSize = 12.sp, color = EditNoteMuted) },
