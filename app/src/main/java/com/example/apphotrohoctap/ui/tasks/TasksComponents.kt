@@ -104,9 +104,15 @@ internal fun SearchAndFilters(
                 singleLine = true,
                 cursorBrush = androidx.compose.ui.graphics.SolidColor(TasksBrand),
                 decorationBox = { innerTextField ->
-                    Box(contentAlignment = Alignment.CenterStart) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
                         if (searchText.isEmpty()) {
-                            Text("Tìm kiếm bài tập, môn học...", fontSize = 12.sp, color = TasksSecondary)
+                            Text(
+                                text = "Tìm kiếm bài tập, môn học...", 
+                                fontSize = 12.sp, 
+                                color = TasksSecondary,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
                         }
                         innerTextField()
                     }
