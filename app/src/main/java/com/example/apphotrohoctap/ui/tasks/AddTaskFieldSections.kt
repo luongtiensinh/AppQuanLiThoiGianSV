@@ -96,7 +96,7 @@ internal fun CourseSelectionCard(
                 ) {
                     availableCourses.forEach { course ->
                         DropdownMenuItem(
-                            text = { Text(course, fontSize = 14.sp) },
+                            text = { Text(course, fontSize = 14.sp, color = AddTaskInk) },
                             onClick = {
                                 onCourseSelected(course)
                                 expanded = false
