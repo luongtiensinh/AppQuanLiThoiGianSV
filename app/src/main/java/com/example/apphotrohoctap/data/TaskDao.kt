@@ -47,6 +47,12 @@ interface TaskDao {
     suspend fun softDeleteSubtasksByTaskId(taskId: Long, timestamp: Long)
 
     @Transaction
+    suspend fun softDeleteTaskCascade(taskId: Long, timestamp: Long) {
+        softDeleteTask(taskId, timestamp)
+        softDeleteSubtasksByTaskId(taskId, timestamp)
+    }
+
+    @Transaction
     @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueAtMillis > :now AND dueAtMillis <= :next24Hours ORDER BY dueAtMillis ASC")
     suspend fun getUpcomingDeadlines(now: Long, next24Hours: Long): List<TaskWithSubtasks>
 
