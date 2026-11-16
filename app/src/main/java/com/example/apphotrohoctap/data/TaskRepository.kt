@@ -23,7 +23,11 @@ class TaskRepository(private val taskDao: TaskDao) {
     
     suspend fun updateTask(task: TaskEntity) = taskDao.updateTask(task.copy(updatedAt = System.currentTimeMillis()))
     suspend fun updateSubtask(subtask: SubtaskEntity) = taskDao.updateSubtask(subtask.copy(updatedAt = System.currentTimeMillis()))
-    suspend fun deleteTask(taskId: Long) = taskDao.softDeleteTask(taskId, System.currentTimeMillis())
+    
+    suspend fun deleteTask(taskId: Long) {
+        val now = System.currentTimeMillis()
+        taskDao.softDeleteTaskCascade(taskId, now)
+    }
+    
     suspend fun deleteSubtask(subtaskId: Long) = taskDao.softDeleteSubtask(subtaskId, System.currentTimeMillis())
-    suspend fun deleteSubtasksByTaskId(taskId: Long) = taskDao.softDeleteSubtasksByTaskId(taskId, System.currentTimeMillis())
 }
