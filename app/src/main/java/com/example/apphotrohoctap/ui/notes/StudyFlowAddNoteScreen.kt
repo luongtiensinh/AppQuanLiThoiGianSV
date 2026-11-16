@@ -152,7 +152,7 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                         } else {
                             availableCourses.forEach { course ->
                                 DropdownMenuItem(
-                                    text = { Text(course, fontSize = 12.sp) }, 
+                                    text = { Text(course, fontSize = 12.sp, color = EditorInk) }, 
                                     onClick = { selectedCourse = course; courseMenuExpanded = false }
                                 )
                             }

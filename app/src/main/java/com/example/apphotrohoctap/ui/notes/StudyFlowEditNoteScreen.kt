@@ -164,7 +164,7 @@ fun StudyFlowEditNoteScreen(noteId: Long, onBack: () -> Unit = {}) {
                             } else {
                                 availableCourses.forEach { course ->
                                     DropdownMenuItem(
-                                        text = { Text(course, fontSize = 12.sp) }, 
+                                        text = { Text(course, fontSize = 12.sp, color = EditNoteInk) }, 
                                         onClick = { 
                                             viewModel.updateNote(currentNote.copy(courseName = course))
                                             courseMenuExpanded = false 
