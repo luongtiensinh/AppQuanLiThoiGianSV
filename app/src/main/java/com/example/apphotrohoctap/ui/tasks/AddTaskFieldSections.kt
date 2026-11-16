@@ -256,17 +256,29 @@ internal fun PriorityCard(selectedPriority: String, onPrioritySelected: (String)
         Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Thấp" to Color(0xFF10B981), "Vừa" to Color(0xFFF59E0B), "Cao" to AddTaskUrgent).forEach { (priority, color) ->
                 val selected = selectedPriority == priority
+                val bgColor = when {
+                    selected && priority == "Cao" -> AddTaskUrgentPale
+                    selected && priority == "Vừa" -> Color(0xFFFEF3C7) // Orange Pale
+                    selected && priority == "Thấp" -> Color(0xFFD1FAE5) // Green Pale
+                    else -> AddTaskField
+                }
+                val textColor = when {
+                    selected && priority == "Cao" -> Color(0xFF93000A)
+                    selected && priority == "Vừa" -> Color(0xFF92400E)
+                    selected && priority == "Thấp" -> Color(0xFF065F46)
+                    else -> AddTaskInk
+                }
                 Surface(
                     onClick = { onPrioritySelected(priority) },
                     modifier = Modifier.weight(1f).height(44.dp),
-                    color = if (selected && priority == "Cao") AddTaskUrgentPale else if (selected) AddTaskChip else AddTaskField,
+                    color = bgColor,
                     shape = RoundedCornerShape(12.dp),
                     shadowElevation = if (selected) 1.dp else 0.dp
                 ) {
                     Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(8.dp).clip(CircleShape).background(color))
                         Spacer(Modifier.width(6.dp))
-                        Text(priority, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = if (selected && priority == "Cao") Color(0xFF93000A) else AddTaskInk)
+                        Text(priority, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, color = textColor)
                     }
                 }
             }
