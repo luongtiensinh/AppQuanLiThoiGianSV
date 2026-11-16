@@ -182,22 +182,36 @@ private fun HeaderAction(icon: String, description: String, onClick: () -> Unit)
 
 @Composable
 private fun SearchField(value: String, onValueChange: (String) -> Unit) {
-    TextField(
+    androidx.compose.foundation.text.BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(48.dp),
-        placeholder = { Text("Tìm kiếm ghi chú, nội dung, môn học...", fontSize = 12.sp, color = NotesMuted, maxLines = 1) },
-        leadingIcon = { Text("⌕", fontSize = 24.sp, color = NotesText) },
-        trailingIcon = { Text("☷", modifier = Modifier.padding(end = 12.dp), fontSize = 18.sp, color = NotesText) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(48.dp)
+            .background(NotesChip, RoundedCornerShape(16.dp)),
+        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp, color = NotesInk),
         singleLine = true,
-        shape = RoundedCornerShape(16.dp),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = NotesChip,
-            unfocusedContainerColor = NotesChip,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = NotesBrand
-        )
+        cursorBrush = androidx.compose.ui.graphics.SolidColor(NotesBrand),
+        decorationBox = { innerTextField ->
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("⌕", fontSize = 24.sp, color = NotesText)
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                    if (value.isEmpty()) {
+                        Text("Tìm kiếm ghi chú, nội dung, môn học...", fontSize = 12.sp, color = NotesMuted, maxLines = 1)
+                    }
+                    innerTextField()
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("☷", fontSize = 18.sp, color = NotesText)
+            }
+        }
     )
 }
 
