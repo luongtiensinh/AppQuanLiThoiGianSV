@@ -34,6 +34,9 @@ interface GradeDao {
 
     @Query("SELECT * FROM semesters WHERE isDeleted = 0 AND isCurrent = 1 LIMIT 1")
     suspend fun getCurrentSemester(): SemesterEntity?
+    
+    @Query("SELECT * FROM semesters WHERE isDeleted = 0 ORDER BY semesterId DESC LIMIT 1")
+    suspend fun getLatestSemester(): SemesterEntity?
 
     // --- Subject & Components ---
     @Transaction
@@ -83,6 +86,29 @@ interface GradeDao {
     suspend fun softDeleteComponentsBySemester(semesterId: Long, timestamp: Long)
 
     @Transaction
+    suspend fun updateSemesterSafe(semester: SemesterEntity) {
+        if (semester.isCurrent) {
+            clearCurrentSemester()
+        }
+        updateSemester(semester)
+        if (getCurrentSemester() == null) {
+            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
+        }
+    }
+    
+    @Transaction
+    suspend fun insertSemesterSafe(semester: SemesterEntity): Long {
+        if (semester.isCurrent) {
+            clearCurrentSemester()
+        }
+        val id = insertSemester(semester)
+        if (getCurrentSemester() == null) {
+            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
+        }
+        return id
+    }
+
+    @Transaction
     suspend fun softDeleteSemesterCascade(semesterId: Long, timestamp: Long) {
         val semesterToDelete = getSemesterById(semesterId)
         if (semesterToDelete?.isCurrent == true) {
@@ -92,6 +118,10 @@ interface GradeDao {
         softDeleteComponentsBySemester(semesterId, timestamp)
         softDeleteSubjectsBySemester(semesterId, timestamp)
         softDeleteSemester(semesterId, timestamp)
+        
+        if (getCurrentSemester() == null) {
+            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
+        }
     }
 
     @Transaction

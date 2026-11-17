@@ -9,17 +9,11 @@ class GradeRepository(private val gradeDao: GradeDao) {
     suspend fun getSemesterById(id: Long): SemesterEntity? = gradeDao.getSemesterById(id)
     
     suspend fun addSemester(semester: SemesterEntity): Long {
-        if (semester.isCurrent) {
-            gradeDao.clearCurrentSemester()
-        }
-        return gradeDao.insertSemester(semester.copy(updatedAt = System.currentTimeMillis()))
+        return gradeDao.insertSemesterSafe(semester.copy(updatedAt = System.currentTimeMillis()))
     }
 
     suspend fun updateSemester(semester: SemesterEntity) {
-        if (semester.isCurrent) {
-            gradeDao.clearCurrentSemester()
-        }
-        gradeDao.updateSemester(semester.copy(updatedAt = System.currentTimeMillis()))
+        gradeDao.updateSemesterSafe(semester.copy(updatedAt = System.currentTimeMillis()))
     }
 
     suspend fun deleteSemester(semesterId: Long) {
