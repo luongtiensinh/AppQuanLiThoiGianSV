@@ -198,9 +198,13 @@ fun StudyFlowSemesterScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.addSemester(newSemesterName, isCurrent)
-                        showAddDialog = false
-                        newSemesterName = ""
+                        val success = viewModel.addSemester(newSemesterName, isCurrent)
+                        if (success) {
+                            showAddDialog = false
+                            newSemesterName = ""
+                        } else {
+                            android.widget.Toast.makeText(context, "Vui lòng nhập tên học kỳ", android.widget.Toast.LENGTH_SHORT).show()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4143D5))
                 ) {
@@ -246,9 +250,13 @@ fun StudyFlowSemesterScreen(
                 Button(
                     onClick = {
                         editingSemester?.let {
-                            viewModel.updateSemester(it.semesterId, editSemesterName, editIsCurrent)
+                            val success = viewModel.updateSemester(it.semesterId, editSemesterName, editIsCurrent)
+                            if (success) {
+                                editingSemester = null
+                            } else {
+                                android.widget.Toast.makeText(context, "Vui lòng nhập tên học kỳ", android.widget.Toast.LENGTH_SHORT).show()
+                            }
                         }
-                        editingSemester = null
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4143D5))
                 ) {

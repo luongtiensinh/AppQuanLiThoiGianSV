@@ -50,19 +50,23 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
         initialValue = emptyList()
     )
 
-    fun addSemester(name: String, isCurrent: Boolean = true) {
-        if (name.isBlank()) return
+    fun addSemester(name: String, isCurrent: Boolean = true): Boolean {
+        val cleanName = name.trim()
+        if (cleanName.isBlank()) return false
         viewModelScope.launch {
-            repository.addSemester(SemesterEntity(semesterName = name, isCurrent = isCurrent))
+            repository.addSemester(SemesterEntity(semesterName = cleanName, isCurrent = isCurrent))
         }
+        return true
     }
 
-    fun updateSemester(id: Long, name: String, isCurrent: Boolean) {
-        if (name.isBlank()) return
+    fun updateSemester(id: Long, name: String, isCurrent: Boolean): Boolean {
+        val cleanName = name.trim()
+        if (cleanName.isBlank()) return false
         viewModelScope.launch {
             val existing = repository.getSemesterById(id) ?: return@launch
-            repository.updateSemester(existing.copy(semesterName = name, isCurrent = isCurrent))
+            repository.updateSemester(existing.copy(semesterName = cleanName, isCurrent = isCurrent))
         }
+        return true
     }
 
     fun deleteSemester(id: Long) {
