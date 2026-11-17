@@ -6,6 +6,8 @@ class GradeRepository(private val gradeDao: GradeDao) {
     // --- Semester ---
     fun getAllSemesters(): Flow<List<SemesterEntity>> = gradeDao.getAllSemesters()
     
+    suspend fun getSemesterById(id: Long): SemesterEntity? = gradeDao.getSemesterById(id)
+    
     suspend fun addSemester(semester: SemesterEntity): Long {
         if (semester.isCurrent) {
             gradeDao.clearCurrentSemester()

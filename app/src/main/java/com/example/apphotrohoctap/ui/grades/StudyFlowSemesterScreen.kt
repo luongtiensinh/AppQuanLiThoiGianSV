@@ -31,6 +31,12 @@ fun StudyFlowSemesterScreen(
     
     var showAddDialog by remember { mutableStateOf(false) }
     var newSemesterName by remember { mutableStateOf("") }
+    
+    var editingSemester by remember { mutableStateOf<SemesterUiModel?>(null) }
+    var editSemesterName by remember { mutableStateOf("") }
+    var editIsCurrent by remember { mutableStateOf(false) }
+    
+    var deletingSemester by remember { mutableStateOf<SemesterUiModel?>(null) }
 
     Column(
         modifier = Modifier
@@ -108,6 +114,26 @@ fun StudyFlowSemesterScreen(
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                            
+                            var menuExpanded by remember { mutableStateOf(false) }
+                            Box {
+                                IconButton(onClick = { menuExpanded = true }, modifier = Modifier.size(24.dp)) {
+                                    Text("⋮", fontSize = 18.sp, color = Color(0xFF1A1A2A), fontWeight = FontWeight.Bold)
+                                }
+                                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, modifier = Modifier.background(Color.White)) {
+                                    DropdownMenuItem(text = { Text("Sửa học kỳ", color = Color(0xFF1A1A2A)) }, onClick = { 
+                                        menuExpanded = false
+                                        editingSemester = semester
+                                        editSemesterName = semester.semesterName
+                                        editIsCurrent = semester.isCurrent
+                                    })
+                                    DropdownMenuItem(text = { Text("Xóa học kỳ", color = Color(0xFFBA1A1A)) }, onClick = { 
+                                        menuExpanded = false
+                                        deletingSemester = semester
+                                    })
+                                }
                             }
                         }
                         
@@ -183,6 +209,82 @@ fun StudyFlowSemesterScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
+                    Text("Hủy", color = Color(0xFF767586))
+                }
+            }
+        )
+    }
+
+    if (editingSemester != null) {
+        AlertDialog(
+            onDismissRequest = { editingSemester = null },
+            title = { Text("Sửa Học kỳ", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = editSemesterName,
+                        onValueChange = { editSemesterName = it },
+                        label = { Text("Tên học kỳ") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = editIsCurrent,
+                            onCheckedChange = { editIsCurrent = it },
+                            colors = CheckboxDefaults.colors(checkedColor = Color(0xFF4143D5))
+                        )
+                        Text("Đặt làm học kỳ hiện tại", fontSize = 14.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        editingSemester?.let {
+                            viewModel.updateSemester(it.semesterId, editSemesterName, editIsCurrent)
+                        }
+                        editingSemester = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4143D5))
+                ) {
+                    Text("Cập nhật")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingSemester = null }) {
+                    Text("Hủy", color = Color(0xFF767586))
+                }
+            }
+        )
+    }
+
+    if (deletingSemester != null) {
+        AlertDialog(
+            onDismissRequest = { deletingSemester = null },
+            title = { Text("Xóa Học kỳ", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFFBA1A1A)) },
+            text = { 
+                Text("Việc này sẽ xóa học kỳ '${deletingSemester?.semesterName}' và TOÀN BỘ các môn học, điểm số bên trong nó. Bạn có chắc chắn muốn xóa không?") 
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        deletingSemester?.let {
+                            viewModel.deleteSemester(it.semesterId)
+                        }
+                        deletingSemester = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBA1A1A))
+                ) {
+                    Text("Xóa vĩnh viễn")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingSemester = null }) {
                     Text("Hủy", color = Color(0xFF767586))
                 }
             }

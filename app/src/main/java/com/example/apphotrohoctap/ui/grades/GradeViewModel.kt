@@ -57,6 +57,20 @@ internal class GradeViewModel(private val repository: GradeRepository) : ViewMod
         }
     }
 
+    fun updateSemester(id: Long, name: String, isCurrent: Boolean) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            val existing = repository.getSemesterById(id) ?: return@launch
+            repository.updateSemester(existing.copy(semesterName = name, isCurrent = isCurrent))
+        }
+    }
+
+    fun deleteSemester(id: Long) {
+        viewModelScope.launch {
+            repository.deleteSemester(id)
+        }
+    }
+
     // 2. Quản lý môn học theo học kỳ
     fun getSubjectsForSemester(semesterId: Long): kotlinx.coroutines.flow.Flow<List<SubjectGradeUiModel>> {
         return repository.getSubjectsWithGradesBySemester(semesterId)
