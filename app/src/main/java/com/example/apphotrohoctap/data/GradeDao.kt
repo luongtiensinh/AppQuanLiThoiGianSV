@@ -84,6 +84,11 @@ interface GradeDao {
 
     @Transaction
     suspend fun softDeleteSemesterCascade(semesterId: Long, timestamp: Long) {
+        val semesterToDelete = getSemesterById(semesterId)
+        if (semesterToDelete?.isCurrent == true) {
+            clearCurrentSemester()
+        }
+        
         softDeleteComponentsBySemester(semesterId, timestamp)
         softDeleteSubjectsBySemester(semesterId, timestamp)
         softDeleteSemester(semesterId, timestamp)
