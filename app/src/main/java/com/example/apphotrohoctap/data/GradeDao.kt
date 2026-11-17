@@ -27,10 +27,16 @@ interface GradeDao {
     suspend fun getSemesterById(id: Long): SemesterEntity?
 
     @Query("UPDATE semesters SET isCurrent = 0")
-    suspend fun clearCurrentSemester()
+    suspend fun clearCurrentSemesterInternal()
 
     @Query("UPDATE semesters SET isCurrent = 1 WHERE semesterId = :id")
-    suspend fun setCurrentSemester(id: Long)
+    suspend fun markSemesterAsCurrentInternal(id: Long)
+
+    @Transaction
+    suspend fun setCurrentSemesterTransactional(id: Long) {
+        clearCurrentSemesterInternal()
+        markSemesterAsCurrentInternal(id)
+    }
 
     @Query("SELECT * FROM semesters WHERE isDeleted = 0 AND isCurrent = 1 LIMIT 1")
     suspend fun getCurrentSemester(): SemesterEntity?
@@ -88,23 +94,29 @@ interface GradeDao {
     @Transaction
     suspend fun updateSemesterSafe(semester: SemesterEntity) {
         if (semester.isCurrent) {
-            clearCurrentSemester()
+            clearCurrentSemesterInternal()
         }
         updateSemester(semester)
+        
+        // Chỉ auto-fallback nếu học kỳ hiện tại bị mất do người dùng tắt cờ.
+        // Cần đảm bảo nếu không có học kỳ nào, hoặc user chủ động bỏ chọn,
+        // thì hệ thống vẫn gán lại một cái nếu có. (Yêu cầu business logic: luôn có 1 current).
         if (getCurrentSemester() == null) {
-            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
+            getLatestSemester()?.let { markSemesterAsCurrentInternal(it.semesterId) }
         }
     }
     
     @Transaction
     suspend fun insertSemesterSafe(semester: SemesterEntity): Long {
         if (semester.isCurrent) {
-            clearCurrentSemester()
+            clearCurrentSemesterInternal()
         }
         val id = insertSemester(semester)
-        if (getCurrentSemester() == null) {
-            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
-        }
+        
+        // Nếu user tạo semester mới nhưng isCurrent = false,
+        // và hệ thống đang KHÔNG CÓ current semester nào,
+        // thì KHÔNG TỰ ĐỘNG fallback. Tôn trọng quyết định tạo học kỳ không-current của user.
+        // Do đó, xóa auto-fallback ở hàm insert.
         return id
     }
 
@@ -112,15 +124,16 @@ interface GradeDao {
     suspend fun softDeleteSemesterCascade(semesterId: Long, timestamp: Long) {
         val semesterToDelete = getSemesterById(semesterId)
         if (semesterToDelete?.isCurrent == true) {
-            clearCurrentSemester()
+            clearCurrentSemesterInternal()
         }
         
         softDeleteComponentsBySemester(semesterId, timestamp)
         softDeleteSubjectsBySemester(semesterId, timestamp)
         softDeleteSemester(semesterId, timestamp)
         
+        // Auto-fallback khi XÓA học kỳ hiện tại là cần thiết
         if (getCurrentSemester() == null) {
-            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
+            getLatestSemester()?.let { markSemesterAsCurrentInternal(it.semesterId) }
         }
     }
 
