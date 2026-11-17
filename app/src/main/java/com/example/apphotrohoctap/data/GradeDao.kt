@@ -34,6 +34,9 @@ interface GradeDao {
 
     @Query("SELECT * FROM semesters WHERE isDeleted = 0 AND isCurrent = 1 LIMIT 1")
     suspend fun getCurrentSemester(): SemesterEntity?
+    
+    @Query("SELECT * FROM semesters WHERE isDeleted = 0 ORDER BY semesterId DESC LIMIT 1")
+    suspend fun getLatestSemester(): SemesterEntity?
 
     // --- Subject & Components ---
     @Transaction

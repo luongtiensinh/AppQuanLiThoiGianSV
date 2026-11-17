@@ -20,11 +20,28 @@ class GradeRepository(private val gradeDao: GradeDao) {
             gradeDao.clearCurrentSemester()
         }
         gradeDao.updateSemester(semester.copy(updatedAt = System.currentTimeMillis()))
+        
+        // Nếu cập nhật làm mất học kỳ hiện tại (tắt cờ isCurrent)
+        ensureCurrentSemesterExists()
     }
 
     suspend fun deleteSemester(semesterId: Long) {
         val now = System.currentTimeMillis()
         gradeDao.softDeleteSemesterCascade(semesterId, now)
+        
+        // Nếu xóa trúng học kỳ hiện tại
+        ensureCurrentSemesterExists()
+    }
+    
+    private suspend fun ensureCurrentSemesterExists() {
+        val current = gradeDao.getCurrentSemester()
+        if (current == null) {
+            // Không có học kỳ nào là hiện tại, tìm học kỳ mới nhất còn lại
+            val latest = gradeDao.getLatestSemester()
+            if (latest != null) {
+                gradeDao.setCurrentSemester(latest.semesterId)
+            }
+        }
     }
     
     suspend fun setCurrentSemester(id: Long) {

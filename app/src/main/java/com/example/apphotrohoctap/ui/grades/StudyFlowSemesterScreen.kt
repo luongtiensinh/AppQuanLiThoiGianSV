@@ -198,7 +198,8 @@ fun StudyFlowSemesterScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val success = viewModel.addSemester(newSemesterName, isCurrent)
+                        val cleanName = newSemesterName.trim()
+                        val success = viewModel.addSemester(cleanName, isCurrent)
                         if (success) {
                             showAddDialog = false
                             newSemesterName = ""
@@ -250,7 +251,8 @@ fun StudyFlowSemesterScreen(
                 Button(
                     onClick = {
                         editingSemester?.let {
-                            val success = viewModel.updateSemester(it.semesterId, editSemesterName, editIsCurrent)
+                            val cleanName = editSemesterName.trim()
+                            val success = viewModel.updateSemester(it.semesterId, cleanName, editIsCurrent)
                             if (success) {
                                 editingSemester = null
                             } else {
