@@ -30,7 +30,13 @@ interface GradeDao {
     suspend fun clearCurrentSemester()
 
     @Query("UPDATE semesters SET isCurrent = 1 WHERE semesterId = :id")
-    suspend fun setCurrentSemester(id: Long)
+    suspend fun markSemesterAsCurrent(id: Long)
+
+    @Transaction
+    suspend fun setCurrentSemesterTransactional(id: Long) {
+        clearCurrentSemester()
+        markSemesterAsCurrent(id)
+    }
 
     @Query("SELECT * FROM semesters WHERE isDeleted = 0 AND isCurrent = 1 LIMIT 1")
     suspend fun getCurrentSemester(): SemesterEntity?
@@ -91,8 +97,12 @@ interface GradeDao {
             clearCurrentSemester()
         }
         updateSemester(semester)
+        
+        // Chỉ auto-fallback nếu học kỳ hiện tại bị mất do người dùng tắt cờ.
+        // Cần đảm bảo nếu không có học kỳ nào, hoặc user chủ động bỏ chọn,
+        // thì hệ thống vẫn gán lại một cái nếu có. (Yêu cầu business logic: luôn có 1 current).
         if (getCurrentSemester() == null) {
-            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
+            getLatestSemester()?.let { markSemesterAsCurrent(it.semesterId) }
         }
     }
     
@@ -102,9 +112,11 @@ interface GradeDao {
             clearCurrentSemester()
         }
         val id = insertSemester(semester)
-        if (getCurrentSemester() == null) {
-            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
-        }
+        
+        // Nếu user tạo semester mới nhưng isCurrent = false,
+        // và hệ thống đang KHÔNG CÓ current semester nào,
+        // thì KHÔNG TỰ ĐỘNG fallback. Tôn trọng quyết định tạo học kỳ không-current của user.
+        // Do đó, xóa auto-fallback ở hàm insert.
         return id
     }
 
@@ -119,8 +131,9 @@ interface GradeDao {
         softDeleteSubjectsBySemester(semesterId, timestamp)
         softDeleteSemester(semesterId, timestamp)
         
+        // Auto-fallback khi XÓA học kỳ hiện tại là cần thiết
         if (getCurrentSemester() == null) {
-            getLatestSemester()?.let { setCurrentSemester(it.semesterId) }
+            getLatestSemester()?.let { markSemesterAsCurrent(it.semesterId) }
         }
     }
 

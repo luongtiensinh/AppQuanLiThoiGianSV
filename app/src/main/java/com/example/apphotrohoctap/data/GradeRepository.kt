@@ -22,8 +22,7 @@ class GradeRepository(private val gradeDao: GradeDao) {
     }
     
     suspend fun setCurrentSemester(id: Long) {
-        gradeDao.clearCurrentSemester()
-        gradeDao.setCurrentSemester(id)
+        gradeDao.setCurrentSemesterTransactional(id)
     }
     
     suspend fun getCurrentSemester(): SemesterEntity? = gradeDao.getCurrentSemester()
