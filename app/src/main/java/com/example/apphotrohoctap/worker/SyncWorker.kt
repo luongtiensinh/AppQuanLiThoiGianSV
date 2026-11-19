@@ -25,8 +25,15 @@ class SyncWorker(
             } else {
                 val errorMsg = (result as SyncResult.Error).message
                 Log.e("SyncWorker", "Lỗi đồng bộ ngầm: $errorMsg")
-                // Return retry so WorkManager will automatically retry on failure (network issue, etc)
-                Result.retry()
+                
+                // Nếu lỗi là do chưa đăng nhập (người dùng mới tải app, hoặc đã log out)
+                // thì KHÔNG NÊN báo retry (thử lại) vì nó sẽ treo hệ thống WorkManager vô ích.
+                if (errorMsg.contains("Chưa đăng nhập")) {
+                    Result.failure()
+                } else {
+                    // Return retry so WorkManager will automatically retry on network/server failure
+                    Result.retry()
+                }
             }
         } catch (e: Exception) {
             Log.e("SyncWorker", "Ngoại lệ khi đồng bộ ngầm", e)
