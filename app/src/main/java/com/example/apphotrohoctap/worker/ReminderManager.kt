@@ -46,12 +46,21 @@ object ReminderManager {
 
     // --- CẤU HÌNH ĐỒNG BỘ BACKGROUND ---
     fun startBackgroundSync(context: Context) {
-        // Chỉ chạy Sync khi có mạng
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        // Sync mỗi 15 phút
+        // 1. Chạy ngay lập tức 1 lần (One-time) khi vừa gọi
+        val immediateSync = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "${SYNC_WORK_NAME}_IMMEDIATE",
+            ExistingWorkPolicy.REPLACE,
+            immediateSync
+        )
+
+        // 2. Lên lịch chạy định kỳ mỗi 15 phút (cho lần sau)
         val request = PeriodicWorkRequestBuilder<SyncWorker>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
