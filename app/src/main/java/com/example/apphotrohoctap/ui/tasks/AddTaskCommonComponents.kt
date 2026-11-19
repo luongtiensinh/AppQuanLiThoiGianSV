@@ -146,7 +146,8 @@ internal fun FormTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     trailingText: String? = null,
-    onTrailingClick: (() -> Unit)? = null
+    onTrailingClick: (() -> Unit)? = null,
+    isRequired: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
@@ -157,7 +158,7 @@ internal fun FormTextField(
         trailingIcon = if (trailingText != null && onTrailingClick != null) {
             { Surface(onClick = onTrailingClick, color = Color.Transparent, shape = CircleShape) { Text(trailingText, Modifier.padding(8.dp), color = AddTaskSecondary) } }
         } else null,
-        isError = value.isBlank() && placeholder.contains("công việc", ignoreCase = true), // Bắt lỗi nếu nhập rỗng tên công việc
+        isError = isRequired && value.isBlank(), // Bắt lỗi an toàn qua cờ isRequired
         textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, color = AddTaskInk),
         colors = formFieldColors(),
         shape = RoundedCornerShape(12.dp)

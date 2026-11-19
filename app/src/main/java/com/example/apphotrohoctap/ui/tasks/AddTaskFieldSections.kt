@@ -132,7 +132,8 @@ internal fun TaskTitleCard(title: String, onTitleChange: (String) -> Unit) {
             onValueChange = onTitleChange,
             placeholder = "Nhập tên công việc",
             trailingText = "⊗",
-            onTrailingClick = { onTitleChange("") }
+            onTrailingClick = { onTitleChange("") },
+            isRequired = true
         )
     }
 }

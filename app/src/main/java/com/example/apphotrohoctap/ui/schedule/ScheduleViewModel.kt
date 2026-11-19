@@ -23,6 +23,11 @@ internal class ScheduleViewModel(private val repository: ScheduleRepository) : V
             onError("Tên môn học không được để trống")
             return
         }
+        
+        // Vì hệ thống lưu trữ sử dụng kỹ thuật Packed Time (Gói thời gian):
+        // Giá trị = (Tiết * 10000) + (Giờ * 100) + Phút.
+        // Dữ liệu từ giao diện luôn đảm bảo cả startPeriod và endPeriod đều được đóng gói cùng 1 định dạng.
+        // Do đó, thuật toán so sánh số nguyên (Int) thuần túy dưới đây hoàn toàn chính xác tuyệt đối.
         if (schedule.endPeriod < schedule.startPeriod) {
             onError("Thời gian kết thúc phải lớn hơn hoặc bằng thời gian bắt đầu")
             return
