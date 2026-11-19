@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "86002353781",
+    "firebase_url": "https://studyflowapp-bae15-default-rtdb.firebaseio.com",
     "project_id": "studyflowapp-bae15",
     "storage_bucket": "studyflowapp-bae15.firebasestorage.app"
   },
@@ -13,6 +14,22 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "86002353781-2nobqugdmm1se3iia3r0plqh5t24lnkf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.apphotrohoctap",
+            "certificate_hash": "dd78360d95aa35efa4fcf7d1b2f37567454157bc"
+          }
+        },
+        {
+          "client_id": "86002353781-9jr6eu3g1huvd28578e5iiq2rapj1j66.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.apphotrohoctap",
+            "certificate_hash": "5fdaaff8fbf7667fc4370078012dc8d10aad183b"
+          }
+        },
         {
           "client_id": "86002353781-ash0kiamcoqlaa3ng9icufa6cj1fl87k.apps.googleusercontent.com",
           "client_type": 3
