@@ -20,19 +20,17 @@ class SyncWorker(
             
             val result = syncRepository.syncWithCloud()
             
-            if (result is SyncResult.Success) {
-                Result.success()
-            } else {
-                val errorMsg = (result as SyncResult.Error).message
-                Log.e("SyncWorker", "Lỗi đồng bộ ngầm: $errorMsg")
-                
-                // Nếu lỗi là do chưa đăng nhập (người dùng mới tải app, hoặc đã log out)
-                // thì KHÔNG NÊN báo retry (thử lại) vì nó sẽ treo hệ thống WorkManager vô ích.
-                if (errorMsg.contains("Chưa đăng nhập")) {
-                    Result.failure()
-                } else {
-                    // Return retry so WorkManager will automatically retry on network/server failure
-                    Result.retry()
+            when (result) {
+                is SyncResult.Success -> {
+                    Result.success()
+                }
+                is SyncResult.NotLoggedIn -> {
+                    Log.w("SyncWorker", "Chưa đăng nhập, hủy bỏ quá trình Sync ngầm.")
+                    Result.failure() // Hủy, không retry vì người dùng chưa login
+                }
+                is SyncResult.Error -> {
+                    Log.e("SyncWorker", "Lỗi đồng bộ ngầm: ${result.message}")
+                    Result.retry() // Lỗi mạng / server -> Có thể retry
                 }
             }
         } catch (e: Exception) {

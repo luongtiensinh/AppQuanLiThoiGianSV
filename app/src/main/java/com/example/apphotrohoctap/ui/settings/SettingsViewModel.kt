@@ -79,6 +79,9 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
                 is com.example.apphotrohoctap.data.sync.SyncResult.Success -> {
                     _syncState.value = SyncState.Success("Đồng bộ dữ liệu thành công!")
                 }
+                is com.example.apphotrohoctap.data.sync.SyncResult.NotLoggedIn -> {
+                    _syncState.value = SyncState.Error("Chưa đăng nhập tài khoản Google.")
+                }
                 is com.example.apphotrohoctap.data.sync.SyncResult.Error -> {
                     // Filter raw exception messages for a better UX
                     val errorMsg = result.message
@@ -87,7 +90,6 @@ internal class SettingsViewModel(application: Application) : AndroidViewModel(ap
                             "Lỗi kết nối mạng. Vui lòng kiểm tra lại Internet."
                         errorMsg.contains("permission", ignoreCase = true) -> 
                             "Phiên đăng nhập hết hạn hoặc bị từ chối quyền truy cập."
-                        errorMsg.contains("Chưa đăng nhập") -> errorMsg
                         else -> errorMsg
                     }
                     _syncState.value = SyncState.Error(friendlyMessage)
