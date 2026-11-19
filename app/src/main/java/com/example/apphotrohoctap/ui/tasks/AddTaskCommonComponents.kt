@@ -157,6 +157,7 @@ internal fun FormTextField(
         trailingIcon = if (trailingText != null && onTrailingClick != null) {
             { Surface(onClick = onTrailingClick, color = Color.Transparent, shape = CircleShape) { Text(trailingText, Modifier.padding(8.dp), color = AddTaskSecondary) } }
         } else null,
+        isError = value.isBlank() && placeholder.contains("công việc", ignoreCase = true), // Bắt lỗi nếu nhập rỗng tên công việc
         textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, color = AddTaskInk),
         colors = formFieldColors(),
         shape = RoundedCornerShape(12.dp)
