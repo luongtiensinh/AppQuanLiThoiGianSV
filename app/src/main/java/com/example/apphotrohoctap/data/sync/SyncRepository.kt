@@ -16,6 +16,7 @@ import androidx.room.withTransaction
 
 sealed class SyncResult {
     object Success : SyncResult()
+    object NotLoggedIn : SyncResult()
     data class Error(val message: String) : SyncResult()
 }
 
@@ -42,7 +43,7 @@ class SyncRepository(private val database: AppDatabase, private val context: Con
                 return@withContext SyncResult.Error("Lỗi kết nối mạng. Vui lòng kiểm tra Internet.")
             }
             
-            val user = auth.currentUser ?: return@withContext SyncResult.Error("Chưa đăng nhập tài khoản Google.")
+            val user = auth.currentUser ?: return@withContext SyncResult.NotLoggedIn
             val userId = user.uid
 
             val prefs = context.getSharedPreferences("studyflow_sync_prefs", Context.MODE_PRIVATE)

@@ -52,6 +52,11 @@ class SessionManager(context: Context) {
                 context.getSharedPreferences("studyflow_sync_prefs", Context.MODE_PRIVATE).edit().clear().apply()
                 context.getSharedPreferences("reminder_prefs", Context.MODE_PRIVATE).edit().clear().apply()
                 context.getSharedPreferences("pomodoro_stats", Context.MODE_PRIVATE).edit().clear().apply()
+                
+                // Kích hoạt đồng bộ một lần (One-Time Sync) ngay khi Đăng nhập thành công để có dữ liệu
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    com.example.apphotrohoctap.worker.ReminderManager.startBackgroundSync(context)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
