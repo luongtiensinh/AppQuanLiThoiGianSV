@@ -63,14 +63,14 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
     var isSaving by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().background(EditorBackground).imePadding()) {
-        EditorTopBar(onBack = onBack, onSave = {
-            if (isSaving) return@EditorTopBar
+        EditorTopBar(onBack = onBack, onSave = onSaveBlock@{
+            if (isSaving) return@onSaveBlock
             isSaving = true
             
             if (title.isBlank()) {
                 android.widget.Toast.makeText(context, "Vui lòng nhập tiêu đề ghi chú", android.widget.Toast.LENGTH_SHORT).show()
                 isSaving = false
-                return@EditorTopBar
+                return@onSaveBlock
             }
             
             val argb = noteLabelColors[selectedLabelColor].color.toArgb()
@@ -232,6 +232,8 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                 Text("${body.length} ký tự", fontSize = 9.sp, color = EditorMuted)
             }
         }
+    }
+}
     }
 }
 
