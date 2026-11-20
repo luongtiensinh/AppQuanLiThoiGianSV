@@ -193,38 +193,43 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                                     onClick = { selectedCourse = course; courseMenuExpanded = false }
                                 )
                             }
+                            
+                            DropdownMenuItem(
+                                text = { Text("Không chọn môn học", fontSize = 12.sp, color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic) }, 
+                                onClick = { selectedCourse = ""; courseMenuExpanded = false }
+                            )
                         }
                     }
                 }
+            }
 
-                LabelColorSelector(selectedLabelColor, onColorSelected = { selectedLabelColor = it })
+            LabelColorSelector(selectedLabelColor, onColorSelected = { selectedLabelColor = it })
 
-                TextField(
-                    value = body,
-                    onValueChange = { body = it },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp).padding(top = 14.dp),
-                    placeholder = {
-                        Text(
-                            "Viết ghi chú của bạn ở đây... Bạn có thể lập dàn ý bài giảng, ghi chú ôn thi hoặc tổng hợp công thức môn học.",
-                            fontSize = 16.sp,
-                            lineHeight = 26.sp,
-                            color = EditorMuted
-                        )
-                    },
-                    textStyle = TextStyle(fontSize = 16.sp, lineHeight = 26.sp, color = EditorText),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        cursorColor = EditorBrand
+            TextField(
+                value = body,
+                onValueChange = { body = it },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp).padding(top = 14.dp),
+                placeholder = {
+                    Text(
+                        "Viết ghi chú của bạn ở đây... Bạn có thể lập dàn ý bài giảng, ghi chú ôn thi hoặc tổng hợp công thức môn học.",
+                        fontSize = 16.sp,
+                        lineHeight = 26.sp,
+                        color = EditorMuted
                     )
+                },
+                textStyle = TextStyle(fontSize = 16.sp, lineHeight = 26.sp, color = EditorText),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = EditorBrand
                 )
+            )
 
-                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("◷  Bản nháp mới tạo", modifier = Modifier.weight(1f), fontSize = 9.sp, color = EditorMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("${body.length} ký tự", fontSize = 9.sp, color = EditorMuted)
-                }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("◷  Bản nháp mới tạo", modifier = Modifier.weight(1f), fontSize = 9.sp, color = EditorMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("${body.length} ký tự", fontSize = 9.sp, color = EditorMuted)
             }
         }
     }
