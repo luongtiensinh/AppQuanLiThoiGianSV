@@ -95,24 +95,57 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            TextField(
-                value = title,
-                onValueChange = { title = it },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                placeholder = { Text("Tiêu đề ghi chú", fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = Color(0xFFA7A6B4)) },
-                textStyle = TextStyle(fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = EditorInk),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = EditorBrand
-                )
-            )
+            
+            // Trang trí bằng Thẻ hướng dẫn (Guidance Banner) cho Ghi chú
+            Surface(color = Color(0xFFE8E6FC), shape = RoundedCornerShape(20.dp), shadowElevation = 2.dp) {
+                Row(
+                    Modifier.fillMaxWidth().padding(16.dp),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(color = EditorBrand, shape = RoundedCornerShape(12.dp)) {
+                        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) { 
+                            Text("✍️", fontSize = 18.sp) 
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Tạo ghi chú học tập", fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, color = EditorInk)
+                        Text(
+                            "Tóm tắt bài giảng, ghi lại công thức hay lập dàn ý cho bài thuyết trình sắp tới của bạn!",
+                            modifier = Modifier.padding(top = 4.dp),
+                            fontSize = 12.sp,
+                            lineHeight = 18.sp,
+                            color = EditorText
+                        )
+                    }
+                }
+            }
 
-            val availableCourses by viewModel.availableCourses.collectAsState()
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White,
+                shadowElevation = 2.dp
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    TextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        placeholder = { Text("Tiêu đề ghi chú", fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = Color(0xFFA7A6B4)) },
+                        textStyle = TextStyle(fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold, color = EditorInk),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            cursorColor = EditorBrand
+                        )
+                    )
+
+                    val availableCourses by viewModel.availableCourses.collectAsState()
 
             Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(modifier = Modifier.weight(1f)) {
@@ -163,35 +196,35 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
                         }
                     }
                 }
-            }
 
-            LabelColorSelector(selectedLabelColor, onColorSelected = { selectedLabelColor = it })
+                LabelColorSelector(selectedLabelColor, onColorSelected = { selectedLabelColor = it })
 
-            TextField(
-                value = body,
-                onValueChange = { body = it },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp).padding(top = 14.dp),
-                placeholder = {
-                    Text(
-                        "Viết ghi chú của bạn ở đây... Bạn có thể lập dàn ý bài giảng, ghi chú ôn thi hoặc tổng hợp công thức môn học.",
-                        fontSize = 16.sp,
-                        lineHeight = 26.sp,
-                        color = EditorMuted
+                TextField(
+                    value = body,
+                    onValueChange = { body = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp).padding(top = 14.dp),
+                    placeholder = {
+                        Text(
+                            "Viết ghi chú của bạn ở đây... Bạn có thể lập dàn ý bài giảng, ghi chú ôn thi hoặc tổng hợp công thức môn học.",
+                            fontSize = 16.sp,
+                            lineHeight = 26.sp,
+                            color = EditorMuted
+                        )
+                    },
+                    textStyle = TextStyle(fontSize = 16.sp, lineHeight = 26.sp, color = EditorText),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        cursorColor = EditorBrand
                     )
-                },
-                textStyle = TextStyle(fontSize = 16.sp, lineHeight = 26.sp, color = EditorText),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = EditorBrand
                 )
-            )
 
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("◷  Chỉnh sửa lần cuối: 10/10/2026 • 20:45", modifier = Modifier.weight(1f), fontSize = 9.sp, color = EditorMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${body.length} ký tự", fontSize = 9.sp, color = EditorMuted)
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("◷  Bản nháp mới tạo", modifier = Modifier.weight(1f), fontSize = 9.sp, color = EditorMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("${body.length} ký tự", fontSize = 9.sp, color = EditorMuted)
+                }
             }
         }
     }
