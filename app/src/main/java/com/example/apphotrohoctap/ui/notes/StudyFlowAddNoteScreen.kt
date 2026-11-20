@@ -204,10 +204,23 @@ private fun EditorTopBar(onBack: () -> Unit, onSave: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Surface(color = EditorPale, shape = CircleShape) {
-            Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(Modifier.size(7.dp).clip(CircleShape).background(EditorBrand))
-                Text("Bản nháp tự lưu", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = EditorBrand)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                onClick = onBack,
+                modifier = Modifier.size(36.dp),
+                color = Color.Transparent,
+                shape = CircleShape
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("←", fontSize = 24.sp, color = EditorInk)
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Surface(color = EditorPale, shape = CircleShape) {
+                Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(Modifier.size(7.dp).clip(CircleShape).background(EditorBrand))
+                    Text("Bản nháp tự lưu", fontSize = 9.sp, fontWeight = FontWeight.Medium, color = EditorBrand)
+                }
             }
         }
         Surface(onClick = onSave, color = EditorBrand, shape = CircleShape) {
