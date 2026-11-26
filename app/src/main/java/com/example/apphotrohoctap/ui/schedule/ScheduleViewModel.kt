@@ -33,6 +33,19 @@ internal class ScheduleViewModel(private val repository: ScheduleRepository) : V
             return
         }
 
+        // Kiểm tra trùng lịch (Overlap check)
+        val isOverlapping = schedules.value.any { existing ->
+            existing.id != schedule.id && // Bỏ qua chính nó khi cập nhật
+            existing.dayOfWeek == schedule.dayOfWeek && // Cùng thứ
+            schedule.startDateMillis <= existing.endDateMillis && schedule.endDateMillis >= existing.startDateMillis && // Trùng giai đoạn
+            schedule.startPeriod <= existing.endPeriod && schedule.endPeriod >= existing.startPeriod // Trùng ca học (Thời gian)
+        }
+
+        if (isOverlapping) {
+            onError("Trùng lịch! Đã có môn học khác diễn ra vào khung giờ này.")
+            return
+        }
+
         viewModelScope.launch {
             try {
                 repository.addSchedule(schedule)
@@ -61,6 +74,19 @@ internal class ScheduleViewModel(private val repository: ScheduleRepository) : V
         // sẽ luôn lớn hơn nếu endHour/Minute lớn hơn.
         if (schedule.endPeriod < schedule.startPeriod) {
             onError("Thời gian kết thúc phải lớn hơn hoặc bằng thời gian bắt đầu")
+            return
+        }
+
+        // Kiểm tra trùng lịch (Overlap check)
+        val isOverlapping = schedules.value.any { existing ->
+            existing.id != schedule.id && // Bỏ qua chính nó khi cập nhật
+            existing.dayOfWeek == schedule.dayOfWeek && // Cùng thứ
+            schedule.startDateMillis <= existing.endDateMillis && schedule.endDateMillis >= existing.startDateMillis && // Trùng giai đoạn
+            schedule.startPeriod <= existing.endPeriod && schedule.endPeriod >= existing.startPeriod // Trùng ca học (Thời gian)
+        }
+
+        if (isOverlapping) {
+            onError("Trùng lịch! Đã có môn học khác diễn ra vào khung giờ này.")
             return
         }
 
