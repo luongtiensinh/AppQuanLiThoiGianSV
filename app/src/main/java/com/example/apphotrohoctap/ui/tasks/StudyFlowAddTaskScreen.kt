@@ -77,6 +77,7 @@ fun StudyFlowAddTaskScreen(
     var showSubtaskDialog by rememberSaveable { mutableStateOf(false) }
     var showPastDeadlineDialog by rememberSaveable { mutableStateOf(false) }
     var isSaving by rememberSaveable { mutableStateOf(false) }
+    var showValidationErrors by rememberSaveable { mutableStateOf(false) }
 
     BackHandler(onBack = onBack)
 
@@ -94,7 +95,11 @@ fun StudyFlowAddTaskScreen(
                     availableCourses = availableCourses,
                     onCourseSelected = { viewModel.updateCourse(it) }
                 )
-                TaskTitleCard(title = formState.title, onTitleChange = { viewModel.updateTitle(it) })
+                
+                TaskTitleCard(title = formState.title, showErrors = showValidationErrors, onTitleChange = { 
+                    viewModel.updateTitle(it)
+                    if (showValidationErrors) showValidationErrors = false // Ẩn lỗi khi người dùng bắt đầu sửa
+                })
                 CategoryCard(
                     selectedCategory = formState.selectedCategory,
                     onCategorySelected = { viewModel.updateCategory(it) }
@@ -125,7 +130,14 @@ fun StudyFlowAddTaskScreen(
                 )
             }
             
-            SaveFooter(enabled = formState.title.isNotBlank() && !isSaving, onSave = {
+            SaveFooter(enabled = !isSaving, onSave = {
+                val cleanTitle = formState.title.trim()
+                if (cleanTitle.isBlank()) {
+                    showValidationErrors = true
+                    android.widget.Toast.makeText(context, "Vui lòng nhập tên công việc", android.widget.Toast.LENGTH_SHORT).show()
+                    return@SaveFooter
+                }
+                
                 if (isSaving) return@SaveFooter
                 isSaving = true
                 val success = viewModel.saveTask(forceSave = false) { dbSuccess ->

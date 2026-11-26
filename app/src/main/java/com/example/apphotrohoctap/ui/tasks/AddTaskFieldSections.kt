@@ -118,7 +118,7 @@ internal fun CourseSelectionCard(
 }
 
 @Composable
-internal fun TaskTitleCard(title: String, onTitleChange: (String) -> Unit) {
+internal fun TaskTitleCard(title: String, showErrors: Boolean, onTitleChange: (String) -> Unit) {
     FormCard {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -129,11 +129,13 @@ internal fun TaskTitleCard(title: String, onTitleChange: (String) -> Unit) {
         }
         FormTextField(
             value = title,
-            onValueChange = onTitleChange,
+            onValueChange = {
+                onTitleChange(it)
+            },
             placeholder = "Nhập tên công việc",
             trailingText = "⊗",
             onTrailingClick = { onTitleChange("") },
-            isRequired = true
+            isError = showErrors && title.isBlank()
         )
     }
 }

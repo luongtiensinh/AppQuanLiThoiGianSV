@@ -115,6 +115,8 @@ fun StudyFlowAddScheduleScreen(
     }
 
     BackHandler(onBack = onBack)
+    var showValidationErrors by remember { mutableStateOf(false) }
+
     Column(Modifier.fillMaxSize().background(AddScheduleBg).imePadding()) {
         AddScheduleHeader(isEdit = scheduleId != null, onBack = onBack)
         Column(
@@ -126,7 +128,10 @@ fun StudyFlowAddScheduleScreen(
             SemesterHintCard()
 
             FormSection {
-                FormTextField("Tên môn học", courseName, { courseName = it }, required = true, leading = "▤")
+                FormTextField("Tên môn học", courseName, { 
+                    courseName = it
+                    if (showValidationErrors) showValidationErrors = false
+                }, required = true, leading = "▤", isError = showValidationErrors && courseName.isBlank())
                 FormTextField("Mã môn học (Không bắt buộc)", courseCode, { courseCode = it }, leading = "#")
             }
 
@@ -258,6 +263,13 @@ fun StudyFlowAddScheduleScreen(
                         colorKey = selectedColor.toString()
                     )
 
+                    if (courseName.isBlank()) {
+                        showValidationErrors = true
+                        isSaving = false
+                        android.widget.Toast.makeText(context, "Vui lòng nhập tên môn học", android.widget.Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
                     if (scheduleId != null) {
                         viewModel.updateSchedule(schedule, onError = { 
                             android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_SHORT).show()
@@ -342,7 +354,7 @@ private fun FormSection(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-private fun FormTextField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, leading: String) {
+private fun FormTextField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, leading: String, isError: Boolean = false) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(if (required) "$label *" else label, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium, color = AddScheduleText)
         TextField(
@@ -350,6 +362,7 @@ private fun FormTextField(label: String, value: String, onValueChange: (String) 
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth().height(46.dp),
             leadingIcon = { Text(leading, fontSize = 13.sp, color = AddScheduleMuted) },
+            isError = isError,
             textStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp, color = AddScheduleText),
             singleLine = true,
             colors = TextFieldDefaults.colors(
@@ -357,6 +370,7 @@ private fun FormTextField(label: String, value: String, onValueChange: (String) 
                 unfocusedContainerColor = AddScheduleInput,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                errorContainerColor = Color(0xFFFEF2F2),
                 cursorColor = AddScheduleBrand
             ),
             shape = RoundedCornerShape(12.dp)
