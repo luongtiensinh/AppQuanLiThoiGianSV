@@ -417,7 +417,15 @@ private fun TodayScheduleSection(classes: List<StudyClass>, onSeeAll: () -> Unit
             }
         }
         if (classes.isEmpty()) {
-            Text("Không có lịch học nào.", modifier = Modifier.padding(16.dp), color = HomeSecondaryInk, fontSize = 12.sp)
+            Surface(Modifier.fillMaxWidth(), color = Color.White, shape = RoundedCornerShape(16.dp), shadowElevation = 1.dp) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Surface(color = HomeDivider, shape = CircleShape) {
+                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { Text("🎉", fontSize = 20.sp) }
+                    }
+                    Text("Ngày nghỉ tuyệt vời!", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = HomeInk)
+                    Text("Hôm nay bạn không có lịch học. Hãy dành thời gian để nghỉ ngơi hoặc ôn lại bài cũ nhé.", fontSize = 12.sp, color = HomeSecondaryInk, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                }
+            }
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 classes.forEach { classItem -> StudyClassCard(classItem) { onCourseClick(classItem.title) } }
