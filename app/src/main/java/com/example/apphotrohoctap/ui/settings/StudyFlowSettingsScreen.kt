@@ -118,7 +118,7 @@ fun StudyFlowSettingsScreen(
             Spacer(Modifier.height(22.dp))
             SettingsSectionHeader("THÔNG BÁO", "Âm thanh & Rung")
             SettingsCard {
-                SettingsToggleRow("♧", "Nhắc nhở Deadline & Hạn chót", "Thông báo đẩy khi sắp đến hạn…", deadlineReminder) { checked ->
+                SettingsToggleRow("home_alarm.svg", "Nhắc nhở Deadline & Hạn chót", "Thông báo đẩy khi sắp đến hạn…", deadlineReminder) { checked ->
                     if (checked) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -132,13 +132,13 @@ fun StudyFlowSettingsScreen(
                     }
                 }
                 SettingsDivider()
-                SettingsToggleRow("⏰", "Âm thanh kiểu báo thức", "Phát chuông báo thức lớn khi có deadline", useAlarmSound) { checked ->
+                SettingsToggleRow("home_alert.svg", "Âm thanh kiểu báo thức", "Phát chuông báo thức lớn khi có deadline", useAlarmSound) { checked ->
                     viewModel.toggleUseAlarmSound(checked)
                 }
                 SettingsDivider()
-                SettingsToggleRow("▣", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
+                SettingsToggleRow("home_classroom.svg", "Nhắc nhở Buổi học", "Báo trước giờ vào lớp & số phòng…", classReminder) { classReminder = it }
                 SettingsDivider()
-                SettingsNavigationRow("⌛", "Báo trước thời gian", "Áp dụng cho tất cả bài học", "Trước 60 phút")
+                SettingsNavigationRow("home_clock.svg", "Báo trước thời gian", "Áp dụng cho tất cả bài học", "Trước 60 phút")
             }
 
             Spacer(Modifier.height(22.dp))
@@ -162,7 +162,7 @@ fun StudyFlowSettingsScreen(
                 }
 
                 SettingsNavigationRow(
-                    icon = "⟳",
+                    icon = "focus_cycle.svg",
                     title = "Đồng bộ hóa dữ liệu (Sync)",
                     subtitle = "Lưu và hợp nhất dữ liệu trên tất cả thiết bị",
                     trailing = if (syncState is SettingsViewModel.SyncState.Loading) "Đang đồng bộ..." else "Đồng bộ ngay",
@@ -175,7 +175,7 @@ fun StudyFlowSettingsScreen(
             Spacer(Modifier.height(22.dp))
             SettingsSectionHeader("HỆ THỐNG")
             SettingsCard {
-                SettingsNavigationRow("ⓘ", "Thử nghiệm nhắc nhở ngay", null, "TEST", onClick = {
+                SettingsNavigationRow("home_alert.svg", "Thử nghiệm nhắc nhở ngay", null, "TEST", onClick = {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                         permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -186,7 +186,7 @@ fun StudyFlowSettingsScreen(
                 })
                 SettingsDivider()
                 SettingsNavigationRow(
-                    icon = "⇥", 
+                    icon = "back.svg", 
                     title = "Đăng xuất tài khoản", 
                     subtitle = null, 
                     trailing = if (isLoggingOut) "Đang xử lý..." else "›", 
@@ -239,7 +239,9 @@ private fun SettingsDivider() {
 @Composable
 private fun SettingsIconTile(icon: String, background: Color = SettingsPale, foreground: Color = SettingsBrand) {
     Surface(color = background, shape = RoundedCornerShape(12.dp)) {
-        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) { Text(icon, fontSize = 17.sp, color = foreground) }
+        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) { 
+            SettingsIcon(assetName = icon, modifier = Modifier.size(20.dp), contentDescription = "") 
+        }
     }
 }
 
