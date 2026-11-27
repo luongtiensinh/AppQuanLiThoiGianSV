@@ -59,6 +59,8 @@ fun StudyFlowSettingsScreen(
     val useAlarmSound by viewModel.useAlarmSound.collectAsState()
     var classReminder by remember { mutableStateOf(true) }
     var isLoggingOut by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var logoutConfirmText by remember { mutableStateOf("") }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -192,15 +194,7 @@ fun StudyFlowSettingsScreen(
                     trailing = if (isLoggingOut) "Đang xử lý..." else "›", 
                     danger = true, 
                     onClick = {
-                        if (isLoggingOut) return@SettingsNavigationRow
-                        isLoggingOut = true
-                        
-                        viewModel.clearAllUserData {
-                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                            sessionManager.clearSession()
-                            isLoggingOut = false
-                            onLogout()
-                        }
+                        if (!isLoggingOut) showLogoutDialog = true
                     }
                 )
             }
@@ -209,6 +203,50 @@ fun StudyFlowSettingsScreen(
                 Text("Thiết kế tối ưu cho sinh viên đại học", fontSize = 9.sp, color = SettingsMuted)
             }
         }
+    }
+
+    if (showLogoutDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Đăng xuất tài khoản", fontWeight = FontWeight.Bold, color = Color(0xFFBA1A1A)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Cảnh báo: Hành động này sẽ xóa toàn bộ dữ liệu cục bộ trên máy của bạn. Hãy đảm bảo bạn đã đồng bộ dữ liệu lên đám mây.", fontSize = 14.sp)
+                    Text("Để xác nhận, vui lòng nhập chữ 'XAC NHAN' (Viết hoa, không dấu) vào ô bên dưới:", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    androidx.compose.material3.OutlinedTextField(
+                        value = logoutConfirmText,
+                        onValueChange = { logoutConfirmText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        placeholder = { Text("XAC NHAN") }
+                    )
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        isLoggingOut = true
+                        
+                        viewModel.clearAllUserData {
+                            val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
+                            sessionManager.clearSession()
+                            isLoggingOut = false
+                            onLogout()
+                        }
+                    },
+                    enabled = logoutConfirmText == "XAC NHAN",
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFBA1A1A))
+                ) {
+                    Text("Đăng xuất vĩnh viễn")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showLogoutDialog = false; logoutConfirmText = "" }) {
+                    Text("Hủy", color = SettingsMuted)
+                }
+            }
+        )
     }
 }
 
