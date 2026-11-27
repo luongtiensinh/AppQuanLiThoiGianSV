@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -301,7 +302,15 @@ private fun CourseScheduleTab(schedules: List<StudyClass>, onScheduleClick: (Lon
     Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Lịch học", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CourseInk)
         if (schedules.isEmpty()) {
-            Text("Chưa có lịch học nào.", fontSize = 13.sp, color = CourseMuted)
+            Surface(Modifier.fillMaxWidth(), color = Color.White, shape = RoundedCornerShape(16.dp), shadowElevation = 1.dp) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Surface(color = CoursePale, shape = CircleShape) {
+                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { Text("📅", fontSize = 20.sp) }
+                    }
+                    Text("Chưa xếp lịch học", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
+                    Text("Hiện tại môn học này chưa có tiết học nào được thêm vào lịch.", fontSize = 12.sp, color = CourseMuted, textAlign = TextAlign.Center)
+                }
+            }
         } else {
             schedules.forEach { sch ->
                 Card(
@@ -334,7 +343,15 @@ private fun CourseTasksTab(tasks: List<TaskItem>, onTaskClick: (Long) -> Unit, o
             Badge("${tasks.size} việc", CourseChip, CourseText)
         }
         if (tasks.isEmpty()) {
-            Text("Chưa có bài tập nào.", fontSize = 13.sp, color = CourseMuted)
+            Surface(Modifier.fillMaxWidth(), color = Color.White, shape = RoundedCornerShape(16.dp), shadowElevation = 1.dp) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Surface(color = CoursePale, shape = CircleShape) {
+                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { Text("📝", fontSize = 20.sp) }
+                    }
+                    Text("Tất cả đã hoàn thành!", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
+                    Text("Hiện tại bạn không có bài tập hay deadline nào cần nộp cho môn học này.", fontSize = 12.sp, color = CourseMuted, textAlign = TextAlign.Center)
+                }
+            }
         } else {
             tasks.forEachIndexed { index, task ->
                 Card(
@@ -368,7 +385,15 @@ private fun CourseNotesTab(notes: List<NoteEntity>, onNoteClick: (Long) -> Unit)
     Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Tài liệu & Ghi chú", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CourseInk)
         if (notes.isEmpty()) {
-            Text("Chưa có tài liệu hoặc ghi chú nào.", fontSize = 13.sp, color = CourseMuted)
+            Surface(Modifier.fillMaxWidth(), color = Color.White, shape = RoundedCornerShape(16.dp), shadowElevation = 1.dp) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Surface(color = CoursePale, shape = CircleShape) {
+                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { Text("📚", fontSize = 20.sp) }
+                    }
+                    Text("Chưa có ghi chú nào", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CourseInk)
+                    Text("Tạo ngay ghi chú để lưu trữ bài giảng, công thức hay tài liệu ôn tập.", fontSize = 12.sp, color = CourseMuted, textAlign = TextAlign.Center)
+                }
+            }
         } else {
             notes.forEach { note ->
                 Card(
@@ -381,7 +406,7 @@ private fun CourseNotesTab(notes: List<NoteEntity>, onNoteClick: (Long) -> Unit)
                         Text(note.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = CourseInk)
                         Text(note.content, fontSize = 12.sp, color = CourseText, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         val sdf = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
-                        Text("Cập nhật: ${sdf.format(Date(note.updatedAtMillis))}", fontSize = 10.sp, color = CourseMuted)
+                        Text("Cập nhật: ${sdf.format(Date(note.updatedAt))}", fontSize = 10.sp, color = CourseMuted)
                     }
                 }
             }
