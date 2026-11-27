@@ -66,10 +66,20 @@ class AuthRepository(private val context: Context) {
             AuthResult.Error("Người dùng đã hủy đăng nhập.")
         } catch (e: GetCredentialException) {
             Log.e("AuthRepository", "Lỗi Credential", e)
-            AuthResult.Error("Lỗi đăng nhập Credential: ${e.message}")
+            val msg = e.message ?: ""
+            if (msg.contains("network", ignoreCase = true) || msg.contains("connection", ignoreCase = true) || msg.contains("16:")) {
+                AuthResult.Error("Lỗi kết nối mạng. Vui lòng kiểm tra Internet và thử lại.")
+            } else {
+                AuthResult.Error("Đăng nhập thất bại. Không thể kết nối với dịch vụ của Google.")
+            }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Lỗi Firebase Auth", e)
-            AuthResult.Error("Lỗi hệ thống: ${e.message}")
+            val msg = e.message ?: ""
+            if (msg.contains("network", ignoreCase = true) || msg.contains("host", ignoreCase = true)) {
+                AuthResult.Error("Lỗi kết nối mạng. Vui lòng kiểm tra Internet và thử lại.")
+            } else {
+                AuthResult.Error("Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.")
+            }
         }
     }
 
