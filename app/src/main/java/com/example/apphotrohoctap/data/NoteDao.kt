@@ -12,7 +12,7 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE isDeleted = 0 ORDER BY updatedAtMillis DESC")
     fun getAllNotes(): Flow<List<NoteEntity>>
 
-    @Query("SELECT * FROM notes WHERE isDeleted = 0 AND courseName COLLATE NOCASE = :courseName ORDER BY updatedAtMillis DESC")
+    @Query("SELECT * FROM notes WHERE isDeleted = 0 AND TRIM(courseName) COLLATE NOCASE = TRIM(:courseName) ORDER BY updatedAtMillis DESC")
     fun getNotesByCourse(courseName: String): Flow<List<NoteEntity>>
 
     @Query("SELECT * FROM notes WHERE isDeleted = 0 AND id = :id")

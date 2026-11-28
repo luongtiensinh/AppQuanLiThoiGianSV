@@ -15,7 +15,7 @@ interface TaskDao {
     fun getAllTasks(): Flow<List<TaskWithSubtasks>>
 
     @Transaction
-    @Query("SELECT * FROM tasks WHERE isDeleted = 0 AND subject COLLATE NOCASE = :subject ORDER BY dueAtMillis ASC")
+    @Query("SELECT * FROM tasks WHERE isDeleted = 0 AND TRIM(subject) COLLATE NOCASE = TRIM(:subject) ORDER BY dueAtMillis ASC")
     fun getTasksBySubject(subject: String): Flow<List<TaskWithSubtasks>>
 
     @Transaction

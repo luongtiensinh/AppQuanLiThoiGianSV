@@ -12,10 +12,10 @@ interface ScheduleDao {
     @Query("SELECT * FROM schedules WHERE isDeleted = 0 ORDER BY startPeriod ASC")
     fun getAllSchedules(): Flow<List<ScheduleEntity>>
 
-    @Query("SELECT * FROM schedules WHERE isDeleted = 0 AND subject COLLATE NOCASE = :subject ORDER BY startPeriod ASC")
+    @Query("SELECT * FROM schedules WHERE isDeleted = 0 AND TRIM(subject) COLLATE NOCASE = TRIM(:subject) ORDER BY startPeriod ASC")
     fun getSchedulesBySubject(subject: String): Flow<List<ScheduleEntity>>
 
-    @Query("SELECT DISTINCT subject FROM schedules WHERE isDeleted = 0 ORDER BY subject ASC")
+    @Query("SELECT DISTINCT TRIM(subject) FROM schedules WHERE isDeleted = 0 AND TRIM(subject) != '' ORDER BY subject ASC")
     fun getDistinctSubjectNames(): Flow<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
