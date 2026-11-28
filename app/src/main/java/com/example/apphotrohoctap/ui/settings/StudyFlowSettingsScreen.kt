@@ -95,9 +95,10 @@ fun StudyFlowSettingsScreen(
             SettingsCard {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     val sessionManager = com.example.apphotrohoctap.data.SessionManager(context)
-                    val fullName = sessionManager.getRegisteredFullName() ?: "Sinh viên"
+                    val rawFullName = sessionManager.getRegisteredFullName()
+                    val fullName = if (rawFullName.isNullOrBlank()) "Sinh viên" else if (rawFullName.contains("@")) rawFullName.substringBefore("@") else rawFullName
                     val email = sessionManager.getUserEmail() ?: "student@sis.hust.edu.vn"
-                    val initials = fullName.split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.takeLast(2).joinToString("")
+                    val initials = fullName.split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.takeLast(2).joinToString("").ifBlank { "SV" }
                     
                     Box {
                         Surface(color = SettingsPale, shape = CircleShape) {
