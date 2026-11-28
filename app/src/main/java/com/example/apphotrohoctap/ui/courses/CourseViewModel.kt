@@ -49,12 +49,17 @@ internal class CourseViewModel(
                 val mappedSchedules = scheduleList.map { it.toUiModel(now) }
 
                 val firstSchedule = scheduleList.firstOrNull()
+                val (resolvedRoom, resolvedLecturer) = if (firstSchedule != null) {
+                    com.example.apphotrohoctap.data.resolveRoomAndLecturer(firstSchedule.room, firstSchedule.lecturer)
+                } else {
+                    Pair("", "")
+                }
 
                 CourseUiState(
                     courseName = name,
                     courseCode = firstSchedule?.courseCode?.takeIf { it.isNotBlank() } ?: "Chưa có mã",
-                    lecturer = firstSchedule?.lecturer?.takeIf { it.isNotBlank() } ?: "Chưa phân công",
-                    room = firstSchedule?.room?.takeIf { it.isNotBlank() } ?: "Chưa xếp phòng",
+                    lecturer = resolvedLecturer.ifBlank { "Chưa phân công" },
+                    room = resolvedRoom.ifBlank { "Chưa xếp phòng" },
                     tasksTotal = mappedTasks.size,
                     tasksDone = mappedTasks.count { it.completed },
                     schedules = mappedSchedules,
