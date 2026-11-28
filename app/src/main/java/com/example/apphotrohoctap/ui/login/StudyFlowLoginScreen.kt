@@ -402,7 +402,7 @@ private fun LoginInput(
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                 visualTransformation = visualTransformation,
                 decorationBox = { innerTextField ->
-                    Box {
+                    Box(contentAlignment = Alignment.CenterStart) {
                         if (value.isEmpty()) {
                             Text(hint, fontSize = 14.sp, color = MutedInk)
                         }
