@@ -229,8 +229,15 @@ fun StudyFlowAddScheduleScreen(
                     isSaving = true
                     
                     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    val startMillis = try { sdf.parse(startDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
-                    val endMillis = try { sdf.parse(endDate)?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
+                    val startMillis = try { sdf.parse(startDate.trim())?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
+                    val endMillis = try { sdf.parse(endDate.trim())?.time ?: System.currentTimeMillis() } catch (e: Exception) { System.currentTimeMillis() }
+
+                    if (endMillis < startMillis) {
+                        showValidationErrors = true
+                        isSaving = false
+                        android.widget.Toast.makeText(context, "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu", android.widget.Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
                     val startP = startPeriod.substringAfter("Tiết ").toIntOrNull() ?: 1
                     val endP = endPeriod.substringAfter("Tiết ").toIntOrNull() ?: 3
