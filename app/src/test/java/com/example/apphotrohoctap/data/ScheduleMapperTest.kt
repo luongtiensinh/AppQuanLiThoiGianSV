@@ -117,23 +117,29 @@ class ScheduleMapperTest {
     }
 
     @Test
-    fun isOccurringOnDate_outsideDateRange_returnsFalse() {
+    fun isOccurringOnDate_boundaryDates_returnsExpectedResult() {
         val cal = Calendar.getInstance()
         cal.set(2026, Calendar.JANUARY, 15, 0, 0, 0)
-        val startDateMillis = cal.timeInMillis
+        val startDateMillis = cal.timeInMillis // 15/01/2026 (Thursday = 4)
 
         cal.set(2026, Calendar.MAY, 28, 23, 59, 59)
-        val endDateMillis = cal.timeInMillis
+        val endDateMillis = cal.timeInMillis // 28/05/2026 (Thursday = 4)
 
-        val schedule = createSchedule(dayOfWeek = 2, startPeriod = 1, endPeriod = 3).copy(
+        val schedule = createSchedule(dayOfWeek = 4, startPeriod = 1, endPeriod = 3).copy(
             startDateMillis = startDateMillis,
             endDateMillis = endDateMillis
         )
 
-        // Date outside range (16/06/2026 - Tuesday = 2)
-        cal.set(2026, Calendar.JUNE, 16, 10, 0, 0)
-        val targetDateMillis = cal.timeInMillis
+        // Exact start day
+        cal.set(2026, Calendar.JANUARY, 15, 12, 0, 0)
+        assertEquals(true, schedule.isOccurringOnDate(cal.timeInMillis))
 
-        assertEquals(false, schedule.isOccurringOnDate(targetDateMillis))
+        // Exact end day
+        cal.set(2026, Calendar.MAY, 28, 12, 0, 0)
+        assertEquals(true, schedule.isOccurringOnDate(cal.timeInMillis))
+
+        // Day after end date (04/06/2026 - Thursday = 4)
+        cal.set(2026, Calendar.JUNE, 4, 12, 0, 0)
+        assertEquals(false, schedule.isOccurringOnDate(cal.timeInMillis))
     }
 }
