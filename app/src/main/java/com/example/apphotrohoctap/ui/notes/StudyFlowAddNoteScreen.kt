@@ -77,9 +77,9 @@ fun StudyFlowAddNoteScreen(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
             val hexColor = String.format("#%06X", (0xFFFFFF and argb))
             
             val note = NoteEntity(
-                title = title,
-                content = body,
-                courseName = selectedCourse,
+                title = title.trim(),
+                content = body.trim(),
+                courseName = selectedCourse.trim(),
                 colorKey = hexColor,
                 updatedAt = System.currentTimeMillis()
             )

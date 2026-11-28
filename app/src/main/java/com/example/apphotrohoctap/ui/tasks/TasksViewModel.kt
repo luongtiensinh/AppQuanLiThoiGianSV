@@ -97,13 +97,13 @@ internal class TasksViewModel(
         }
         
         val newEntity = TaskEntity(
-            subject = state.selectedCourse,
-            title = state.title,
+            subject = state.selectedCourse.trim(),
+            title = state.title.trim(),
             dueAtMillis = dueAtMillis,
             category = categoryKey,
             priority = state.selectedPriority,
             place = null,
-            notes = state.notes,
+            notes = state.notes.trim(),
             isCompleted = false
         )
         
