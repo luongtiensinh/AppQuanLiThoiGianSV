@@ -225,8 +225,8 @@ private fun GreetingSection() {
     val dateLabel = com.example.apphotrohoctap.ui.common.AcademicCalendar.formatTodayVi(now)
 
     val sessionManager = com.example.apphotrohoctap.data.SessionManager(LocalContext.current)
-    val fullName = sessionManager.getRegisteredFullName() ?: "bạn"
-    val firstName = fullName.split(" ").lastOrNull() ?: "bạn"
+    val fullName = sessionManager.getRegisteredFullName()
+    val firstName = com.example.apphotrohoctap.ui.common.NameUtils.extractFirstName(fullName)
     
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
