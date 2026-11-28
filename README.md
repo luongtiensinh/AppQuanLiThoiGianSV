@@ -14,7 +14,7 @@
   
   <h3>📥 TẢI XUỐNG ỨNG DỤNG TẠI ĐÂY</h3>
   
-  [![Download APK](https://img.shields.io/badge/Download-Release_v1.0.0-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/luongtiensinh/AppQuanLiThoiGianSV/releases/download/v1.0.0/app-release.apk)
+  [![Download APK](https://img.shields.io/badge/Download-Release_v1.0.1-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/luongtiensinh/AppQuanLiThoiGianSV/releases/download/v1.0.1/app-release.apk)
 
   *Hoặc dùng ứng dụng quét mã QR bên dưới để tải trực tiếp vào điện thoại Android:*
   
