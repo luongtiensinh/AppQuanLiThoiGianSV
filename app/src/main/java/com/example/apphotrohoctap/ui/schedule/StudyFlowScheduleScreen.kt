@@ -460,26 +460,7 @@ private fun MonthCalendarWidget(
                             val nowCal = java.util.Calendar.getInstance()
                             val isToday = day == nowCal.get(java.util.Calendar.DAY_OF_MONTH) && month == nowCal.get(java.util.Calendar.MONTH) && year == nowCal.get(java.util.Calendar.YEAR)
                             
-                            val hasEvents = schedules.any { s ->
-                                val dow = if (dayCal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.SUNDAY) 7 else dayCal.get(java.util.Calendar.DAY_OF_WEEK) - 1
-                                val scheduleStart = java.util.Calendar.getInstance().apply { 
-                                    timeInMillis = s.startDateMillis
-                                    set(java.util.Calendar.HOUR_OF_DAY, 0)
-                                    set(java.util.Calendar.MINUTE, 0)
-                                    set(java.util.Calendar.SECOND, 0)
-                                    set(java.util.Calendar.MILLISECOND, 0)
-                                }.timeInMillis
-                                
-                                val scheduleEnd = java.util.Calendar.getInstance().apply { 
-                                    timeInMillis = s.endDateMillis
-                                    set(java.util.Calendar.HOUR_OF_DAY, 23)
-                                    set(java.util.Calendar.MINUTE, 59)
-                                    set(java.util.Calendar.SECOND, 59)
-                                    set(java.util.Calendar.MILLISECOND, 999)
-                                }.timeInMillis
-
-                                s.dayOfWeek == dow && dayMillis in scheduleStart..scheduleEnd
-                            }
+                            val hasEvents = schedules.any { s -> s.isOccurringOnDate(dayMillis) }
                             
                             Box(
                                 modifier = Modifier
