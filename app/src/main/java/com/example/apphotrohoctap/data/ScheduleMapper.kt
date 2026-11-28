@@ -130,3 +130,39 @@ internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
         statusTextColor = statusTextColor
     )
 }
+
+internal fun ScheduleEntity.isOccurringOnDate(dateMillis: Long): Boolean {
+    val cal = Calendar.getInstance().apply { timeInMillis = dateMillis }
+    val dayOfWeekInt = if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) 7 else cal.get(Calendar.DAY_OF_WEEK) - 1
+    
+    if (this.dayOfWeek != dayOfWeekInt) return false
+
+    // Nếu không thiết lập ngày (dữ liệu cũ), ngầm định thỏa mãn
+    if (startDateMillis <= 0L || endDateMillis <= 0L) return true
+
+    val dayStart = Calendar.getInstance().apply {
+        timeInMillis = dateMillis
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    val schedStart = Calendar.getInstance().apply {
+        timeInMillis = startDateMillis
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    val schedEnd = Calendar.getInstance().apply {
+        timeInMillis = endDateMillis
+        set(Calendar.HOUR_OF_DAY, 23)
+        set(Calendar.MINUTE, 59)
+        set(Calendar.SECOND, 59)
+        set(Calendar.MILLISECOND, 999)
+    }.timeInMillis
+
+    return dayStart in schedStart..schedEnd
+}
