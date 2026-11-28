@@ -46,7 +46,10 @@ internal fun resolveRoomAndLecturer(room: String, lecturer: String): Pair<String
         }
     }
 
-    return Pair(trimmedRoom, trimmedLecturer)
+    return Pair(
+        trimmedRoom.ifBlank { "Chưa xếp phòng" }, 
+        trimmedLecturer.ifBlank { "Chưa phân công" }
+    )
 }
 
 internal fun ScheduleEntity.toUiModel(now: Long): StudyClass {
