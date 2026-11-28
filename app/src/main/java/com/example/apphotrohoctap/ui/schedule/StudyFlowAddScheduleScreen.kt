@@ -250,20 +250,20 @@ fun StudyFlowAddScheduleScreen(
 
                     val schedule = ScheduleEntity(
                         id = scheduleId ?: 0,
-                        subject = courseName,
-                        courseCode = courseCode,
+                        subject = courseName.trim(),
+                        courseCode = courseCode.trim(),
                         dayOfWeek = dayInt,
                         startPeriod = packedStart,
                         endPeriod = packedEnd,
-                        room = room,
-                        lecturer = instructor,
+                        room = room.trim(),
+                        lecturer = instructor.trim(),
                         repeatWeekly = repeatsWeekly,
                         startDateMillis = startMillis,
                         endDateMillis = endMillis,
                         colorKey = selectedColor.toString()
                     )
 
-                    if (courseName.isBlank()) {
+                    if (courseName.trim().isBlank()) {
                         showValidationErrors = true
                         isSaving = false
                         android.widget.Toast.makeText(context, "Vui lòng nhập tên môn học", android.widget.Toast.LENGTH_SHORT).show()
