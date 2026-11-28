@@ -901,7 +901,8 @@ private fun FullWeekScheduleView(
         for (i in 1..7) {
             val dateStr = dayFormat.format(cal.time)
             val dayHeaderLabel = "${dayLabels[i - 1]}, $dateStr"
-            val dayClasses = schedules.filter { it.dayOfWeek == i }
+            val targetDayMillis = cal.timeInMillis
+            val dayClasses = schedules.filter { it.isOccurringOnDate(targetDayMillis) }
                 .sortedBy { if (it.startPeriod >= 10000) (it.startPeriod % 10000) / 100 else it.startPeriod }
             totalClassesInWeek += dayClasses.size
 
