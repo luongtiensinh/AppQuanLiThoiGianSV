@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.apphotrohoctap.data.GradeRepository
 import com.example.apphotrohoctap.data.ScheduleRepository
 import com.example.apphotrohoctap.data.TaskRepository
+import com.example.apphotrohoctap.data.isOccurringOnDate
 import com.example.apphotrohoctap.data.toUiModel
 import com.example.apphotrohoctap.ui.analytics.GamificationEngine
 import kotlinx.coroutines.flow.SharingStarted
@@ -93,7 +94,7 @@ internal class HomeViewModel(
 
         // Format Schedules
         val todaySchedules = scheduleList
-            .filter { it.dayOfWeek == currentDayInt }
+            .filter { it.isOccurringOnDate(now) }
             .map { it.toUiModel(now) }
             .sortedBy { it.time }
 
