@@ -52,6 +52,7 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.apphotrohoctap.data.isOccurringOnDate
 import com.example.apphotrohoctap.data.toUiModel
 import com.example.apphotrohoctap.R
 import androidx.compose.foundation.combinedClickable
@@ -103,7 +104,7 @@ fun StudyFlowScheduleScreen(
 
     // For Week View and timeline underneath Month View
     val dayClasses = schedules
-        .filter { it.dayOfWeek == selectedDayInt }
+        .filter { it.isOccurringOnDate(selectedDateMillis) }
         .map { it.toUiModel(now) }
         
     var scheduleToDelete by remember { mutableStateOf<com.example.apphotrohoctap.data.ScheduleEntity?>(null) }
